@@ -1,0 +1,123 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <title>Dylan Ward Studios - Youtube</title>
+    <link rel="stylesheet" href="assets/css/main-no-load.css" />
+    <noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <style>
+        /* Adjust the video container */
+        #video-container {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Style for each video */
+        #video-container .video {
+            width: 30%; /* Default width for three videos per row */
+            aspect-ratio: 16 / 9; /* Keep 16:9 aspect ratio */
+            max-width: 600px; /* Limit width of individual videos */
+            height: auto; /* Auto height based on aspect ratio */
+            border-radius: 15px; /* Rounded corners for videos */
+            overflow: hidden;
+        }
+
+        #video-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Responsive layout for smaller screens */
+        @media (max-width: 900px) {
+            #video-container .video {
+                width: 45%; /* Two videos per row */
+            }
+        }
+
+        @media (max-width: 600px) {
+            #video-container .video {
+                width: 100%; /* One video per row */
+            }
+        }
+    </style>
+</head>
+<body class="is-preload">
+    <div id="wrapper">
+        <div id="bg"></div>
+        <div id="overlay"></div>
+        <div id="main">
+
+            <!-- Header -->
+            <header id="header">
+                <h1>Wardium</h1>
+                <p>My Youtube channel</p>
+                <nav>
+                    <ul>
+                        <li><a href="projects.html" class="link icon solid fa-warehouse"><span class="label">Projects</span></a></li>
+                    </ul>
+						<!-- Custom YouTube Channel Widget -->
+					<div id="youtube-widget">
+						<h2>Recent Videos</h2>
+						<div id="video-container"></div>
+					</div>
+                </nav>
+            </header>
+
+            <!-- Footer -->
+            <footer id="footer">
+                <span class="copyright">&copy; Dylan Ward Studios.</span>
+            </footer>
+
+        </div>
+    </div>
+
+    <script>
+        // Ensure the page scrolls
+        window.onload = function() {
+            document.body.classList.remove('is-preload');
+        }
+
+        // Fetch the latest three YouTube videos using the YouTube Data API
+        const apiKey = 'AIzaSyBJOxbeWZbEeQWpZqEUWR3NLSruB8GEgDY'; // Replace with your API key
+        const channelId = 'UCa58Tk1Q5DWM2gSDjERWQ8Q'; // Replace with your YouTube Channel ID
+
+        async function fetchVideos() {
+            const url = `https://www.googleapis.com/youtube/v3/search?key=${apiKey}&channelId=${channelId}&order=date&part=snippet&type=video&maxResults=3`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                const videoContainer = document.getElementById('video-container');
+                videoContainer.innerHTML = ''; // Clear any previous content
+
+                data.items.forEach(item => {
+                    const videoId = item.id.videoId;
+                    const iframe = document.createElement('iframe');
+                    iframe.src = `https://www.youtube.com/embed/${videoId}`;
+                    iframe.allow = "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture";
+                    iframe.allowFullscreen = true;
+
+                    const videoDiv = document.createElement('div');
+                    videoDiv.classList.add('video');
+                    videoDiv.appendChild(iframe);
+
+                    videoContainer.appendChild(videoDiv);
+                });
+            } catch (error) {
+                console.error('Error fetching videos:', error);
+            }
+        }
+
+        fetchVideos();
+    </script>
+
+</body>
+</html>
