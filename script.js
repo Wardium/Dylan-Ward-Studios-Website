@@ -91,9 +91,3 @@ window.addEventListener('DOMContentLoaded', () => {
     footer.style.opacity = '1';
   }, 1300); // slightly after overlay starts fading
 });
-// Fly in the frosted white section
-const introSection = document.querySelector('.intro-frosted');
-
-setTimeout(() => {
-  introSection.classList.add('fly-in');
-}, 1200); // after logo animation
