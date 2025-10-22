@@ -22,6 +22,20 @@
   animation: fall 1s ease-out forwards;
 }
 
+/* Intro frosted fly-in */
+.intro-frosted {
+  opacity: 0;                  /* start invisible */
+  transform: translateY(100px); /* start below */
+  transition: transform 0.8s ease, opacity 0.8s ease;
+}
+
+/* Trigger fly-in */
+.intro-frosted.fly-in {
+  opacity: 1;
+  transform: translateY(0); /* moves to normal position */
+}
+
+
 @keyframes fall {
   0% {
     transform: translateY(-300px);
@@ -135,6 +149,7 @@ main {
   transform: translateX(100%);
   transition: transform 0.5s ease-in-out, opacity 0.2s ease 0.3s;
   opacity: 0;
+  border-radius: 40px;
   z-index: 0;
 }
 
