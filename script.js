@@ -1,3 +1,24 @@
+// ----------------------
+// RANDOM BACKGROUND SVG
+// ----------------------
+const backgrounds = [
+  'assets/background1.svg',
+  'assets/background2.svg',
+  'assets/background3.svg',
+  'assets/background4.svg'
+];
+
+const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+const introOverlay = document.querySelector('.intro-overlay');
+
+// Dynamically override CSS background for overlay
+introOverlay.style.background = `url('${randomBg}') no-repeat center center`;
+introOverlay.style.backgroundSize = 'cover';
+
+// Also override body background for consistency
+document.body.style.background = `url('${randomBg}') no-repeat center center fixed`;
+document.body.style.backgroundSize = 'cover';
+
 const sections = document.querySelectorAll('.section');
 const leftArrow = document.querySelector('.arrow.left');
 const rightArrow = document.querySelector('.arrow.right');
@@ -68,10 +89,8 @@ const main = document.querySelector('main');
 const header = document.querySelector('header');
 const footer = document.querySelector('footer');
 
-main.style.opacity = '0';
 header.style.opacity = '0';
 footer.style.opacity = '0';
-main.style.transition = 'opacity 1s ease';
 header.style.transition = 'opacity 1s ease';
 footer.style.transition = 'opacity 1s ease';
 
@@ -82,12 +101,12 @@ window.addEventListener('DOMContentLoaded', () => {
   // Fade out overlay after fall animation (~1s)
   setTimeout(() => {
     introOverlay.classList.add('fade-out');
-  }, 1200);
+  }, 2200);
 
-  // Fade in website content after overlay starts fading
+  // Fly in main content and fade header/footer after overlay starts fading
   setTimeout(() => {
-    main.style.opacity = '1';
+    main.classList.add('main-fly-in');
     header.style.opacity = '1';
     footer.style.opacity = '1';
-  }, 1300); // slightly after overlay starts fading
+  }, 1300);
 });

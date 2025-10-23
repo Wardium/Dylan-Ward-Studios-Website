@@ -1,3 +1,9 @@
+@keyframes floatDown {
+  0% { transform: translateY(-40px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+
 .intro-overlay {
   position: fixed;
   top: 0;
@@ -19,7 +25,7 @@
 .intro-logo {
   width: 300px;
   transform: translateY(-300px); /* start off-screen */
-  animation: fall 1s ease-out forwards;
+  animation: floatDown 1.5s ease-out forwards; /* longer duration */
 }
 
 @keyframes fall {
@@ -56,16 +62,60 @@ body, html {
   height: 100%;
   overflow-x: hidden;
   background: url('assets/background.svg') no-repeat center center fixed;
+  background-attachment: fixed;
+  margin: 0;
   background-size: cover;
   color: #111;
+  z-index: 0;
 }
+
+/* overlay that starts fully black and opens a transparent center */
+#bg-fade-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  /* start fully black */
+  background: radial-gradient(circle at center,
+    rgba(0,0,0,1) 0%,
+    rgba(0,0,0,1) 100%);
+  animation: revealCenter 1.6s ease-out forwards;
+}
+
+/* keyframes: fully black -> transparent center expands -> gone */
+@keyframes revealCenter {
+  0% {
+    /* fully black */
+    background: radial-gradient(circle at center,
+      rgba(0,0,0,1) 0%,
+      rgba(0,0,0,1) 100%);
+    opacity: 1;
+  }
+  55% {
+    /* open a small transparent center, feathered edge */
+    background: radial-gradient(circle at center,
+      rgba(0,0,0,0) 0%,
+      rgba(0,0,0,0) 30%,
+      rgba(0,0,0,0.85) 50%,
+      rgba(0,0,0,0.95) 65%,
+      rgba(0,0,0,1) 100%);
+    opacity: 1;
+  }
+  100% {
+    /* fully gone */
+    background: radial-gradient(circle at center,
+      rgba(0,0,0,0) 0%,
+      rgba(0,0,0,0) 100%);
+    opacity: 0;
+  }
+}
+
 
 header, footer {
   position: fixed;
   width: 100%;
   left: 0;
   background: rgba(30, 30, 30, 0.0);
-  backdrop-filter: blur(14px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -93,6 +143,18 @@ main {
   height: 100vh;
   overflow: hidden;
   position: relative;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.0) 0%, /* lower alpha = more see-through */
+    rgba(255, 255, 255, 0.0) 0%
+  );
+  border-radius: 40px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 0 40px rgba(255, 255, 255, 0.1);
+  
+  backdrop-filter: blur(10px) saturate(2.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .section-container {
@@ -107,17 +169,18 @@ main {
   /* Frosted glass background */
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.25) 0%, /* lower alpha = more see-through */
-    rgba(255, 255, 255, 0.15) 100%
+    rgba(255, 255, 255, 0.50) 0%, /* lower alpha = more see-through */
+    rgba(255, 255, 255, 0.20) 100%
   );
   border-radius: 40px;
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
     inset 0 0 40px rgba(255, 255, 255, 0.1);
   
-  backdrop-filter: blur(30px) saturate(1.3);
+  backdrop-filter: blur(40px) saturate(2.3);
   border: 1px solid rgba(255, 255, 255, 0.2);
   overflow: hidden;
+  z-index: 1;
 }
 
 
@@ -136,7 +199,7 @@ main {
   transition: transform 0.5s ease-in-out, opacity 0.2s ease 0.3s;
   opacity: 0;
   border-radius: 40px;
-  z-index: 0;
+  z-index: 2;
 }
 
 .section.active {
@@ -197,10 +260,19 @@ main {
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   cursor: pointer;
+  box-sizing: border-box;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   z-index: 20;
 }
+
+.arrow svg {
+  width: 40px;
+  height: 40px;
+  display: block;      /* remove inline spacing */
+  margin: auto;        /* center inside button */
+}
+
 
 
 .arrow:hover {
@@ -209,10 +281,24 @@ main {
 
 .arrow.left {
   left: 2rem;
+  width: 60px;
+  height: 60px;
+}
+
+.arrow.left svg {
+  position: relative;
+  right: 1px;
+}
+
+.arrow.right svg {
+  position: relative;
+  left: 1px;
 }
 
 .arrow.right {
   right: 2rem;
+  width: 60px;
+  height: 60px;
 }
 
 .section.active {
@@ -276,4 +362,49 @@ main {
 .rounded {
   border-radius: 15px;
   overflow: hidden;
+}
+
+/* Fly-in animation for main content */
+@keyframes flyInFromBottom {
+  0% {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.main-fly-in {
+  animation: flyInFromBottom 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* Start main content off-screen and invisible */
+main {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: none; /* prevent instant fade transition */
+}
+
+html, body {
+  overflow-x: hidden;
+  overflow-y: hidden; /* Prevent scrollbar during intro */
+}
+
+body.intro-done {
+  overflow-y: auto; /* Restore scrolling after intro finishes */
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.fade-out {
+  animation: fadeOut 1s ease forwards;
 }
