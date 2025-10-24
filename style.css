@@ -61,6 +61,7 @@
 body, html {
   height: 100%;
   overflow-x: hidden;
+  color: black;
   background: url('assets/background.svg') no-repeat center center fixed;
   background-attachment: fixed;
   margin: 0;
@@ -79,36 +80,56 @@ body, html {
   background: radial-gradient(circle at center,
     rgba(0,0,0,1) 0%,
     rgba(0,0,0,1) 100%);
-  animation: revealCenter 1.6s ease-out forwards;
+  animation: revealCenter 1.6s linear forwards;
 }
 
 /* keyframes: fully black -> transparent center expands -> gone */
 @keyframes revealCenter {
   0% {
-    /* fully black */
+    /* Start fully black */
     background: radial-gradient(circle at center,
-      rgba(0,0,0,1) 0%,
-      rgba(0,0,0,1) 100%);
+      rgba(0, 0, 0, 1) 0%,
+      rgba(0, 0, 0, 1) 100%);
     opacity: 1;
   }
-  55% {
-    /* open a small transparent center, feathered edge */
+
+  30% {
+    /* Still fully black — no change yet */
     background: radial-gradient(circle at center,
-      rgba(0,0,0,0) 0%,
-      rgba(0,0,0,0) 30%,
-      rgba(0,0,0,0.85) 50%,
-      rgba(0,0,0,0.95) 65%,
-      rgba(0,0,0,1) 100%);
+      rgba(0, 0, 0, 1) 0%,
+      rgba(0, 0, 0, 1) 100%);
     opacity: 1;
   }
+
+  60% {
+    /* Begin a *gentle* open from center */
+    background: radial-gradient(circle at center,
+      rgba(0, 0, 0, 0.9) 0%,
+      rgba(0, 0, 0, 0.95) 20%,
+      rgba(0, 0, 0, 1) 80%);
+    opacity: 1;
+  }
+
+  85% {
+    /* Smoothly widen the transparent area */
+    background: radial-gradient(circle at center,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.4) 35%,
+      rgba(0, 0, 0, 0.85) 70%,
+      rgba(0, 0, 0, 1) 100%);
+    opacity: 1;
+  }
+
   100% {
-    /* fully gone */
+    /* Fully gone */
     background: radial-gradient(circle at center,
-      rgba(0,0,0,0) 0%,
-      rgba(0,0,0,0) 100%);
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0) 100%);
     opacity: 0;
   }
 }
+
+
 
 
 header, footer {
@@ -138,10 +159,11 @@ footer {
 }
 
 main {
-  padding-top: 70px;
-  padding-bottom: 50px;
+  margin-top: 70px;
+  margin-bottom: 50px;
+  margin-left: 1rem;
+  margin-right: 1rem;
   height: 100vh;
-  overflow: hidden;
   position: relative;
   background: linear-gradient(
     135deg,
@@ -159,9 +181,8 @@ main {
 
 .section-container {
   position: relative;
-  margin: 1rem auto;
-  width: 98%;
-  height: 98%;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -250,7 +271,7 @@ main {
 /* Arrows */
 .arrow {
   position: fixed;
-  top: 6.5rem; /* or wherever you want vertically */
+  top: 1.2rem; /* or wherever you want vertically */
   display: flex;          /* make it a flex container */
   justify-content: center; /* horizontal center */
   align-items: center;     /* vertical center */
@@ -280,7 +301,7 @@ main {
 }
 
 .arrow.left {
-  left: 2rem;
+  left: 1.2rem;
   width: 60px;
   height: 60px;
 }
@@ -296,7 +317,7 @@ main {
 }
 
 .arrow.right {
-  right: 2rem;
+  right: 1.2rem;
   width: 60px;
   height: 60px;
 }
