@@ -7,6 +7,20 @@
   <title>Dylan Ward Studios</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
+<style>
+  body {
+    opacity: 0;               /* start hidden */
+    transition: opacity 1s ease; /* fade duration and easing */
+  }
+</style>
+
+<script>
+  window.addEventListener("load", () => {
+    document.body.style.opacity = "1"; // fade in from white
+  });
+</script>
+
 <body>
 
   <div class="intro-overlay">
@@ -20,7 +34,7 @@
   <main>
   <div class="section-container">
     <section class="section active">
-      <img src="banner1.jpg" alt="Banner 1">
+      <img class="imagecontroller" src="assets/background1.svg" alt="Banner 1">
       <h1>Home</h1>
     </section>
 
