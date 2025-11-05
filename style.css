@@ -418,14 +418,16 @@ body.intro-done {
 }
 
 .imagecontroller {
+  margin-left: 1rem;
+  margin-right: 1rem;
   position: relative;
   min-height: 55%;
   height: auto;
   display: inline-block;
   border-radius: 40px;
   overflow: hidden;
-  opacity: 0.95;
-  width: 100%;
+  opacity: 0.9;
+  width: 96.4%;
   margin: 0.5rem;
   object-fit: cover;
 }
