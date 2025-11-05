@@ -419,7 +419,8 @@ body.intro-done {
 
 .imagecontroller {
   position: relative;
-  min-height: 100%;
+  min-height: 55%;
+  height: auto;
   display: inline-block;
   border-radius: 40px;
   overflow: hidden;
