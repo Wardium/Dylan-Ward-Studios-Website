@@ -418,8 +418,6 @@ body.intro-done {
 }
 
 .imagecontroller {
-  margin-left: 1rem;
-  margin-right: 1rem;
   position: relative;
   min-height: 55%;
   height: auto;
