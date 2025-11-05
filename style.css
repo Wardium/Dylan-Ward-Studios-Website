@@ -427,6 +427,7 @@ body.intro-done {
   opacity: 0.95;
   width: 100%;
   margin: 0.5rem;
+  object-fit: cover;
 }
 
 .scrollsection {
