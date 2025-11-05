@@ -177,16 +177,15 @@ main {
   
   backdrop-filter: blur(40px) saturate(2.3);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  overflow: hidden;
+  overflow-y: hidden;
+  overflow-x: hidden;
   z-index: 1;
-  min-height: 70vh; /* ensures minimum size */
+  min-height: 80vh; /* ensures minimum size */
 }
-
 
 .section {
   position: absolute;
   width: 100%;
-  height: 100%;
   top: 0;
   left: 0;
   display: flex;
@@ -245,7 +244,7 @@ main {
 
 
 .section img {
-  max-width: 70%;
+  max-width: 97%;
   border-radius: 25px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
@@ -419,7 +418,59 @@ body.intro-done {
 }
 
 .imagecontroller {
-	border: 5px;
-	-webkit-mask-image: radial-gradient(circle, white 85%, transparent 100%);
-        mask-image: radial-gradient(circle, white 85%, transparent 100%);
+  position: relative;
+  min-height: 100%;
+  display: inline-block;
+  border-radius: 40px;
+  overflow: hidden;
+  opacity: 0.95;
+  width: 100%;
+  margin: 0.5rem;
+}
+
+.scrollsection {
+  padding-top: 5.5rem;
+  width: 100%;
+  height: 80vh;
+  overflow-y: overlay;
+  overflow-x: hidden;
+    /* Hide scrollbar in all major browsers */
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;    /* IE/Edge legacy */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* instead of center */
+}
+
+/* Hide scrollbar track, only show a thin floating thumb */
+::-webkit-scrollbar {
+  width: 6px;
+  background: transparent; /* no background/track */
+}
+
+/* The draggable thumb itself */
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.15); /* subtle */
+  border-radius: 10px;
+}
+
+/* Slightly brighter when hovered */
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+
+/* Remove gutter — this is what caused the white edges */
+html {
+  scrollbar-gutter: auto;
+}
+
+.scrollsection::-webkit-scrollbar {
+  display: none;               /* Chrome, Safari, Edge */
 }
