@@ -485,7 +485,6 @@ html {
 /* --- 1. The Content Grid --- */
 .content-grid {
   width: 96%;
-  max-width: 1200px;
   margin: 20px auto;
   display: flex;
   flex-wrap: wrap;
