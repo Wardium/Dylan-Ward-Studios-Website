@@ -180,7 +180,7 @@ main {
   overflow-y: hidden;
   overflow-x: hidden;
   z-index: 1;
-  min-height: 80vh; /* ensures minimum size */
+  min-height: 86vh; /* ensures minimum size */
 }
 
 .section {
@@ -438,7 +438,7 @@ body.intro-done {
 .scrollsection {
   padding-top: 5.5rem;
   width: 100%;
-  height: 80vh;
+  height: 86vh;
   overflow-y: scroll;
   overflow-x: hidden;
     /* Hide scrollbar in all major browsers */
