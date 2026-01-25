@@ -32,89 +32,193 @@
   </header>
 
   <main>
-  <div class="section-container">
-    <section class="section active">
-	  <section class="scrollsection">
-		  <img class="imagecontroller" src="assets/backgrounds/home.png" alt="Home Banner">
-		  <div class="bannerspacer"></div>
-		  <h1>Home</h1>
-	  </section>
-    </section>
+    <div class="section-container">
+      
+      <section class="section active">
+        <section class="scrollsection">
+          
+          <div class="banner-container">
+            <img class="banner-img" src="assets/backgrounds/home.png" alt="Home Banner">
+            <div class="banner-overlay">
+              <h1>Home</h1>
+            </div>
+          </div>
 
-    <section class="section">
-		<section class="scrollsection">
-		  <img class="imagecontroller" src="assets/backgrounds/about.png" alt="About Banner">
-		  <div class="bannerspacer"></div>
-		  <h1>About</h1>
-		</section>
-    </section>
+          <div class="content-grid">
+            
+            <div class="glass-block col-full">
+              <h2>Welcome to the Studio</h2>
+              <p>This is a <strong>full-width text block</strong>. It expands to fit the container width. The frosted glass background adapts to the height of your text automatically. You can use standard HTML tags like <b>bold</b>, <i>italics</i>, or lists here.</p>
+            </div>
 
-    <section class="section">
-		<section class="scrollsection">
-		  <img class="imagecontroller" src="assets/backgrounds/games.png" alt="Games Banner">
-		  <div class="bannerspacer"></div>
-		  <h1>Games</h1>
-		</section>
-    </section>
-	
-	<section class="section">
-	  <section class="scrollsection">
-		  <img class="imagecontroller" src="assets/backgrounds/music.png" alt="Music Banner">
-		  <div class="bannerspacer"></div>
-		  <h1>Music</h1>
-	  </section>
-    </section>
-	
-	<section class="section">
-	  <section class="scrollsection">
-		  <img class="imagecontroller" src="assets/backgrounds/video.png" alt="Video Creation Banner">
-		  <div class="bannerspacer"></div>
-		  <h1>Video Creation</h1>
-	  </section>
-    </section>
-	
-	<section class="section">
-	  <section class="scrollsection">
-		  <img class="imagecontroller" src="assets/backgrounds/software.png" alt="Software Banner">
-		  <div class="bannerspacer"></div>
-		  <h1>Software</h1>
-	  </section>
-    </section>
-	
-	<section class="section">
-	  <section class="scrollsection">
-		  <img class="imagecontroller" src="assets/backgrounds/stories.png" alt="Stories Banner">
-		  <div class="bannerspacer"></div>
-		  <h1>Stories</h1>
-	  </section>
-    </section>
-	
-	<section class="section">
-	  <section class="scrollsection">
-		  <img class="imagecontroller" src="assets/backgrounds/social.png" alt="Social Banner">
-		  <div class="bannerspacer"></div>
-		  <h1>Social</h1>
-	  </section>
-    </section>
-	
-	<section class="section dev-section">
-	  <section class="scrollsection">
-		  <h1>Developers Only.</h1>
-	  </section>
-    </section>
-  </div>
+            <div class="glass-block col-half">
+              <h2>Left Column</h2>
+              <p>This block is set to 50% width. It sits perfectly next to the other block. You can change the alignment easily by moving the HTML div order.</p>
+            </div>
 
-	<button class="arrow left">
-	  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-		<path d="M15 18L9 12L15 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-	  </svg>
-	</button>
+            <div class="glass-block col-half">
+              <h2>Right Column</h2>
+              <p>This is the neighbor block. If you add more text here, the box will grow vertically, but the width stays at 50% (on desktop).</p>
+            </div>
 
-	<button class="arrow right">
-	  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-		<path d="M9 6L15 12L9 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-	  </svg>
-	</button>
+            <div class="glass-block media-block col-full">
+              <img src="assets/backgrounds/about.png" alt="Example Image">
+            </div>
+
+            <div class="glass-block media-block col-half">
+              <img src="assets/backgrounds/games.png" alt="Example Game Image">
+            </div>
+
+            <div class="glass-block media-block col-half">
+              <div class="video-wrapper">
+                <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=Example" title="YouTube video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+              </div>
+            </div>
+
+             <a href="https://google.com" target="_blank" class="glass-block col-half">
+                <img src="assets/backgrounds/software.png" class="link-bg" alt="Link Background">
+                <div class="link-content">
+                  <h2>Visit Software</h2>
+                  <p>Click to open link</p>
+                </div>
+             </a>
+
+             <a href="#" class="glass-block col-half">
+                <img src="assets/backgrounds/music.png" class="link-bg" alt="Link Background">
+                <div class="link-content">
+                  <h2>Listen Now</h2>
+                  <p>Check out the latest tracks</p>
+                </div>
+             </a>
+
+          </div> </section>
+      </section>
+
+      <section class="section">
+        <section class="scrollsection">
+          <div class="banner-container">
+            <img class="banner-img" src="assets/backgrounds/about.png" alt="About Banner">
+            <div class="banner-overlay">
+              <h1>About</h1>
+            </div>
+          </div>
+
+          <div class="content-grid">
+            <div class="glass-block col-full">
+              <h2>About Dylan Ward Studios</h2>
+              <p>Example text goes here. Copy and paste elements from the Home section to build this page out!</p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="section">
+        <section class="scrollsection">
+          <div class="banner-container">
+            <img class="banner-img" src="assets/backgrounds/games.png" alt="Games Banner">
+            <div class="banner-overlay">
+              <h1>Games</h1>
+            </div>
+          </div>
+
+          <div class="content-grid">
+            <div class="glass-block col-full">
+              <h2>Latest Games</h2>
+              <p>Content coming soon...</p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="section">
+        <section class="scrollsection">
+          <div class="banner-container">
+            <img class="banner-img" src="assets/backgrounds/music.png" alt="Music Banner">
+            <div class="banner-overlay">
+              <h1>Music</h1>
+            </div>
+          </div>
+          <div class="content-grid">
+            <div class="glass-block col-full"><p>Music content...</p></div>
+          </div>
+        </section>
+      </section>
+
+      <section class="section">
+        <section class="scrollsection">
+           <div class="banner-container">
+            <img class="banner-img" src="assets/backgrounds/video.png" alt="Video Banner">
+            <div class="banner-overlay">
+              <h1>Video Creation</h1>
+            </div>
+          </div>
+          <div class="content-grid">
+             <div class="glass-block col-full"><p>Video content...</p></div>
+          </div>
+        </section>
+      </section>
+
+      <section class="section">
+        <section class="scrollsection">
+          <div class="banner-container">
+            <img class="banner-img" src="assets/backgrounds/software.png" alt="Software Banner">
+            <div class="banner-overlay">
+              <h1>Software</h1>
+            </div>
+          </div>
+          <div class="content-grid">
+             <div class="glass-block col-full"><p>Software content...</p></div>
+          </div>
+        </section>
+      </section>
+
+      <section class="section">
+        <section class="scrollsection">
+          <div class="banner-container">
+            <img class="banner-img" src="assets/backgrounds/stories.png" alt="Stories Banner">
+            <div class="banner-overlay">
+              <h1>Stories</h1>
+            </div>
+          </div>
+          <div class="content-grid">
+             <div class="glass-block col-full"><p>Stories content...</p></div>
+          </div>
+        </section>
+      </section>
+
+      <section class="section">
+        <section class="scrollsection">
+          <div class="banner-container">
+            <img class="banner-img" src="assets/backgrounds/social.png" alt="Social Banner">
+            <div class="banner-overlay">
+              <h1>Social</h1>
+            </div>
+          </div>
+          <div class="content-grid">
+             <div class="glass-block col-full"><p>Social content...</p></div>
+          </div>
+        </section>
+      </section>
+
+      <section class="section dev-section hidden">
+        <section class="scrollsection">
+          <h1>Developers Only.</h1>
+        </section>
+      </section>
+
+    </div>
+
+    <button class="arrow left">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 18L9 12L15 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <button class="arrow right">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9 6L15 12L9 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
   </main>
 
 
