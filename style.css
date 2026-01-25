@@ -480,36 +480,31 @@ html {
 }
 
 /* =========================================
-   NEW MODULAR CONTENT SYSTEM
+   NEW MODULAR CONTENT SYSTEM (REVISED)
    ========================================= */
 
 /* --- 1. The Content Grid --- */
-/* This container holds all your blocks and handles the spacing automatically */
 .content-grid {
-  width: 96%;           /* Matches your image width preference */
-  max-width: 1200px;    /* Prevents it from getting too stretched on huge screens */
-  margin: 20px auto;    /* Centers the grid */
+  width: 96%;
+  max-width: 1200px;
+  margin: 20px auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;            /* Space between elements */
-  padding-bottom: 50px; /* Space at bottom of scroll */
+  gap: 20px;
+  padding-bottom: 50px;
 }
 
 /* --- 2. Sizing Utilities --- */
-/* Full Width Block */
 .col-full {
   flex: 0 0 100%;
   width: 100%;
 }
 
-/* Half Width Block */
 .col-half {
-  /* Calculates 50% width minus half the gap size so they fit side-by-side */
   flex: 0 0 calc(50% - 10px); 
   width: calc(50% - 10px);
 }
 
-/* Mobile Responsive: Stack half-blocks on small screens */
 @media (max-width: 768px) {
   .col-half {
     flex: 0 0 100%;
@@ -517,10 +512,17 @@ html {
   }
 }
 
-/* --- 3. The "Glass Block" Base --- */
-/* All elements (text, video, image) use this for the look */
+/* --- 3. The "Glass Block" Base & Underwater Animation --- */
+
+/* Define the subtle underwater float */
+@keyframes underwaterFloat {
+  0%   { translate: 0 0px; }
+  50%  { translate: 0 -6px; } /* Moves up slightly */
+  100% { translate: 0 0px; }
+}
+
 .glass-block {
-  background: rgba(255, 255, 255, 0.15); /* The frost color */
+  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(20px) saturate(1.8);
   -webkit-backdrop-filter: blur(20px) saturate(1.8);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -528,16 +530,29 @@ html {
   padding: 25px;
   color: #000;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  overflow: hidden; /* Keeps content inside rounded corners */
+  
+  /* MOVEMENT & ANIMATION SETTINGS */
+  overflow: hidden;
   position: relative;
+  
+  /* The independent properties allow float and hover to coexist */
+  scale: 1; 
+  animation: underwaterFloat 5s ease-in-out infinite; 
+  
+  /* Slower, smoother transition for the hover effect */
+  transition: 
+    scale 0.6s cubic-bezier(0.22, 1, 0.36, 1), 
+    box-shadow 0.6s ease,
+    background 0.3s ease;
 }
 
-/* Hover Effect for all blocks */
+/* Hover Effect: Stop floating, grow smoothly */
 .glass-block:hover {
-  transform: scale(1.02); /* Slight grow */
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  scale: 1.03; /* Grow slightly */
+  animation-play-state: paused; /* Pauses the float where it is */
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2); /* Deeper shadow */
   z-index: 5;
+  background: rgba(255, 255, 255, 0.25); /* Slightly brighter glass */
 }
 
 /* --- 4. Specific Block Types --- */
@@ -553,28 +568,42 @@ html {
   font-size: 1rem;
 }
 
-/* Image Block Styling */
+/* MEDIA BLOCK (Images & Videos) 
+   Updated: Adds padding and centers the content 
+*/
 .glass-block.media-block {
-  padding: 0; /* No padding for images so they fill the glass */
+  padding: 15px; /* Creates the glass border effect around the image */
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
+/* The Image inside the glass */
 .glass-block.media-block img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 20px; /* Match container */
-  box-shadow: none;    /* Remove default img shadow from previous CSS */
+  border-radius: 12px; /* Slightly smaller radius than container */
+  
+  /* The "Corner Fade" Effect */
+  /* This creates a mask that is solid in the middle and fades out at the very edges */
+  -webkit-mask-image: radial-gradient(ellipse at center, black 95%, transparent 100%);
+  mask-image: radial-gradient(ellipse at center, black 95%, transparent 100%);
 }
 
-/* Video Block Styling */
+/* Video Wrapper */
 .video-wrapper {
   position: relative;
   width: 100%;
-  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  padding-bottom: 56.25%; /* 16:9 */
   height: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  /* Apply fade mask to video container too */
+  -webkit-mask-image: radial-gradient(ellipse at center, black 95%, transparent 100%);
+  mask-image: radial-gradient(ellipse at center, black 95%, transparent 100%);
 }
+
 .video-wrapper iframe, 
 .video-wrapper video {
   position: absolute;
@@ -582,49 +611,53 @@ html {
   left: 0;
   width: 100%;
   height: 100%;
-  border-radius: 20px;
   border: none;
 }
 
-/* Link Block Styling */
+/* LINK BLOCKS 
+   Updated: Now has padding so the picture floats inside 
+*/
 a.glass-block {
   text-decoration: none;
   color: white;
-  display: block; /* Make anchor act like a block */
-  height: 300px;  /* Fixed height for link cards */
-  position: relative;
-  /* Default background if image fails */
-  background-color: #333; 
+  display: flex;       /* Changed to flex to center content */
+  align-items: center;
+  justify-content: center;
+  height: 300px; 
+  padding: 15px;       /* The glass padding */
+  box-sizing: border-box;
 }
 
-/* The background image for links */
+/* The background image for links - now sits inside the padding */
 .link-bg {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 15px; left: 15px; right: 15px; bottom: 15px; /* Respect padding */
+  width: calc(100% - 30px);
+  height: calc(100% - 30px);
   object-fit: cover;
-  opacity: 0.6; /* Darken slightly so text pops */
-  transition: opacity 0.3s ease;
+  border-radius: 12px;
+  opacity: 0.6;
+  transition: opacity 0.5s ease;
+  
+  /* The fade out effect on corners */
+  -webkit-mask-image: radial-gradient(ellipse at center, black 95%, transparent 100%);
+  mask-image: radial-gradient(ellipse at center, black 95%, transparent 100%);
 }
 
-/* Text inside the link block */
 .link-content {
   position: relative;
   z-index: 2;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   text-align: center;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+  text-shadow: 0 4px 15px rgba(0,0,0,0.9);
+  pointer-events: none; /* Let clicks pass through to the anchor */
 }
 
 a.glass-block:hover .link-bg {
-  opacity: 0.8; /* Brighten image on hover */
+  opacity: 0.9; /* Brighten image on hover */
 }
 
 
-/* --- 5. New Banner Header --- */
+/* --- 5. Banner Header (Same as before) --- */
 .banner-container {
   position: relative;
   width: 96.4%;
@@ -632,6 +665,13 @@ a.glass-block:hover .link-bg {
   border-radius: 40px;
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  /* Optional: Add float to banner too if desired */
+  scale: 1; 
+  animation: underwaterFloat 6s ease-in-out infinite reverse; /* Reverse for variation */
+}
+
+.banner-container:hover {
+  animation-play-state: paused;
 }
 
 .banner-img {
@@ -651,7 +691,6 @@ a.glass-block:hover .link-bg {
   display: flex;
   justify-content: center;
   align-items: center;
-  /* Gradient to make text readable */
   background: rgba(0,0,0,0.2); 
 }
 
@@ -660,14 +699,10 @@ a.glass-block:hover .link-bg {
   font-size: 4rem;
   font-weight: bold;
   text-shadow: 0 4px 15px rgba(0,0,0,0.5);
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  margin: 0; /* Reset default margin */
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); /* Smoother */
+  margin: 0;
 }
 
-/* The specific requirement: Hover over banner grows the text */
 .banner-container:hover .banner-overlay h1 {
   transform: scale(1.15);
-}
-.scrollsection::-webkit-scrollbar {
-  display: none;               /* Chrome, Safari, Edge */
 }
