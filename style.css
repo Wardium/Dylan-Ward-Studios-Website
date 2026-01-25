@@ -479,6 +479,195 @@ html {
   scrollbar-gutter: auto;
 }
 
+/* =========================================
+   NEW MODULAR CONTENT SYSTEM
+   ========================================= */
+
+/* --- 1. The Content Grid --- */
+/* This container holds all your blocks and handles the spacing automatically */
+.content-grid {
+  width: 96%;           /* Matches your image width preference */
+  max-width: 1200px;    /* Prevents it from getting too stretched on huge screens */
+  margin: 20px auto;    /* Centers the grid */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;            /* Space between elements */
+  padding-bottom: 50px; /* Space at bottom of scroll */
+}
+
+/* --- 2. Sizing Utilities --- */
+/* Full Width Block */
+.col-full {
+  flex: 0 0 100%;
+  width: 100%;
+}
+
+/* Half Width Block */
+.col-half {
+  /* Calculates 50% width minus half the gap size so they fit side-by-side */
+  flex: 0 0 calc(50% - 10px); 
+  width: calc(50% - 10px);
+}
+
+/* Mobile Responsive: Stack half-blocks on small screens */
+@media (max-width: 768px) {
+  .col-half {
+    flex: 0 0 100%;
+    width: 100%;
+  }
+}
+
+/* --- 3. The "Glass Block" Base --- */
+/* All elements (text, video, image) use this for the look */
+.glass-block {
+  background: rgba(255, 255, 255, 0.15); /* The frost color */
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  padding: 25px;
+  color: #000;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden; /* Keeps content inside rounded corners */
+  position: relative;
+}
+
+/* Hover Effect for all blocks */
+.glass-block:hover {
+  transform: scale(1.02); /* Slight grow */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  z-index: 5;
+}
+
+/* --- 4. Specific Block Types --- */
+
+/* Text Block Styling */
+.glass-block h2 {
+  margin-bottom: 10px;
+  font-size: 1.8rem;
+}
+.glass-block p {
+  line-height: 1.6;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+/* Image Block Styling */
+.glass-block.media-block {
+  padding: 0; /* No padding for images so they fill the glass */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.glass-block.media-block img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 20px; /* Match container */
+  box-shadow: none;    /* Remove default img shadow from previous CSS */
+}
+
+/* Video Block Styling */
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  height: 0;
+}
+.video-wrapper iframe, 
+.video-wrapper video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  border: none;
+}
+
+/* Link Block Styling */
+a.glass-block {
+  text-decoration: none;
+  color: white;
+  display: block; /* Make anchor act like a block */
+  height: 300px;  /* Fixed height for link cards */
+  position: relative;
+  /* Default background if image fails */
+  background-color: #333; 
+}
+
+/* The background image for links */
+.link-bg {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0.6; /* Darken slightly so text pops */
+  transition: opacity 0.3s ease;
+}
+
+/* Text inside the link block */
+.link-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+}
+
+a.glass-block:hover .link-bg {
+  opacity: 0.8; /* Brighten image on hover */
+}
+
+
+/* --- 5. New Banner Header --- */
+.banner-container {
+  position: relative;
+  width: 96.4%;
+  margin: 0.5rem;
+  border-radius: 40px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.banner-img {
+  width: 100%;
+  display: block;
+  height: auto;
+  min-height: 250px;
+  object-fit: cover;
+}
+
+.banner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Gradient to make text readable */
+  background: rgba(0,0,0,0.2); 
+}
+
+.banner-overlay h1 {
+  color: white;
+  font-size: 4rem;
+  font-weight: bold;
+  text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  margin: 0; /* Reset default margin */
+}
+
+/* The specific requirement: Hover over banner grows the text */
+.banner-container:hover .banner-overlay h1 {
+  transform: scale(1.15);
+}
 .scrollsection::-webkit-scrollbar {
   display: none;               /* Chrome, Safari, Edge */
 }
