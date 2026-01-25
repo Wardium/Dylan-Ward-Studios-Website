@@ -568,11 +568,10 @@ html {
   font-size: 1rem;
 }
 
-/* MEDIA BLOCK (Images & Videos) 
-   Updated: Adds padding and centers the content 
-*/
+/* --- MEDIA BLOCK (Images & Videos) --- */
+/* Updated: Reduced padding to 8px for larger images */
 .glass-block.media-block {
-  padding: 15px; /* Creates the glass border effect around the image */
+  padding: 8px; 
   display: flex;
   align-items: center;
   justify-content: center;
@@ -583,10 +582,9 @@ html {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 12px; /* Slightly smaller radius than container */
+  border-radius: 15px; /* Radius matches the tighter padding */
   
   /* The "Corner Fade" Effect */
-  /* This creates a mask that is solid in the middle and fades out at the very edges */
   -webkit-mask-image: radial-gradient(ellipse at center, black 95%, transparent 100%);
   mask-image: radial-gradient(ellipse at center, black 95%, transparent 100%);
 }
@@ -597,9 +595,8 @@ html {
   width: 100%;
   padding-bottom: 56.25%; /* 16:9 */
   height: 0;
-  border-radius: 12px;
+  border-radius: 15px;
   overflow: hidden;
-  /* Apply fade mask to video container too */
   -webkit-mask-image: radial-gradient(ellipse at center, black 95%, transparent 100%);
   mask-image: radial-gradient(ellipse at center, black 95%, transparent 100%);
 }
@@ -614,32 +611,32 @@ html {
   border: none;
 }
 
-/* LINK BLOCKS 
-   Updated: Now has padding so the picture floats inside 
-*/
+/* --- LINK BLOCKS --- */
+/* Updated: Reduced padding to 8px */
 a.glass-block {
   text-decoration: none;
   color: white;
-  display: flex;       /* Changed to flex to center content */
+  display: flex;       
   align-items: center;
   justify-content: center;
   height: 300px; 
-  padding: 15px;       /* The glass padding */
+  padding: 8px;       
   box-sizing: border-box;
 }
 
-/* The background image for links - now sits inside the padding */
+/* The background image for links */
 .link-bg {
+  /* Updated to match the new 8px padding */
   position: absolute;
-  top: 15px; left: 15px; right: 15px; bottom: 15px; /* Respect padding */
-  width: calc(100% - 30px);
-  height: calc(100% - 30px);
+  top: 8px; left: 8px; right: 8px; bottom: 8px;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
+  
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 15px;
   opacity: 0.6;
   transition: opacity 0.5s ease;
   
-  /* The fade out effect on corners */
   -webkit-mask-image: radial-gradient(ellipse at center, black 95%, transparent 100%);
   mask-image: radial-gradient(ellipse at center, black 95%, transparent 100%);
 }
