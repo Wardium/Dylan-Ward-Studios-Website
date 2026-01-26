@@ -10,12 +10,21 @@ const backgrounds = [
 
 const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
 const introOverlay = document.querySelector('.intro-overlay');
+const overflowBg = document.getElementById('overflow-bg');
 
-// Dynamically override CSS background for overlay
+// 1. Set Intro Overlay
 introOverlay.style.background = `url('${randomBg}') no-repeat center center`;
 introOverlay.style.backgroundSize = 'cover';
+
+// 2. Set Main Body (Sharp Image)
 document.body.style.background = `url('${randomBg}') no-repeat center center fixed`;
 document.body.style.backgroundSize = 'cover';
+
+// 3. Set Overflow Layer (Blurred Image)
+if (overflowBg) {
+  overflowBg.style.background = `url('${randomBg}') no-repeat center center`;
+  overflowBg.style.backgroundSize = 'cover';
+}
 
 // ----------------------
 // INITIAL SECTIONS (EXCLUDE DEV SECTION)
