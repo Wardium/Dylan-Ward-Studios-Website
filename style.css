@@ -704,12 +704,60 @@ a.glass-block:hover .link-bg {
   transform: scale(1.15);
 }
 
-@media (max-width: 1024px) {
-  .whole-ui-wrapper {
-    /* Shrinks the entire section to 80% size */
-    transform: scale(0.8);
-    /* Pulls it back up so there isn't a giant gap created by the scaling */
-    margin-top: -5%; 
-    transform-origin: top center;
+.spacer {
+  display: block;
+  height: 50px; /* Default height */
+  /* No background, no border, just space */
+}
+
+/* =========================================
+   MOBILE SCALING (THE "ZOOM OUT" EFFECT)
+   ========================================= */
+/* This triggers when the screen is smaller than 770px.
+   Instead of stacking everything vertically, we scale it down 
+   so you keep your Left/Right columns, just smaller.
+*/
+
+@media (max-width: 770px) {
+  
+  /* 1. Force the grid to stay side-by-side */
+  .col-half {
+    flex: 0 0 calc(50% - 5px); /* Keep them 50% width */
+    width: calc(50% - 5px);
+  }
+
+  /* 2. Shrink the spacing */
+  .content-grid {
+    gap: 10px; /* Smaller gap between blocks */
+    width: 98%; /* Use more of the screen width */
+  }
+
+  /* 3. Scale down the text and padding inside blocks */
+  .glass-block {
+    padding: 15px; /* Less internal padding */
+  }
+  
+  .glass-block.media-block, 
+  a.glass-block {
+    padding: 5px; /* Tighter image padding */
+  }
+
+  .glass-block h2 {
+    font-size: 1.2rem; /* Smaller titles */
+    margin-bottom: 5px;
+  }
+  
+  .glass-block p {
+    font-size: 0.85rem; /* Smaller text */
+    line-height: 1.4;
+  }
+
+  /* 4. Adjust Links and Images height for mobile */
+  a.glass-block {
+    height: 180px; /* Shorter links so they look proportional */
+  }
+  
+  .link-content h2 {
+    font-size: 1.2rem;
   }
 }
