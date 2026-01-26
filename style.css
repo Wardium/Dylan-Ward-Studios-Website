@@ -663,10 +663,12 @@ a.glass-block:hover .link-bg {
   /* Optional: Add float to banner too if desired */
   scale: 1; 
   animation: underwaterFloat 6s ease-in-out infinite reverse; /* Reverse for variation */
+  transition: transform 0.3s ease;
 }
 
 .banner-container:hover {
   animation-play-state: paused;
+  transform: scale(1.05);
 }
 
 .banner-img {
