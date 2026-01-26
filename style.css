@@ -62,6 +62,8 @@ body, html {
   height: 100%;
   overflow-x: hidden;
   color: black;
+  /* fallback color! */
+  background-color: #1f2124;
   background: url('assets/background.svg') no-repeat center center fixed;
   background-attachment: fixed;
   margin: 0;
@@ -711,50 +713,62 @@ a.glass-block:hover .link-bg {
 }
 
 /* =========================================
-   MOBILE SCALING (THE "ZOOM OUT" EFFECT)
+   MOBILE SCALING & FULL HEIGHT FIX
    ========================================= */
-/* This triggers when the screen is smaller than 770px.
-   Instead of stacking everything vertically, we scale it down 
-   so you keep your Left/Right columns, just smaller.
-*/
-
 @media (max-width: 770px) {
   
-  /* 1. Force the grid to stay side-by-side */
+  /* 1. Stretch the Glass Container to fill vertical space */
+  main {
+    margin-top: 60px;    /* Slightly less space for header */
+    margin-bottom: 0px;  /* Remove bottom space completely */
+    margin-left: 0.5rem; /* Reduce side margins */
+    margin-right: 0.5rem;
+    min-height: 85vh;    /* Force it to be taller */
+    border-radius: 25px; /* Slightly less round on mobile */
+  }
+
+  .section-container {
+    min-height: 85vh;    /* Match main height */
+  }
+  
+  .scrollsection {
+    height: 85vh;        /* Make internal scroll area taller */
+    padding-top: 4rem;   /* Adjust top padding inside the glass */
+    padding-bottom: 4rem; /* Add padding at bottom so you can scroll past footer */
+  }
+
+  /* 2. Existing "Zoom Out" Grid Logic */
   .col-half {
-    flex: 0 0 calc(50% - 5px); /* Keep them 50% width */
+    flex: 0 0 calc(50% - 5px); 
     width: calc(50% - 5px);
   }
 
-  /* 2. Shrink the spacing */
   .content-grid {
-    gap: 10px; /* Smaller gap between blocks */
-    width: 98%; /* Use more of the screen width */
+    gap: 10px; 
+    width: 98%; 
   }
 
-  /* 3. Scale down the text and padding inside blocks */
   .glass-block {
-    padding: 15px; /* Less internal padding */
+    padding: 15px; 
   }
   
   .glass-block.media-block, 
   a.glass-block {
-    padding: 5px; /* Tighter image padding */
+    padding: 5px; 
   }
 
   .glass-block h2 {
-    font-size: 1.2rem; /* Smaller titles */
+    font-size: 1.2rem; 
     margin-bottom: 5px;
   }
   
   .glass-block p {
-    font-size: 0.85rem; /* Smaller text */
+    font-size: 0.85rem; 
     line-height: 1.4;
   }
 
-  /* 4. Adjust Links and Images height for mobile */
   a.glass-block {
-    height: 180px; /* Shorter links so they look proportional */
+    height: 180px; 
   }
   
   .link-content h2 {
