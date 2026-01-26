@@ -772,17 +772,15 @@ a.glass-block:hover .link-bg {
     /* Use Dynamic Height (dvh) to fit exactly between top and bottom bars */
     height: auto;
     min-height: 80dvh; 
-    
-    border-radius: 25px;
   }
 
   .section-container {
-    min-height: 80dvh;
+    min-height: 85dvh;
   }
   
   .scrollsection {
     /* Ensure the scroll area fits within the safe view */
-    height: 80dvh;
+    height: 85dvh;
     padding-top: 4rem;
     padding-bottom: calc(4rem + env(safe-area-inset-bottom)); /* Add extra padding at bottom for home bar */
   }
