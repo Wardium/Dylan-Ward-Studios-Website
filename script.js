@@ -27,7 +27,7 @@ if (overflowBg) {
 }
 
 // ----------------------
-// INITIAL SECTIONS (EXCLUDE DEV SECTION)
+// INITIAL SECTIONS 
 // ----------------------
 let sections = Array.from(document.querySelectorAll('.section:not(.dev-section)'));
 const leftArrow = document.querySelector('.arrow.left');
@@ -90,7 +90,7 @@ leftArrow.addEventListener('click', () => {
 });
 
 // ----------------------
-// SECRET DEV SECTION LOGIC
+// SECTION LOGIC
 // ----------------------
 const secretCombo = ['left', 'right', 'right', 'left', 'right'];
 let inputSequence = [];
@@ -115,7 +115,6 @@ function unlockDevSection() {
   const devSection = document.querySelector('.dev-section');
   if (!devSection) return;
 
-  // Make it visible
   devSection.classList.remove('hidden');
 
   // Add to sections array so arrows can scroll to it
