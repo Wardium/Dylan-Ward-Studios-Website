@@ -703,3 +703,13 @@ a.glass-block:hover .link-bg {
 .banner-container:hover .banner-overlay h1 {
   transform: scale(1.15);
 }
+
+@media (max-width: 1024px) {
+  .whole-ui-wrapper {
+    /* Shrinks the entire section to 80% size */
+    transform: scale(0.8);
+    /* Pulls it back up so there isn't a giant gap created by the scaling */
+    margin-top: -5%; 
+    transform-origin: top center;
+  }
+}
