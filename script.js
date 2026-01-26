@@ -9,22 +9,31 @@ const backgrounds = [
 ];
 
 const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+
+// Get the elements
 const introOverlay = document.querySelector('.intro-overlay');
-const overflowBg = document.getElementById('overflow-bg');
+const bgSharp = document.getElementById('bg-sharp');
+const bgBlur = document.getElementById('bg-blur');
+
+const cssBgValue = `url('${randomBg}')`;
 
 // 1. Set Intro Overlay
-introOverlay.style.background = `url('${randomBg}') no-repeat center center`;
-introOverlay.style.backgroundSize = 'cover';
-
-// 2. Set Main Body (Sharp Image)
-document.body.style.background = `url('${randomBg}') no-repeat center center fixed`;
-document.body.style.backgroundSize = 'cover';
-
-// 3. Set Overflow Layer (Blurred Image)
-if (overflowBg) {
-  overflowBg.style.background = `url('${randomBg}') no-repeat center center`;
-  overflowBg.style.backgroundSize = 'cover';
+if (introOverlay) {
+  introOverlay.style.backgroundImage = cssBgValue;
 }
+
+// 2. Set Sharp Layer (Replaces body background)
+if (bgSharp) {
+  bgSharp.style.backgroundImage = cssBgValue;
+}
+
+// 3. Set Blur Layer
+if (bgBlur) {
+  bgBlur.style.backgroundImage = cssBgValue;
+}
+
+// Ensure body has no background so layers show through
+document.body.style.background = 'none';
 
 // ----------------------
 // INITIAL SECTIONS 
