@@ -603,12 +603,12 @@ html {
 /* Text Block Styling */
 .glass-block h2 {
   margin-bottom: 10px;
-  font-size: 1.8rem;
+  font-size: 4.8rem;
 }
 .glass-block p {
   line-height: 1.6;
   margin-bottom: 10px;
-  font-size: 1rem;
+  font-size: 2.5rem;
 }
 
 /* --- MEDIA BLOCK (Images & Videos) --- */
