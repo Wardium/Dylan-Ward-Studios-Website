@@ -702,8 +702,7 @@ a.glass-block:hover .link-bg {
 /* --- 5. Banner Header (Same as before) --- */
 .banner-container {
   position: relative;
-  width: 96.4%;
-  margin: 0.5rem;
+  width: 100%;
   border-radius: 40px;
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
