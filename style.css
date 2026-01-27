@@ -808,12 +808,12 @@ a.glass-block:hover .link-bg {
   }
 
   .glass-block h2 {
-    font-size: 1.2rem; 
+    font-size: 4.8rem; 
     margin-bottom: 5px;
   }
   
   .glass-block p {
-    font-size: 0.85rem; 
+    font-size: 2.5rem; 
     line-height: 1.4;
   }
 
@@ -822,6 +822,6 @@ a.glass-block:hover .link-bg {
   }
   
   .link-content h2 {
-    font-size: 1.2rem;
+    font-size: 4.8rem;
   }
 }
