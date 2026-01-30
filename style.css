@@ -661,10 +661,9 @@ html {
 a.glass-block {
   text-decoration: none;
   color: white;
-  display: flex;       
+  display: inline-flex;       
   align-items: center;
   justify-content: center;
-  height: 20%; 
   padding: 8px;       
   box-sizing: border-box;
 }
@@ -672,10 +671,9 @@ a.glass-block {
 /* The background image for links */
 .link-bg {
   /* Updated to match the new 8px padding */
-  position: absolute;
-  top: 8px; left: 8px; right: 8px; bottom: 8px;
-  width: calc(100% - 16px);
-  height: calc(100% - 16px);
+  position: relative;
+  width: calc(100% - 8px);
+  height: calc(100% - 8px);
   
   object-fit: cover;
   border-radius: 15px;
