@@ -369,8 +369,17 @@
         <section class="scrollsection">
           <div class="content-grid">
             
-            <div class="glass-block col-full">
-              <p><strong>Developers</strong></p>
+            <div style="position: relative; width: 100%; height: 100vh; border-radius: 20px; overflow: hidden; background-color: #f0f0f0;">
+        
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%; z-index: 0;">
+                    <h1 style="font-family: sans-serif; color: #333; margin: 0;">Developer Page Access Denied</h1>
+                </div>
+        
+                <iframe 
+                    src="https://YOUR-WEBSITE-HERE.com" 
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 1;"
+                    title="External Content">
+                </iframe>
             </div>
             
           </div>
