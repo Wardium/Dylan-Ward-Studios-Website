@@ -860,3 +860,41 @@ a.glass-block:hover .link-bg {
 .redirect-clone.expanding > * {
   opacity: 0;
 }
+
+
+/* FullScreen */
+
+/* 1. Add transitions to all elements involved */
+main, .main-fly-in, .section-container, .scrollsection {
+  touch-action: manipulation; 
+  transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* 2. Main / Main-Fly-In overrides */
+main.fullscreen-mode, .main-fly-in.fullscreen-mode {
+  margin: 0 !important;
+  height: 100% !important; 
+  border-radius: 0 !important;
+}
+
+/* 3. Section Container overrides */
+.section-container.fullscreen-mode {
+  height: 100% !important;
+  border-radius: 0 !important;
+}
+
+/* 4. Scrollsection overrides */
+.scrollsection.fullscreen-mode {
+  padding-top: 0 !important;
+}
+
+/* 5. Smoothly hide the navigation arrows */
+.arrow {
+  transition: opacity 0.4s ease, transform 0.4s ease !important;
+}
+
+.arrow.hide-ui {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: scale(0.8) !important;
+}
