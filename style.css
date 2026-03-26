@@ -863,38 +863,41 @@ a.glass-block:hover .link-bg {
 
 /* Page Zoom Logic */
 
-/* 1. Add transitions to your existing container */
+/* Smoothly animates size, shape, and position */
 .section-container {
-  /* Disables native mobile double-tap zoom so our JS works flawlessly */
-  touch-action: manipulation; 
-  /* Smoothly animates size, shape, and position */
-  transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1) !important;
 }
 
-/* 2. The Fullscreen State */
+/* The Fullscreen State */
+
 .section-container.fullscreen-mode {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
   width: 100vw !important;
-  height: 100vh !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
+  
+  /* dvh (Dynamic Viewport Height) fixes the shrinking bottom issue! */
+  height: 100dvh !important; 
+  max-width: none !important;
+  max-height: none !important;
   margin: 0 !important;
   border-radius: 0 !important;
-  z-index: 9999 !important;
-  /* Resets any translate centering you might have on the main element */
+  
+  /* This strips away any centering tricks your original CSS might have used */
   transform: translate(0, 0) !important; 
+  z-index: 99999 !important;
 }
 
 /* 3. Smoothly hide the navigation arrows */
 .arrow {
-  transition: opacity 0.4s ease, visibility 0.4s ease, transform 0.4s ease !important;
+  /* Removed visibility to fix the instant-snapping bug */
+  transition: opacity 0.4s ease, transform 0.4s ease !important;
 }
 
 .arrow.hide-ui {
   opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  transform: scale(0.8) !important; /* Slight shrink effect as they vanish */
+  pointer-events: none !important; /* Stops you from clicking invisible arrows */
+  transform: scale(0.8) !important; 
 }
