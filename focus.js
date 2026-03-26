@@ -1,43 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
   
-  // 1. Create a dedicated style element and put it in the head
-  const dynamicStyles = document.createElement('style');
-  dynamicStyles.id = 'fullscreen-overrides';
-  document.head.appendChild(dynamicStyles);
-
-  // 2. Define the exact rules you figured out, plus the smooth transition
-  const activeCSS = `
-    .main-fly-in, main {
-      margin: 0 !important;
-      height: 100% !important;
-      border-radius: 0 !important;
-      transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1) !important;
-    }
-    .scrollsection {
-      padding-top: 0 !important;
-      transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1) !important;
-    }
-    .section-container {
-      height: 100% !important;
-      border-radius: 0 !important;
-      transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1) !important;
-    }
-    .arrow {
-      opacity: 0 !important;
-      pointer-events: none !important;
-      transition: opacity 0.4s ease !important;
-    }
-  `;
-
-  // 3. Define the rules for when it shrinks back (just the transitions)
-  const inactiveCSS = `
-    .main-fly-in, main, .scrollsection, .section-container, .arrow {
+  // 1. Inject only the smooth transition rule so it animates beautifully
+  const style = document.createElement('style');
+  style.innerHTML = `
+    main, .section-container, .scrollsection, .arrow {
       transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1) !important;
     }
   `;
+  document.head.appendChild(style);
 
-  // Start with inactive CSS
-  dynamicStyles.innerHTML = inactiveCSS;
+  let isFullscreen = false;
 
   // --- SINGLE CLICK LISTENER ---
   window.addEventListener('click', (e) => {
@@ -45,21 +17,71 @@ document.addEventListener('DOMContentLoaded', () => {
     // Only trigger if clicking inside the scrollable area
     if (!e.target.closest('.scrollsection')) return;
     
-    // Ignore clicks on links, buttons, and your YouTube embeds
+    // Ignore links, buttons, and embeds
     if (e.target.closest('a') || e.target.closest('button') || e.target.closest('iframe')) return;
     
-    // Toggle the state
-    const isFullscreen = document.body.classList.toggle('fullscreen-active');
-    
+    isFullscreen = !isFullscreen;
+
+    // Grab the exact elements
+    const mainEl = document.querySelector('main');
+    const containerEl = document.querySelector('.section-container');
+    const scrollSections = document.querySelectorAll('.scrollsection');
+    const arrows = document.querySelectorAll('.arrow');
+
     if (isFullscreen) {
+      // 2. APPLY INLINE OVERRIDES (This forces the CSS to obey)
+      if (mainEl) {
+        mainEl.style.setProperty('margin', '0', 'important');
+        mainEl.style.setProperty('height', '100dvh', 'important');
+        mainEl.style.setProperty('max-width', '100%', 'important');
+        mainEl.style.setProperty('border-radius', '0', 'important');
+      }
+      
+      if (containerEl) {
+        containerEl.style.setProperty('height', '100dvh', 'important');
+        containerEl.style.setProperty('max-width', '100%', 'important');
+        containerEl.style.setProperty('border-radius', '0', 'important');
+      }
+      
+      scrollSections.forEach(sec => {
+        sec.style.setProperty('padding-top', '0', 'important');
+        sec.style.setProperty('padding-bottom', '0', 'important');
+      });
+      
+      arrows.forEach(a => {
+        a.style.setProperty('opacity', '0', 'important');
+        a.style.setProperty('pointer-events', 'none', 'important');
+      });
+      
       document.body.style.overflow = 'hidden';
-      // Inject your winning CSS rules
-      dynamicStyles.innerHTML = activeCSS;
+
     } else {
+      // 3. REMOVE INLINE OVERRIDES (This snaps everything back to normal)
+      if (mainEl) {
+        mainEl.style.removeProperty('margin');
+        mainEl.style.removeProperty('height');
+        mainEl.style.removeProperty('max-width');
+        mainEl.style.removeProperty('border-radius');
+      }
+      
+      if (containerEl) {
+        containerEl.style.removeProperty('height');
+        containerEl.style.removeProperty('max-width');
+        containerEl.style.removeProperty('border-radius');
+      }
+      
+      scrollSections.forEach(sec => {
+        sec.style.removeProperty('padding-top');
+        sec.style.removeProperty('padding-bottom');
+      });
+      
+      arrows.forEach(a => {
+        a.style.removeProperty('opacity');
+        a.style.removeProperty('pointer-events');
+      });
+      
       document.body.style.overflow = '';
-      // Remove the rules so it snaps back, keeping only the transition
-      dynamicStyles.innerHTML = inactiveCSS;
     }
     
-  }, { capture: true }); 
+  }, { capture: true });
 });
