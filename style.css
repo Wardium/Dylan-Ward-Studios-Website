@@ -870,19 +870,26 @@ a.glass-block:hover .link-bg {
   transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1) !important;
 }
 
-/* 2. When the body is in fullscreen mode, apply your exact overrides */
-body.fullscreen-active .main-fly-in {
+/* 2. NUCLEAR CSS OVERRIDES */
+/* Target both the class and the element types directly to ensure it wins */
+body.fullscreen-active .main-fly-in,
+body.fullscreen-active main {
   margin: 0 !important;
-  height: 100dvh !important; /* using 100dvh instead of 100% fixes mobile browser bars! */
+  height: 100dvh !important; 
+  max-width: 100% !important;
   border-radius: 0 !important;
 }
 
-body.fullscreen-active .scrollsection {
+body.fullscreen-active .scrollsection,
+body.fullscreen-active section.scrollsection {
   padding-top: 0 !important;
+  padding-bottom: 0 !important; /* Just in case */
 }
 
-body.fullscreen-active .section-container {
-  height: 100% !important;
+body.fullscreen-active .section-container,
+body.fullscreen-active div.section-container {
+  height: 100dvh !important; /* 100dvh usually behaves better than 100% */
+  max-width: 100% !important;
   border-radius: 0 !important;
 }
 
