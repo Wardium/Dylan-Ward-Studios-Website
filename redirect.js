@@ -3,6 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   transitionElements.forEach(el => {
     el.addEventListener('click', function(e) {
+      // 1. Allow modifier keys (Ctrl+Click, Cmd+Click) to open in a new tab normally
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+      
       e.preventDefault(); 
 
       const targetUrl = this.getAttribute('href') || this.getAttribute('data-href');
@@ -11,9 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const rect = this.getBoundingClientRect();
       const clone = this.cloneNode(true);
 
-      // FIX 1: The "Seamless" Dark Mode Grey
-      // Chrome/Edge default dark loading screen is usually #202124. Safari is #1c1c1e.
-      // We will use #202124 as it is the most common dark grey across modern browsers.
       const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
       const targetColor = isDarkMode ? '#202124' : '#ffffff'; 
 
@@ -29,36 +29,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
       document.body.appendChild(clone);
       
-      // Tag the original element so we can easily find it if the user hits the back button
       this.classList.add('redirect-hidden-original');
       this.style.opacity = '0';
 
-      clone.offsetWidth; // Force the browser to register the initial state
+      clone.offsetWidth; 
 
       clone.classList.add('expanding');
       clone.style.backgroundColor = targetColor;
 
+      // THE FIX: Trigger redirect, then immediately clean up the DOM
       setTimeout(() => {
+        // Step A: Tell the browser to go to the new page
         window.location.href = targetUrl;
+
+        // Step B: 50 milliseconds later, destroy the clone and reset the original.
+        // The user won't see this happen because the browser is already freezing the UI 
+        // to load the next page, but it ensures the bfcache saves a clean page.
+        setTimeout(() => {
+          clone.remove();
+          el.style.opacity = '1';
+          el.classList.remove('redirect-hidden-original');
+        }, 50); 
+
       }, 600); 
     });
   });
 });
 
-// FIX 2: The Back-Button (bfcache) Reset
-// This listens for the page being restored from the browser's history cache
-window.addEventListener('pageshow', (event) => {
-  // event.persisted is true if the page was loaded from the back-forward cache
-  if (event.persisted) {
-    // 1. Find and destroy any animation clones left on the screen
-    document.querySelectorAll('.redirect-clone').forEach(clone => {
-      clone.remove();
-    });
-    
-    // 2. Find the original clicked element and make it visible again
-    document.querySelectorAll('.redirect-hidden-original').forEach(el => {
-      el.style.opacity = '1';
-      el.classList.remove('redirect-hidden-original');
-    });
-  }
+// FALLBACK: Broad pageshow cleanup just in case
+window.addEventListener('pageshow', () => {
+  document.querySelectorAll('.redirect-clone').forEach(c => c.remove());
+  document.querySelectorAll('.redirect-hidden-original').forEach(el => {
+    el.style.opacity = '1';
+    el.classList.remove('redirect-hidden-original');
+  });
 });
