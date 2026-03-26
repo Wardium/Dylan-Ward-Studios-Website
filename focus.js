@@ -2,37 +2,51 @@ document.addEventListener('DOMContentLoaded', () => {
   const container = document.querySelector('.section-container');
   const arrows = document.querySelectorAll('.arrow');
   
-  if (!container) {
-    console.error("TEST FAILED: Could not find .section-container");
-    return;
-  }
+  if (!container) return;
 
-  console.log("TEST ACTIVE: Double-click anywhere on the page to test.");
+  let isFullscreen = false;
+  let lastTap = 0;
 
-  // Attach to the whole body so NOTHING can block it
-  document.body.addEventListener('dblclick', (e) => {
+  const toggleFullscreen = () => {
+    isFullscreen = !isFullscreen;
     
-    // Log exactly what element your mouse actually hit
-    console.log("Double-clicked on element:", e.target);
-
-    // Still ignore links and buttons so we don't break navigation
-    if (e.target.closest('a') || e.target.closest('button') || e.target.closest('iframe')) {
-      console.log("Ignored: Clicked a link, button, or iframe.");
-      return;
-    }
-
-    // Toggle the class
-    container.classList.toggle('fullscreen-mode');
-
-    // Check if it worked and hide/show arrows
-    if (container.classList.contains('fullscreen-mode')) {
-      console.log("SUCCESS: Added fullscreen-mode class.");
+    if (isFullscreen) {
+      container.classList.add('fullscreen-mode');
       arrows.forEach(a => a.classList.add('hide-ui'));
       document.body.style.overflow = 'hidden';
     } else {
-      console.log("SUCCESS: Removed fullscreen-mode class.");
+      container.classList.remove('fullscreen-mode');
       arrows.forEach(a => a.classList.remove('hide-ui'));
       document.body.style.overflow = '';
     }
-  });
+  };
+
+  // --- DESKTOP: Double Click (Capture Phase) ---
+  // The { capture: true } at the end is the magic key that bypasses other scripts
+  window.addEventListener('dblclick', (e) => {
+    // Only proceed if the click happened inside a scrollsection
+    if (!e.target.closest('.scrollsection')) return;
+    
+    // Still ignore links, buttons, and iframes
+    if (e.target.closest('a') || e.target.closest('button') || e.target.closest('iframe')) return;
+    
+    window.getSelection().removeAllRanges(); 
+    toggleFullscreen();
+  }, { capture: true });
+
+  // --- MOBILE: Double Tap (Capture Phase) ---
+  window.addEventListener('touchend', (e) => {
+    if (!e.target.closest('.scrollsection')) return;
+    if (e.target.closest('a') || e.target.closest('button') || e.target.closest('iframe')) return;
+
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    
+    if (tapLength < 300 && tapLength > 0) {
+      toggleFullscreen();
+      // Only prevent default if we actually triggered the fullscreen
+      e.preventDefault(); 
+    }
+    lastTap = currentTime;
+  }, { capture: true });
 });
