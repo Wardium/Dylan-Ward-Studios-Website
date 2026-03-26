@@ -860,3 +860,41 @@ a.glass-block:hover .link-bg {
 .redirect-clone.expanding > * {
   opacity: 0;
 }
+
+/* Page Zoom Logic */
+
+/* 1. Add transitions to your existing container */
+.section-container {
+  /* Disables native mobile double-tap zoom so our JS works flawlessly */
+  touch-action: manipulation; 
+  /* Smoothly animates size, shape, and position */
+  transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* 2. The Fullscreen State */
+.section-container.fullscreen-mode {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  z-index: 9999 !important;
+  /* Resets any translate centering you might have on the main element */
+  transform: translate(0, 0) !important; 
+}
+
+/* 3. Smoothly hide the navigation arrows */
+.arrow {
+  transition: opacity 0.4s ease, visibility 0.4s ease, transform 0.4s ease !important;
+}
+
+.arrow.hide-ui {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: scale(0.8) !important; /* Slight shrink effect as they vanish */
+}
