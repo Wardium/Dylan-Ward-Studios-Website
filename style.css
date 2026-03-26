@@ -863,41 +863,36 @@ a.glass-block:hover .link-bg {
 
 /* Page Zoom Logic */
 
-/* Smoothly animates size, shape, and position */
+/* 1. Tell the elements to smoothly animate any changes */
+.main-fly-in, 
+.scrollsection, 
 .section-container {
   transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1) !important;
 }
 
-/* The Fullscreen State */
-
-.section-container.fullscreen-mode {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  
-  /* dvh (Dynamic Viewport Height) fixes the shrinking bottom issue! */
-  height: 100dvh !important; 
-  max-width: none !important;
-  max-height: none !important;
+/* 2. When the body is in fullscreen mode, apply your exact overrides */
+body.fullscreen-active .main-fly-in {
   margin: 0 !important;
+  height: 100dvh !important; /* using 100dvh instead of 100% fixes mobile browser bars! */
   border-radius: 0 !important;
-  
-  /* This strips away any centering tricks your original CSS might have used */
-  transform: translate(0, 0) !important; 
-  z-index: 99999 !important;
 }
 
-/* 3. Smoothly hide the navigation arrows */
+body.fullscreen-active .scrollsection {
+  padding-top: 0 !important;
+}
+
+body.fullscreen-active .section-container {
+  height: 100% !important;
+  border-radius: 0 !important;
+}
+
+/* 3. Smoothly fade out the arrows */
 .arrow {
-  /* Removed visibility to fix the instant-snapping bug */
   transition: opacity 0.4s ease, transform 0.4s ease !important;
 }
 
-.arrow.hide-ui {
+body.fullscreen-active .arrow {
   opacity: 0 !important;
-  pointer-events: none !important; /* Stops you from clicking invisible arrows */
-  transform: scale(0.8) !important; 
+  pointer-events: none !important;
+  transform: scale(0.8) !important;
 }
