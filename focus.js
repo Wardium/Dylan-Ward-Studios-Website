@@ -1,55 +1,38 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // We still grab the container to animate it
   const container = document.querySelector('.section-container');
   const arrows = document.querySelectorAll('.arrow');
   
-  // BUT we also grab all the individual scroll sections that sit on top
-  const scrollSections = document.querySelectorAll('.scrollsection');
-  
-  if (!container || scrollSections.length === 0) return;
+  if (!container) {
+    console.error("TEST FAILED: Could not find .section-container");
+    return;
+  }
 
-  let isFullscreen = false;
-  let lastTap = 0;
+  console.log("TEST ACTIVE: Double-click anywhere on the page to test.");
 
-  const toggleFullscreen = () => {
-    isFullscreen = !isFullscreen;
+  // Attach to the whole body so NOTHING can block it
+  document.body.addEventListener('dblclick', (e) => {
     
-    if (isFullscreen) {
-      container.classList.add('fullscreen-mode');
-      arrows.forEach(arrow => arrow.classList.add('hide-ui'));
+    // Log exactly what element your mouse actually hit
+    console.log("Double-clicked on element:", e.target);
+
+    // Still ignore links and buttons so we don't break navigation
+    if (e.target.closest('a') || e.target.closest('button') || e.target.closest('iframe')) {
+      console.log("Ignored: Clicked a link, button, or iframe.");
+      return;
+    }
+
+    // Toggle the class
+    container.classList.toggle('fullscreen-mode');
+
+    // Check if it worked and hide/show arrows
+    if (container.classList.contains('fullscreen-mode')) {
+      console.log("SUCCESS: Added fullscreen-mode class.");
+      arrows.forEach(a => a.classList.add('hide-ui'));
       document.body.style.overflow = 'hidden';
     } else {
-      container.classList.remove('fullscreen-mode');
-      arrows.forEach(arrow => arrow.classList.remove('hide-ui'));
+      console.log("SUCCESS: Removed fullscreen-mode class.");
+      arrows.forEach(a => a.classList.remove('hide-ui'));
       document.body.style.overflow = '';
     }
-  };
-
-  // Attach the listeners to EVERY scroll section directly
-  scrollSections.forEach(section => {
-    
-    // --- DESKTOP: Double Click Listener ---
-    section.addEventListener('dblclick', (e) => {
-      // Ignore clicks on links, buttons, and IFRAMES (like your YouTube embeds)
-      if (e.target.closest('a') || e.target.closest('button') || e.target.closest('iframe')) return;
-      
-      window.getSelection().removeAllRanges(); 
-      toggleFullscreen();
-    });
-
-    // --- MOBILE: Double Tap Listener ---
-    section.addEventListener('touchend', (e) => {
-      if (e.target.closest('a') || e.target.closest('button') || e.target.closest('iframe')) return;
-
-      const currentTime = new Date().getTime();
-      const tapLength = currentTime - lastTap;
-      
-      if (tapLength < 300 && tapLength > 0) {
-        toggleFullscreen();
-        // e.preventDefault(); // Uncomment this ONLY if mobile double-tap still zooms the whole webpage
-      }
-      lastTap = currentTime;
-    });
-    
   });
 });
