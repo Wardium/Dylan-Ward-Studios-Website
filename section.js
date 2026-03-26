@@ -5,11 +5,11 @@ const sections = document.querySelectorAll('.section');
 const leftArrow = document.querySelector('.arrow.left');
 const rightArrow = document.querySelector('.arrow.right');
 let current = 0;
-let isAnimating2 = false;
+let isAnimating = false;
 
 function showSection(newIndex, direction) {
-  if (isAnimating2 || newIndex === current) return;
-  isAnimating2 = true;
+  if (isAnimating || newIndex === current) return;
+  isAnimating = true;
 
   const currentSection = sections[current];
   const nextSection = sections[newIndex];
@@ -52,7 +52,7 @@ function showSection(newIndex, direction) {
       'slide-out-to-right'
     );
     current = newIndex;
-    isAnimating2 = false;
+    isAnimating = false;
 
     // Reset container height to auto
     container.style.height = "auto";
