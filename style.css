@@ -836,14 +836,14 @@ a.glass-block:hover .link-bg {
   z-index: 99999; /* Ensures it sits on top of absolutely everything */
   margin: 0 !important;
   /* Smooth transition for size, position, shape, and color */
-  transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1); 
+  transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); 
   pointer-events: none; /* Prevents double-clicking during animation */
   overflow: hidden; 
 }
 
 /* This targets the elements INSIDE the clone so they fade out smoothly */
 .redirect-clone > * {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.5s ease-out;
 }
 
 /* The state it transitions TO */
