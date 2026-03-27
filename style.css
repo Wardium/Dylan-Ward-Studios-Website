@@ -886,6 +886,7 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
 /* 4. Scrollsection overrides */
 .scrollsection.fullscreen-mode {
   padding-top: 0 !important;
+  height: 100vh;
 }
 
 /* 5. Smoothly hide the navigation arrows */
