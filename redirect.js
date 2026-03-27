@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
           clone.remove();
           el.style.opacity = '1';
           el.classList.remove('redirect-hidden-original');
-        }, 50); 
+        }, 100); 
 
       }, 600); 
     });
