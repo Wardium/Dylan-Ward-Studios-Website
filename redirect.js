@@ -62,14 +62,26 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// THE CLEANUP: Only runs if the user comes BACK to this page
+// THE CLEANUP FUNCTION
+function resetRedirectAnimation() {
+  document.querySelectorAll('.redirect-clone').forEach(c => c.remove());
+  document.querySelectorAll('.redirect-hidden-original').forEach(el => {
+    el.style.opacity = '1';
+    el.classList.remove('redirect-hidden-original');
+  });
+}
+
+// THE BELT: Trigger when returning to the page
 window.addEventListener('pageshow', (event) => {
-  // event.persisted is true if the page was loaded from cache (Back button)
   if (event.persisted || document.querySelector('.redirect-clone')) {
-    document.querySelectorAll('.redirect-clone').forEach(c => c.remove());
-    document.querySelectorAll('.redirect-hidden-original').forEach(el => {
-      el.style.opacity = '1';
-      el.classList.remove('redirect-hidden-original');
+    // requestAnimationFrame forces iOS Safari to acknowledge the DOM change and repaint
+    requestAnimationFrame(() => {
+      resetRedirectAnimation();
     });
   }
+});
+
+// THE SUSPENDERS: Trigger right before the browser takes the cache snapshot
+window.addEventListener('pagehide', () => {
+  resetRedirectAnimation();
 });
