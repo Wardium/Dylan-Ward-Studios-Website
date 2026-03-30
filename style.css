@@ -906,9 +906,12 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
   transform: scale(0.8) !important;
 }
 
+
+
+
 /* Expansion Link System */
 
-/* --- Drop-in Expansion Module --- */
+
 .section-container.has-active-expansion {
   position: relative !important;
   overflow: hidden !important;
@@ -917,11 +920,19 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
 .web-infinity-overlay {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
-  z-index: 999999 !important; /* Buries the high z-index arrows */
+  z-index: 999999;
   pointer-events: none;
 }
 .web-infinity-overlay.active {
   pointer-events: all;
+}
+
+/* THE PORTAL: This clips both the background and the iframe */
+.web-infinity-portal {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  clip-path: circle(0px at 50% 50%);
+  transition: clip-path 1.2s cubic-bezier(0.25, 1, 0.3, 1);
 }
 
 .web-infinity-bg {
@@ -929,18 +940,16 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
   top: 0; left: 0; width: 100%; height: 100%;
   background-size: cover;
   background-position: center;
-  clip-path: circle(0px at 50% 50%);
-  /* Slowed down to 1.2s for that cinematic feel */
-  transition: clip-path 1.2s cubic-bezier(0.25, 1, 0.3, 1);
 }
 
 .web-infinity-iframe {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   border: none;
+  background: #000; /* Prevents white flash before iframe loads */
   opacity: 0;
-  /* Waits a bit longer so the slower circle can expand first */
-  transition: opacity 0.6s ease 0.6s;
+  /* Fades in smoothly while the portal is expanding */
+  transition: opacity 0.8s ease 0.2s; 
 }
 .web-infinity-overlay.active .web-infinity-iframe {
   opacity: 1;
@@ -960,10 +969,9 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
   cursor: pointer;
   opacity: 0;
   transform: scale(0.8);
-  /* Delays the X button appearance */
   transition: opacity 0.4s ease 0.8s, transform 0.4s cubic-bezier(0.25, 1, 0.3, 1) 0.8s;
   display: flex; align-items: center; justify-content: center;
-  z-index: 1000000 !important; /* Always on top of the iframe */
+  z-index: 1000000; 
 }
 .web-infinity-overlay.active .web-infinity-close {
   opacity: 1;
@@ -971,4 +979,14 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
 }
 .web-infinity-close:hover {
   background: rgba(255, 255, 255, 0.25);
+}
+
+/* --- Arrow Hiding Logic --- */
+.arrow {
+  transition: opacity 0.4s ease, transform 0.4s ease !important;
+}
+.arrow.web-infinity-hide-arrow {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: scale(0.8) !important;
 }
