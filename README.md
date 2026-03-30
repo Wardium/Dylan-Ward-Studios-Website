@@ -2,4 +2,4 @@
 
 ![DWS](https://github.com/Wardium/Dylan-Ward-Studios-Website/blob/main/assets/favicon.png "Dylan Ward Studios")
 
- The Newest DW Studios Website
+ I know it's not the best code but it's <b>MINE</b>
