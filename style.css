@@ -911,7 +911,6 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
 
 /* Expansion Link System */
 
-
 .section-container.has-active-expansion {
   position: relative !important;
   overflow: hidden !important;
@@ -920,19 +919,18 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
 .web-infinity-overlay {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
-  z-index: 999999;
+  z-index: 999999 !important; /* Always on top */
   pointer-events: none;
 }
-.web-infinity-overlay.active {
+.web-infinity-overlay.has-scaler {
   pointer-events: all;
 }
 
-/* THE PORTAL: This clips both the background and the iframe */
+/* THE PORTAL: Clip-path animated in JS for wobbly/smooth effects */
 .web-infinity-portal {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
-  clip-path: circle(0px at 50% 50%);
-  transition: clip-path 1.2s cubic-bezier(0.25, 1, 0.3, 1);
+  clip-path: inset(0%); /* Reset initially, JS will set this frame-by-frame */
 }
 
 .web-infinity-bg {
@@ -946,13 +944,8 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   border: none;
-  background: #000; /* Prevents white flash before iframe loads */
-  opacity: 0;
-  /* Fades in smoothly while the portal is expanding */
-  transition: opacity 0.8s ease 0.2s; 
-}
-.web-infinity-overlay.active .web-infinity-iframe {
-  opacity: 1;
+  background: #000;
+  opacity: 0; /* JS will fade this in over the expand animation */
 }
 
 .web-infinity-close {
@@ -969,11 +962,12 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
   cursor: pointer;
   opacity: 0;
   transform: scale(0.8);
-  transition: opacity 0.4s ease 0.8s, transform 0.4s cubic-bezier(0.25, 1, 0.3, 1) 0.8s;
+  /* Delays close button appearance slightly */
+  transition: opacity 0.4s ease 1s, transform 0.4s cubic-bezier(0.25, 1, 0.3, 1) 1s;
   display: flex; align-items: center; justify-content: center;
-  z-index: 1000000; 
+  z-index: 1000000 !important;
 }
-.web-infinity-overlay.active .web-infinity-close {
+.web-infinity-overlay.has-scaler .web-infinity-close {
   opacity: 1;
   transform: scale(1);
 }
@@ -981,11 +975,11 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
   background: rgba(255, 255, 255, 0.25);
 }
 
-/* --- Arrow Hiding Logic --- */
+/* --- Unique Arrow Hiding Logic --- */
 .arrow {
   transition: opacity 0.4s ease, transform 0.4s ease !important;
 }
-.arrow.web-infinity-hide-arrow {
+.arrow.web-infinity-hide-navigation {
   opacity: 0 !important;
   pointer-events: none !important;
   transform: scale(0.8) !important;
