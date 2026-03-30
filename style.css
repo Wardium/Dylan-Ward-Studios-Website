@@ -151,7 +151,7 @@ header, footer {
   justify-content: center;
   align-items: center;
   color: white;
-  z-index: 10;
+  z-index: 0;
 }
 
 header {
@@ -162,6 +162,7 @@ header {
 footer {
   bottom: 0;
   height: 50px;
+  z-index: -1;
 }
 
 .logo {
