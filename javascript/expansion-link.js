@@ -3,14 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       
-      // Target the specific section container this link lives inside
       const container = link.closest('.section-container');
       if (!container) return;
 
-      // Lock container overflow temporarily
       container.classList.add('has-active-expansion');
 
-      // Dynamically build the overlay if it hasn't been created for this section yet
       let overlay = container.querySelector('.web-infinity-overlay');
       if (!overlay) {
         overlay = document.createElement('div');
@@ -27,11 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const iframe = overlay.querySelector('.web-infinity-iframe');
       const closeBtn = overlay.querySelector('.web-infinity-close');
 
-      // Grab the background image from the clicked block
       const img = link.querySelector('img');
       if (img) bg.style.backgroundImage = `url(${img.src})`;
 
-      // Calculate relative geometry (bypasses window scroll offset issues)
       const containerRect = container.getBoundingClientRect();
       const linkRect = link.getBoundingClientRect();
 
@@ -39,29 +34,30 @@ document.addEventListener('DOMContentLoaded', () => {
       const originY = (linkRect.top - containerRect.top) + (linkRect.height / 2);
       const startRadius = Math.max(linkRect.width, linkRect.height) / 2;
 
-      // Mount iframe source
       iframe.src = link.getAttribute('data-iframe-src') || 'about:blank';
 
-      // Snap circle to the element's exact location, then force a reflow
       bg.style.transition = 'none';
       bg.style.clipPath = `circle(${startRadius}px at ${originX}px ${originY}px)`;
       void overlay.offsetWidth; 
 
-      // Trigger the liquid expansion
-      bg.style.transition = 'clip-path 0.7s cubic-bezier(0.25, 1, 0.3, 1)';
+      // Slower 1.2s transition
+      bg.style.transition = 'clip-path 1.2s cubic-bezier(0.25, 1, 0.3, 1)';
       overlay.classList.add('active');
       bg.style.clipPath = `circle(150% at ${originX}px ${originY}px)`;
 
-      // Reverse animation on close
       closeBtn.onclick = () => {
+        // Immediately remove active class to fade out iframe and disable pointer events
         overlay.classList.remove('active');
+        
+        // Shrink back to the original square's location
         bg.style.clipPath = `circle(${startRadius}px at ${originX}px ${originY}px)`;
         
-        // Cleanup after animation completes
+        // Match this timer (1200ms) EXACTLY to the CSS clip-path transition time (1.2s)
         setTimeout(() => {
           iframe.src = '';
-          container.classList.remove('has-active-expansion');
-        }, 700);
+          container.classList.remove('has-active-expansion'); // Restores your scrolling
+          bg.style.clipPath = 'circle(0px at 50% 50%)'; // Failsafe to completely hide the circle
+        }, 1200); 
       };
     });
   });
