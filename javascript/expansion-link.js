@@ -8,18 +8,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
       container.classList.add('has-active-expansion');
 
-      let overlay = container.querySelector('.web-infinity-overlay');
-      if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.className = 'web-infinity-overlay';
-        overlay.innerHTML = `
+      // Hide the arrows globally
+      document.querySelectorAll('.arrow').forEach(arrow => {
+        arrow.classList.add('web-infinity-hide-arrow');
+      });
+
+      // Always create a fresh overlay to ensure no stuck state
+      let overlay = document.createElement('div');
+      overlay.className = 'web-infinity-overlay';
+      overlay.innerHTML = `
+        <div class="web-infinity-portal">
           <div class="web-infinity-bg"></div>
           <iframe class="web-infinity-iframe"></iframe>
-          <button class="web-infinity-close">✕</button>
-        `;
-        container.appendChild(overlay);
-      }
+        </div>
+        <button class="web-infinity-close">✕</button>
+      `;
+      container.appendChild(overlay);
 
+      const portal = overlay.querySelector('.web-infinity-portal');
       const bg = overlay.querySelector('.web-infinity-bg');
       const iframe = overlay.querySelector('.web-infinity-iframe');
       const closeBtn = overlay.querySelector('.web-infinity-close');
@@ -36,27 +42,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
       iframe.src = link.getAttribute('data-iframe-src') || 'about:blank';
 
-      bg.style.transition = 'none';
-      bg.style.clipPath = `circle(${startRadius}px at ${originX}px ${originY}px)`;
-      void overlay.offsetWidth; 
+      // Snap the PORTAL (not just the bg) to the element
+      portal.style.transition = 'none';
+      portal.style.clipPath = `circle(${startRadius}px at ${originX}px ${originY}px)`;
+      void overlay.offsetWidth; // Force reflow
 
-      // Slower 1.2s transition
-      bg.style.transition = 'clip-path 1.2s cubic-bezier(0.25, 1, 0.3, 1)';
+      // Expand the portal
+      portal.style.transition = 'clip-path 1.2s cubic-bezier(0.25, 1, 0.3, 1)';
       overlay.classList.add('active');
-      bg.style.clipPath = `circle(150% at ${originX}px ${originY}px)`;
+      portal.style.clipPath = `circle(150% at ${originX}px ${originY}px)`;
 
       closeBtn.onclick = () => {
-        // Immediately remove active class to fade out iframe and disable pointer events
         overlay.classList.remove('active');
         
-        // Shrink back to the original square's location
-        bg.style.clipPath = `circle(${startRadius}px at ${originX}px ${originY}px)`;
+        // Shrink the portal back
+        portal.style.clipPath = `circle(${startRadius}px at ${originX}px ${originY}px)`;
         
-        // Match this timer (1200ms) EXACTLY to the CSS clip-path transition time (1.2s)
+        // Bring the arrows back immediately as the portal shrinks
+        document.querySelectorAll('.arrow').forEach(arrow => {
+          arrow.classList.remove('web-infinity-hide-arrow');
+        });
+
+        // Exact timing match (1200ms) to nuke it from orbit
         setTimeout(() => {
-          iframe.src = '';
-          container.classList.remove('has-active-expansion'); // Restores your scrolling
-          bg.style.clipPath = 'circle(0px at 50% 50%)'; // Failsafe to completely hide the circle
+          container.classList.remove('has-active-expansion');
+          overlay.remove(); // Literally delete it from the DOM. No more stuck circles.
         }, 1200); 
       };
     });
