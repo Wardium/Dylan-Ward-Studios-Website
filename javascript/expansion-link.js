@@ -30,48 +30,70 @@ document.addEventListener('DOMContentLoaded', () => {
       const iframe = overlay.querySelector('.web-infinity-iframe');
       const closeBtn = overlay.querySelector('.web-infinity-close');
 
-      // Grab the image source
       const img = link.querySelector('img');
       if (img) bg.style.backgroundImage = `url(${img.src})`;
 
-      // --- THE GEOMETRY CALCULATION ---
-      const containerRect = container.getBoundingClientRect();
-      const linkRect = link.getBoundingClientRect();
-      
-      // Read the computed border-radius of the clicked block dynamically
+      // --- INITIAL GEOMETRY CALCULATION ---
       const computedStyle = window.getComputedStyle(link);
       const borderRadius = computedStyle.borderRadius || '0px';
 
-      // Calculate distances from the edges of the section-container (in percentages)
-      const topPct = ((linkRect.top - containerRect.top) / containerRect.height) * 100;
-      const leftPct = ((linkRect.left - containerRect.left) / containerRect.width) * 100;
-      const rightPct = ((containerRect.right - linkRect.right) / containerRect.width) * 100;
-      const bottomPct = ((containerRect.bottom - linkRect.bottom) / containerRect.height) * 100;
+      const setupGeometry = () => {
+        const cRect = container.getBoundingClientRect();
+        const lRect = link.getBoundingClientRect();
+        return {
+          top: lRect.top - cRect.top,
+          left: lRect.left - cRect.left,
+          width: lRect.width,
+          height: lRect.height
+        };
+      };
 
-      // Define the exact starting shape (matching the clicked element) and target shape (fullscreen)
-      const initialClipPath = `inset(${topPct}% ${rightPct}% ${bottomPct}% ${leftPct}% round ${borderRadius})`;
-      const fullscreenClipPath = `inset(0% 0% 0% 0% round 0px)`;
+      const startGeo = setupGeometry();
 
       // Mount iframe
       iframe.src = link.getAttribute('data-iframe-src') || 'about:blank';
 
-      // Snap the portal to the exact size, position, and curve of the clicked element
+      // Snap the portal to the exact size and position of the clicked element
       portal.style.transition = 'none';
-      portal.style.clipPath = initialClipPath;
-      void overlay.offsetWidth; // Force browser reflow to register the starting position
+      portal.style.top = `${startGeo.top}px`;
+      portal.style.left = `${startGeo.left}px`;
+      portal.style.width = `${startGeo.width}px`;
+      portal.style.height = `${startGeo.height}px`;
+      portal.style.borderRadius = borderRadius;
+      
+      void overlay.offsetWidth; // Force browser reflow
 
       // Turn transitions back on and expand to fullscreen
-      portal.style.transition = 'clip-path 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
-      overlay.classList.add('active');
-      portal.style.clipPath = fullscreenClipPath;
+      portal.style.transition = ''; // Restores CSS transitions
+      overlay.classList.add('active'); // Triggers quick fade in
+      
+      portal.style.top = '0px';
+      portal.style.left = '0px';
+      portal.style.width = '100%';
+      portal.style.height = '100%';
+      portal.style.borderRadius = '0px';
 
       // --- HANDLE CLOSING ---
       closeBtn.onclick = () => {
-        // Fade out UI and iframe immediately
+        // Fast fade-out for the iframe and close button so they don't linger
+        iframe.style.transition = 'opacity 0.2s ease';
+        iframe.style.opacity = '0';
+        closeBtn.style.transition = 'opacity 0.2s ease';
+        closeBtn.style.opacity = '0';
+
+        // Add closing class for the delayed background fade-out
         overlay.classList.remove('active');
+        overlay.classList.add('closing'); 
         
-        // Shrink back to the exact starting shape and border-radius
-        portal.style.clipPath = initialClipPath;
+        // Recalculate geometry in case window was resized while open
+        const endGeo = setupGeometry();
+
+        // Shrink physically back to the exact starting shape
+        portal.style.top = `${endGeo.top}px`;
+        portal.style.left = `${endGeo.left}px`;
+        portal.style.width = `${endGeo.width}px`;
+        portal.style.height = `${endGeo.height}px`;
+        portal.style.borderRadius = borderRadius;
         
         // Bring arrows back
         document.querySelectorAll('.arrow').forEach(arrow => {
