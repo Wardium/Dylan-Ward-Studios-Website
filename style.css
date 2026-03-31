@@ -1002,3 +1002,13 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
   pointer-events: none !important;
   transform: scale(0.8) !important;
 }
+
+/* Bulletproof global scroll lock */
+html.web-infinity-no-scroll,
+body.web-infinity-no-scroll {
+  overflow: hidden !important;
+  /* Kills mobile Safari bounce and pull-to-refresh */
+  overscroll-behavior: none !important; 
+  /* Prevents scrolling gestures entirely on touch devices */
+  touch-action: none !important; 
+}
