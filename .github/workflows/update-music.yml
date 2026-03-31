@@ -6,7 +6,7 @@ on:
     branches:
       - main  # Change to "master" if your main branch is called master
     paths:
-      - 'albums/**'
+      - 'expansions/DWSMusic/albums/**'
 
 jobs:
   build:
