@@ -64,8 +64,12 @@ document.addEventListener('DOMContentLoaded', () => {
       void overlay.offsetWidth; // Force browser reflow
 
       // Turn transitions back on and expand to fullscreen
-      portal.style.transition = ''; // Restores CSS transitions
-      overlay.classList.add('active'); // Triggers quick fade in
+      portal.style.transition = ''; 
+      overlay.classList.add('active'); 
+      
+      // Lock both HTML and Body
+      document.documentElement.classList.add('web-infinity-no-scroll');
+      document.body.classList.add('web-infinity-no-scroll');
       
       portal.style.top = '0px';
       portal.style.left = '0px';
@@ -103,8 +107,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Cleanup DOM after the 0.8s CSS transition finishes
         setTimeout(() => {
           container.classList.remove('has-active-expansion');
-          overlay.remove(); // Total cleanup
-        }, 800); 
+          overlay.remove(); 
+          
+          // Unlock both HTML and Body
+          document.documentElement.classList.remove('web-infinity-no-scroll');
+          document.body.classList.remove('web-infinity-no-scroll'); 
+        }, 800);
       };
     });
   });
