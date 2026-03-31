@@ -1,7 +1,12 @@
 window.addEventListener("load", () => {
-  const overlay = document.createElement("div");
-  overlay.id = "bg-fade-overlay";
-  document.body.appendChild(overlay);
+  const overlay = document.getElementById("bg-fade-overlay");
+  
+  // Add the class that triggers the CSS transition
+  overlay.classList.add("fade-out");
 
-  overlay.addEventListener("animationend", () => overlay.remove());
+  // Optional: Remove it from the DOM entirely after the transition
+  overlay.addEventListener("transitionend", () => overlay.remove());
+  
+  // NOW trigger your actual intro animation
+  startMyMainAnimation(); 
 });
