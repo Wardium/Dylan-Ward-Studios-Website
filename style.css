@@ -912,6 +912,7 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
 
 /* Expansion Link System */
 
+/* --- Drop-in 1:1 Image Scaling Module --- */
 .section-container.has-active-expansion {
   position: relative !important;
   overflow: hidden !important;
@@ -922,20 +923,32 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
   top: 0; left: 0; width: 100%; height: 100%;
   z-index: 999999 !important;
   pointer-events: none;
+  /* 1. Very quick fade-in when spawned */
+  opacity: 0;
+  transition: opacity 0.2s ease-out; 
 }
 .web-infinity-overlay.active {
   pointer-events: all;
+  opacity: 1;
+}
+.web-infinity-overlay.closing {
+  opacity: 0;
+  /* 2. Last-second fade out (Waits 0.5s of the 0.8s animation, then fades out over 0.3s) */
+  transition: opacity 0.3s ease-out 0.5s; 
 }
 
-/* The Portal: Handles both the image and the iframe */
+/* The Portal: Now physically changes size to force the image to scale */
 .web-infinity-portal {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  /* The initial state is set by JS, but we define the smooth transition here */
-  transition: clip-path 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden; /* Ensures border-radius clips the image/iframe perfectly */
+  /* Smoothly animates size, position, and border-radius */
+  transition: top 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              left 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              width 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              height 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              border-radius 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* The Background Picture */
 .web-infinity-bg {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -943,21 +956,18 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
   background-position: center;
 }
 
-/* The Target Website */
 .web-infinity-iframe {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   border: none;
   background: #000;
   opacity: 0;
-  /* Fades in smoothly as the window expands */
-  transition: opacity 0.6s ease 0.2s; 
+  transition: opacity 0.5s ease 0.3s; /* Delays fade in slightly */
 }
 .web-infinity-overlay.active .web-infinity-iframe {
   opacity: 1;
 }
 
-/* Close Button */
 .web-infinity-close {
   position: absolute;
   top: 20px; right: 20px;
@@ -984,7 +994,6 @@ main.fullscreen-mode, .main-fly-in.fullscreen-mode {
   background: rgba(255, 255, 255, 0.25);
 }
 
-/* Navigation Arrow Hiding */
 .arrow {
   transition: opacity 0.3s ease, transform 0.3s ease !important;
 }
