@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DWS Music</title>
+  <style>
+    /* --- GLOBAL STYLES & VARIABLES --- */
+    :root {
+      /* Update this to whatever gradient you prefer */
+      --bg-gradient: linear-gradient(135deg, #2b1055 0%, #7597de 100%);
+      --text-color: #ffffff;
+      --shadow: 0 15px 35px rgba(0,0,0,0.3);
+      --glass-bg: rgba(255, 255, 255, 0.1);
+      --glass-border: rgba(255, 255, 255, 0.2);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: var(--bg-gradient);
+      background-attachment: fixed; /* Keeps gradient continuous */
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text-color);
+      overflow-x: hidden;
+    }
+
+    /* --- HEADER & INTRO ANIMATION --- */
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      height: 100vh; /* Starts full screen for the intro */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: height 1s cubic-bezier(0.8, 0, 0.2, 1), background 1s;
+      z-index: 100;
+    }
+
+    /* Header states after intro finishes */
+    header.shrunk {
+      height: 100px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(15px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    /* DWS Logo Image Placeholder */
+    .logo {
+      width: 90px;
+      height: 90px;
+      background: #fff; /* Remove this when you add your PNG */
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: scale(0.8);
+      animation: logoFadeInGrow 1s forwards ease-out;
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      color: #000;
+      font-weight: 900;
+      font-size: 28px;
+    }
+
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 20px;
+    }
+
+    @keyframes logoFadeInGrow {
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* The bouncy 'MUSIC' text */
+    .music-text {
+      display: flex;
+      font-size: 3.5rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+
+    .music-text span {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(60px) rotate(-20deg) scale(0.5);
+    }
+
+    .music-text.show span {
+      animation: goofyJump 0.7s forwards cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Staggered delays for each letter */
+    .music-text span:nth-child(1) { animation-delay: 0.1s; }
+    .music-text span:nth-child(2) { animation-delay: 0.2s; }
+    .music-text span:nth-child(3) { animation-delay: 0.3s; }
+    .music-text span:nth-child(4) { animation-delay: 0.4s; }
+    .music-text span:nth-child(5) { animation-delay: 0.5s; }
+
+    @keyframes goofyJump {
+      50% { transform: translateY(-25px) rotate(15deg) scale(1.1); opacity: 1; }
+      100% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+    }
+
+    /* --- MAIN ALBUM LIST --- */
+    main {
+      padding-top: 150px; /* Offset for the 100px header */
+      max-width: 1100px;
+      margin: 0 auto;
+      padding-bottom: 50px;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 1s, transform 1s;
+      display: none; 
+    }
+
+    main.visible {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .album-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 80px;
+      gap: 50px;
+      padding: 0 20px;
+    }
+
+    .album-info {
+      flex: 1;
+      text-align: left; /* Left side info */
+    }
+
+    .album-info h2 {
+      font-size: 3rem;
+      margin: 0 0 15px 0;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .album-info p {
+      font-size: 1.2rem;
+      opacity: 0.85;
+      line-height: 1.6;
+    }
+
+    .album-cover-container {
+      flex: 1;
+      display: flex;
+      justify-content: flex-end; /* Pushes the cover to the right */
+      perspective: 1000px; /* Required for the 3D effect */
+    }
+
+    .album-cover {
+      width: 320px;
+      height: 320px;
+      background: #ccc; 
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      transform-style: preserve-3d;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .album-cover:hover {
+      /* The modern 3D turn effect */
+      transform: rotateY(-12deg) rotateX(8deg) scale(1.05);
+      box-shadow: -15px 25px 40px rgba(0,0,0,0.4);
+    }
+
+    /* --- SINGLE ALBUM INTERIOR VIEW --- */
+    #single-album-view {
+      display: none; 
+      opacity: 0;
+      transform: scale(0.95) translateY(20px);
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 1100px;
+      margin: 150px auto 50px;
+      padding: 0 20px;
+    }
+
+    #single-album-view.active {
+      display: flex;
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      gap: 60px;
+    }
+
+    .single-cover-container {
+      flex: 1;
+    }
+
+    .single-cover {
+      width: 450px;
+      height: 450px;
+      border-radius: 25px;
+      box-shadow: var(--shadow);
+      background-size: cover;
+      background-position: center;
+      /* Makes the album feel "alive" while viewing it */
+      animation: floatAlive 5s infinite ease-in-out; 
+    }
+
+    @keyframes floatAlive {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-15px) rotate(1deg); }
+    }
+
+    .track-list-container {
+      flex: 1.2;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 25px;
+      padding: 40px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .back-btn {
+      display: inline-block;
+      margin-bottom: 25px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1.1rem;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .back-btn:hover {
+      opacity: 1;
+    }
+
+    #active-album-title {
+      font-size: 2.5rem;
+      margin: 0 0 30px 0;
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 15px;
+    }
+
+    .track-list {
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    .track-item {
+      display: flex;
+      align-items: center;
+      padding: 15px 20px;
+      margin-bottom: 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .track-item:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateX(10px); /* Slips to the right on hover */
+    }
+
+    .play-btn {
+      width: 40px;
+      height: 40px;
+      background: var(--text-color);
+      color: #000;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 20px;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <header id="main-header">
+    <div class="logo-container">
+      <div class="logo" id="dws-logo">
+        DWS
+      </div>
+      <div class="music-text" id="music-text">
+        <span>M</span><span>U</span><span>S</span><span>I</span><span>C</span>
+      </div>
+    </div>
+  </header>
+
+  <main id="album-list">
+    </main>
+
+  <div id="single-album-view">
+    <div class="single-cover-container">
+      <div class="single-cover" id="active-cover"></div>
+    </div>
+    <div class="track-list-container">
+      <div class="back-btn" onclick="goBack()">← Back to Library</div>
+      <h2 id="active-album-title">Album Name</h2>
+      <div class="track-list" id="track-list">
+        </div>
+    </div>
+  </div>
+
+  <audio id="audio-player"></audio>
+
+  <script>
+    // --- DATA LAYER ---
+    // This modular structure makes it incredibly easy to add new albums/songs.
+    // Just copy an object block and replace the text/colors/paths.
+    const musicDatabase = [
+      {
+        id: 1,
+        title: "Neon Echoes",
+        description: "A retro-futuristic blend of analog synths and modern bass. Step into the digital frontier.",
+        coverColor: "linear-gradient(45deg, #ff007f, #7928ca)", // Replace with: coverImage: "url('album1.png')"
+        tracks: [
+          { title: "System Override", src: "audio/track1.mp3" },
+          { title: "Cybernetic Horizon", src: "audio/track2.mp3" },
+          { title: "Neon Echoes (Title Track)", src: "audio/track3.mp3" }
+        ]
+      },
+      {
+        id: 2,
+        title: "Midnight Drives",
+        description: "Smooth, rhythmic tracks designed for empty highways and late-night contemplation.",
+        coverColor: "linear-gradient(45deg, #111, #444)",
+        tracks: [
+          { title: "Engine Ignition", src: "audio/track4.mp3" },
+          { title: "Streetlights", src: "audio/track5.mp3" },
+          { title: "Dashboard Confessions", src: "audio/track6.mp3" },
+          { title: "Arrival", src: "audio/track7.mp3" }
+        ]
+      }
+    ];
+
+    // --- ANIMATION TIMING ---
+    window.onload = () => {
+      const musicText = document.getElementById('music-text');
+      const header = document.getElementById('main-header');
+      const mainContent = document.getElementById('album-list');
+
+      // 1. Fire the goofy letters after the logo finishes its 1s fade-in
+      setTimeout(() => {
+        musicText.classList.add('show');
+      }, 1200);
+
+      // 2. Shrink the header up to the top and reveal the albums
+      setTimeout(() => {
+        header.classList.add('shrunk');
+        
+        mainContent.style.display = 'block';
+        // Need a tiny delay between display: block and opacity transition for it to trigger
+        setTimeout(() => {
+           mainContent.classList.add('visible');
+        }, 50); 
+      }, 3500); // 3.5 seconds total for the intro
+
+      // Build the UI
+      renderAlbums();
+    };
+
+    // --- RENDER LOGIC ---
+    function renderAlbums() {
+      const listContainer = document.getElementById('album-list');
+      listContainer.innerHTML = '';
+
+      musicDatabase.forEach(album => {
+        const row = document.createElement('div');
+        row.className = 'album-row';
+
+        row.innerHTML = `
+          <div class="album-info">
+            <h2>${album.title}</h2>
+            <p>${album.description}</p>
+          </div>
+          <div class="album-cover-container">
+            <div class="album-cover" style="background: ${album.coverColor};" onclick="openAlbum(${album.id})"></div>
+          </div>
+        `;
+        listContainer.appendChild(row);
+      });
+    }
+
+    // --- TRANSITIONS ---
+    function openAlbum(albumId) {
+      const album = musicDatabase.find(a => a.id === albumId);
+      const listContainer = document.getElementById('album-list');
+      const singleView = document.getElementById('single-album-view');
+
+      // 1. Fade out the main list
+      listContainer.classList.remove('visible');
+      
+      setTimeout(() => {
+        listContainer.style.display = 'none';
+
+        // 2. Inject the data into the Single View
+        document.getElementById('active-cover').style.background = album.coverColor;
+        document.getElementById('active-album-title').innerText = album.title;
+
+        const trackList = document.getElementById('track-list');
+        trackList.innerHTML = '';
+        album.tracks.forEach((track, index) => {
+          trackList.innerHTML += `
+            <div class="track-item" onclick="playTrack('${track.src}', '${track.title}')">
+              <div class="play-btn">▶</div>
+              <div style="font-weight: bold;">${index + 1}. ${track.title}</div>
+            </div>
+          `;
+        });
+
+        // 3. Fade in the Single View
+        singleView.style.display = 'flex';
+        setTimeout(() => {
+          singleView.classList.add('active');
+        }, 50);
+
+      }, 500); // Wait for the 0.5s fade out
+    }
+
+    function goBack() {
+      const listContainer = document.getElementById('album-list');
+      const singleView = document.getElementById('single-album-view');
+
+      // 1. Fade out single view
+      singleView.classList.remove('active');
+      
+      setTimeout(() => {
+        singleView.style.display = 'none';
+        
+        // 2. Fade in main list
+        listContainer.style.display = 'block';
+        setTimeout(() => {
+           listContainer.classList.add('visible');
+        }, 50);
+      }, 600);
+    }
+
+    // --- AUDIO LOGIC ---
+    function playTrack(src, title) {
+      const player = document.getElementById('audio-player');
+      
+      // Uncomment below when you have actual local files linked
+      // player.src = src;
+      // player.play();
+      
+      console.log('Now playing: ' + title);
+      alert('Playing: ' + title + '\n(Hook up actual audio files in the javascript DB to hear music!)');
+    }
+  </script>
+</body>
+</html>
