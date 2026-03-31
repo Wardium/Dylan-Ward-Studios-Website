@@ -24,7 +24,7 @@ jobs:
 
       # Step 3: The robot runs your script!
       - name: Run build script
-        run: node build-db.js
+        run: node expansions/DWSMusic/build-db.js
 
       # Step 4: The robot saves the new database.js file back to your GitHub repo
       - name: Commit and push changes
