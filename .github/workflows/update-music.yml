@@ -1,10 +1,10 @@
 name: Auto-Generate Music Database
 
-# This tells the robot to only wake up when you change something in the "albums" folder
+# Wakes the robot up ONLY when files inside the specific albums folder change
 on:
   push:
     branches:
-      - main  # Change to "master" if your main branch is called master
+      - main 
     paths:
       - 'expansions/DWSMusic/albums/**'
 
@@ -12,25 +12,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: The robot downloads your code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: The robot installs Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      # Step 3: The robot runs your script!
+      # CD into the expansion folder first, then run the script
       - name: Run build script
-        run: node expansions/DWSMusic/build-db.js
+        run: |
+          cd expansions/DWSMusic
+          node build-db.js
 
-      # Step 4: The robot saves the new database.js file back to your GitHub repo
+      # Target the specific database file for the commit
       - name: Commit and push changes
         run: |
           git config --global user.name 'GitHub Action Bot'
           git config --global user.email 'action@github.com'
-          git add database.js
-          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-updated music database"
+          git add expansions/DWSMusic/database.js
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-updated DWS Music database"
           git push
