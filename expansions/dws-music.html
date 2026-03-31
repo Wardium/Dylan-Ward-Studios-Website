@@ -55,7 +55,6 @@
     .logo {
       width: clamp(60px, 15vw, 90px);
       height: clamp(60px, 15vw, 90px);
-      background: #fff;
       border-radius: 20px;
       box-shadow: var(--shadow);
       opacity: 0;
@@ -64,7 +63,6 @@
       display: flex; 
       align-items: center; 
       justify-content: center; 
-      color: #000;
       font-weight: 900;
       font-size: clamp(18px, 5vw, 28px);
     }
@@ -334,15 +332,15 @@
 <body>
 
   <header id="main-header">
-    <div class="logo-container">
-      <div class="logo" id="dws-logo">
-        <img src="../assets/logo.svg" alt="DWS Logo" width="150">
-      </div>
-      <div class="music-text" id="music-text">
-        <span>M</span><span>u</span><span>s</span><span>i</span><span>c</span>
-      </div>
+  <div class="logo-container">
+    <div class="logo" id="dws-logo">
+      <img src="../assets/logo.svg" alt="DWS Logo" />
     </div>
-  </header>
+    <div class="music-text" id="music-text">
+      <span>M</span><span>u</span><span>s</span><span>i</span><span>c</span>
+    </div>
+  </div>
+</header>
 
   <main id="album-list">
     </main>
@@ -361,32 +359,9 @@
 
   <audio id="audio-player"></audio>
 
+  <script src="database.js"></script>
+  
   <script>
-    const musicDatabase = [
-      {
-        id: 1,
-        title: "Neon Echoes",
-        description: "A retro-futuristic blend of analog synths and modern bass. Step into the digital frontier.",
-        coverColor: "linear-gradient(45deg, #ff007f, #7928ca)", 
-        tracks: [
-          { title: "System Override", src: "audio/track1.mp3" },
-          { title: "Cybernetic Horizon", src: "audio/track2.mp3" },
-          { title: "Neon Echoes", src: "audio/track3.mp3" }
-        ]
-      },
-      {
-        id: 2,
-        title: "Midnight Drives",
-        description: "Smooth, rhythmic tracks designed for empty highways and late-night contemplation.",
-        coverColor: "linear-gradient(45deg, #111, #444)",
-        tracks: [
-          { title: "Engine Ignition", src: "audio/track4.mp3" },
-          { title: "Streetlights", src: "audio/track5.mp3" },
-          { title: "Dashboard Confessions", src: "audio/track6.mp3" },
-          { title: "Arrival", src: "audio/track7.mp3" }
-        ]
-      }
-    ];
 
     // NEW: Global variables to track what is currently playing
     let currentAudioSrc = null;
