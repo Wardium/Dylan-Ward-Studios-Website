@@ -1,0 +1,36 @@
+name: Auto-Generate Music Database
+
+# This tells the robot to only wake up when you change something in the "albums" folder
+on:
+  push:
+    branches:
+      - main  # Change to "master" if your main branch is called master
+    paths:
+      - 'albums/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: The robot downloads your code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: The robot installs Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # Step 3: The robot runs your script!
+      - name: Run build script
+        run: node build-db.js
+
+      # Step 4: The robot saves the new database.js file back to your GitHub repo
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'GitHub Action Bot'
+          git config --global user.email 'action@github.com'
+          git add database.js
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-updated music database"
+          git push
