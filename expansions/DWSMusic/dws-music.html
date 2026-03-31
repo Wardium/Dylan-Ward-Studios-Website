@@ -394,13 +394,18 @@
         const row = document.createElement('div');
         row.className = 'album-row';
 
+        // NEW: Check if an image exists, and format it as a CSS background-image
+        const bgStyle = album.coverImage 
+          ? `background-image: url('${album.coverImage}');` 
+          : `background-color: #ccc;`;
+
         row.innerHTML = `
           <div class="album-info">
             <h2>${album.title}</h2>
             <p>${album.description}</p>
           </div>
           <div class="album-cover-container">
-            <div class="album-cover" style="background: ${album.coverColor};" onclick="openAlbum(${album.id})"></div>
+            <div class="album-cover" style="${bgStyle}" onclick="openAlbum(${album.id})"></div>
           </div>
         `;
         listContainer.appendChild(row);
@@ -418,7 +423,14 @@
       setTimeout(() => {
         listContainer.style.display = 'none';
 
-        cover.style.background = album.coverColor;
+        if (album.coverImage) {
+            cover.style.backgroundImage = `url('${album.coverImage}')`;
+        } else {
+          // Fallback just in case you forget to upload a cover.png!
+          cover.style.backgroundImage = 'none';
+          cover.style.backgroundColor = '#ccc'; 
+        }
+        
         document.getElementById('active-album-title').innerText = album.title;
 
         // Clear existing tracks
