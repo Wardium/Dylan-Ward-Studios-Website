@@ -211,12 +211,24 @@
       box-shadow: var(--shadow);
       background-size: cover;
       background-position: center;
+      /* The slow, ambient float when paused */
       animation: floatAlive 5s infinite ease-in-out; 
+      transition: transform 0.2s;
+    }
+
+    /* NEW: The faster, punchy dance when playing */
+    .single-cover.dancing {
+      animation: danceToBeat 0.8s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     @keyframes floatAlive {
       0%, 100% { transform: translateY(0px) rotate(0deg); }
       50% { transform: translateY(-15px) rotate(1deg); }
+    }
+
+    @keyframes danceToBeat {
+      0% { transform: scale(1) rotate(-1deg); box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+      100% { transform: scale(1.05) rotate(2deg); box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
     }
 
     .track-list-container {
@@ -290,47 +302,30 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
-    /* --- RESPONSIVE MEDIA QUERIES (UPDATED FOR VERTICAL STACKING) --- */
+    /* --- RESPONSIVE MEDIA QUERIES (VERTICAL STACKING) --- */
     @media (max-width: 800px) {
       .album-row {
-        /* This stacks the text on top, album cover on bottom */
         flex-direction: column; 
         text-align: center;
         gap: 30px;
         margin-bottom: 70px;
       }
 
-      .album-info {
-        width: 100%;
-      }
-
-      .album-cover-container {
-        justify-content: center; 
-        width: 100%;
-      }
-
-      .album-cover {
-        max-width: 320px; /* Keeps it a nice big square on mobile */
-        width: 100%;
-      }
+      .album-info { width: 100%; }
+      .album-cover-container { justify-content: center; width: 100%; }
+      .album-cover { max-width: 320px; width: 100%; }
 
       #single-album-view.active {
-        /* This stacks the cover on top, tracklist on bottom */
         flex-direction: column; 
         gap: 40px;
         align-items: center;
       }
       
-      .single-cover-container {
-        width: 100%;
-      }
-
-      .single-cover {
-        max-width: 320px; 
-      }
+      .single-cover-container { width: 100%; }
+      .single-cover { max-width: 320px; }
       
       .track-item:hover {
-        transform: none; /* Disables slide-right on touchscreens */
+        transform: none; 
         background: rgba(255, 255, 255, 0.2);
       }
     }
@@ -393,6 +388,10 @@
       }
     ];
 
+    // NEW: Global variables to track what is currently playing
+    let currentAudioSrc = null;
+    let isPlaying = false;
+
     window.onload = () => {
       const musicText = document.getElementById('music-text');
       const header = document.getElementById('main-header');
@@ -438,25 +437,44 @@
       const album = musicDatabase.find(a => a.id === albumId);
       const listContainer = document.getElementById('album-list');
       const singleView = document.getElementById('single-album-view');
+      const cover = document.getElementById('active-cover');
 
       listContainer.classList.remove('visible');
       
       setTimeout(() => {
         listContainer.style.display = 'none';
 
-        document.getElementById('active-cover').style.background = album.coverColor;
+        cover.style.background = album.coverColor;
         document.getElementById('active-album-title').innerText = album.title;
 
+        // Clear existing tracks
         const trackList = document.getElementById('track-list');
         trackList.innerHTML = '';
+        
+        // Generate new tracks and check if one is currently playing
+        let albumHasPlayingTrack = false;
+
         album.tracks.forEach((track, index) => {
+          const buttonId = `play-btn-${index}`;
+          const isThisTrackPlaying = (currentAudioSrc === track.src && isPlaying);
+          const icon = isThisTrackPlaying ? '⏸' : '▶';
+          
+          if (isThisTrackPlaying) albumHasPlayingTrack = true;
+
           trackList.innerHTML += `
-            <div class="track-item" onclick="playTrack('${track.src}', '${track.title}')">
-              <div class="play-btn">▶</div>
+            <div class="track-item" onclick="togglePlay('${track.src}', '${buttonId}')">
+              <div class="play-btn" id="${buttonId}">${icon}</div>
               <div style="font-weight: bold;">${index + 1}. ${track.title}</div>
             </div>
           `;
         });
+
+        // If we opened the album and a song inside it is playing, make it dance!
+        if (albumHasPlayingTrack) {
+          cover.classList.add('dancing');
+        } else {
+          cover.classList.remove('dancing');
+        }
 
         singleView.style.display = 'flex';
         setTimeout(() => {
@@ -483,9 +501,45 @@
       }, 600);
     }
 
-    function playTrack(src, title) {
-      console.log('Now playing: ' + title);
-      alert('Playing: ' + title);
+    // NEW: Function to handle Play/Pause and visual updates
+    function togglePlay(src, buttonId) {
+      const player = document.getElementById('audio-player');
+      const cover = document.getElementById('active-cover');
+      const clickedBtn = document.getElementById(buttonId);
+      const allButtons = document.querySelectorAll('.play-btn');
+
+      // 1. If we clicked the song that is ALREADY playing
+      if (currentAudioSrc === src && isPlaying) {
+        // Pause it
+        player.pause();
+        isPlaying = false;
+        cover.classList.remove('dancing');
+        clickedBtn.innerText = '▶';
+      } 
+      // 2. If we clicked a NEW song, or resumed a paused song
+      else {
+        // Reset ALL buttons back to Play icon
+        allButtons.forEach(btn => btn.innerText = '▶');
+
+        // Only load a new track if the source actually changed
+        if (currentAudioSrc !== src) {
+          player.src = src;
+          currentAudioSrc = src;
+        }
+
+        // Try to play the audio. If the file doesn't exist yet, catch the error so the animation still works for prototyping!
+        let playPromise = player.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.log("Audio file not found yet. Simulating playback animation.");
+          });
+        }
+
+        // Update visuals
+        isPlaying = true;
+        cover.classList.add('dancing');
+        clickedBtn.innerText = '⏸';
+      }
     }
   </script>
 </body>
