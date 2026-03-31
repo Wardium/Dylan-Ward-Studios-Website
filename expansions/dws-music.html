@@ -49,11 +49,11 @@
     .logo-container {
       display: flex;
       align-items: center;
-      gap: clamp(10px, 3vw, 15px); /* Scales gap on mobile */
+      gap: clamp(10px, 3vw, 15px);
     }
 
     .logo {
-      width: clamp(60px, 15vw, 90px); /* Scales logo on mobile */
+      width: clamp(60px, 15vw, 90px);
       height: clamp(60px, 15vw, 90px);
       background: #fff;
       border-radius: 20px;
@@ -82,7 +82,6 @@
 
     .music-text {
       display: flex;
-      /* clamp() keeps text between 2rem and 3.5rem depending on screen width */
       font-size: clamp(2rem, 8vw, 3.5rem); 
       font-weight: 800;
       letter-spacing: 2px;
@@ -163,7 +162,7 @@
     .album-cover {
       width: 100%;
       max-width: 320px;
-      aspect-ratio: 1 / 1; /* Keeps it a perfect square scaling down */
+      aspect-ratio: 1 / 1; 
       background: #ccc; 
       border-radius: 20px;
       box-shadow: var(--shadow);
@@ -279,7 +278,7 @@
     .play-btn {
       width: 40px;
       height: 40px;
-      min-width: 40px; /* Prevents button from shrinking on tiny screens */
+      min-width: 40px;
       background: var(--text-color);
       color: #000;
       border-radius: 50%;
@@ -291,31 +290,47 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
-    /* --- RESPONSIVE MEDIA QUERIES --- */
-    /* This tells the browser: "If the screen is 800px wide or smaller, apply these rules" */
+    /* --- RESPONSIVE MEDIA QUERIES (UPDATED FOR VERTICAL STACKING) --- */
     @media (max-width: 800px) {
       .album-row {
-        flex-direction: column-reverse; /* Stacks text under the cover */
+        /* This stacks the text on top, album cover on bottom */
+        flex-direction: column; 
         text-align: center;
         gap: 30px;
-        margin-bottom: 60px;
+        margin-bottom: 70px;
+      }
+
+      .album-info {
+        width: 100%;
       }
 
       .album-cover-container {
-        justify-content: center; /* Centers the cover on mobile */
+        justify-content: center; 
+        width: 100%;
+      }
+
+      .album-cover {
+        max-width: 320px; /* Keeps it a nice big square on mobile */
+        width: 100%;
       }
 
       #single-album-view.active {
-        flex-direction: column; /* Stacks cover and tracklist */
-        gap: 30px;
+        /* This stacks the cover on top, tracklist on bottom */
+        flex-direction: column; 
+        gap: 40px;
+        align-items: center;
       }
       
+      .single-cover-container {
+        width: 100%;
+      }
+
       .single-cover {
-        max-width: 300px; /* Slightly smaller maximum for mobile */
+        max-width: 320px; 
       }
       
       .track-item:hover {
-        transform: none; /* Disables the slide-right hover effect on touchscreens */
+        transform: none; /* Disables slide-right on touchscreens */
         background: rgba(255, 255, 255, 0.2);
       }
     }
@@ -446,7 +461,6 @@
         singleView.style.display = 'flex';
         setTimeout(() => {
           singleView.classList.add('active');
-          // Scroll to top on mobile when opening an album
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }, 50);
 
