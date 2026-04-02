@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send Email</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      /* Fancy simple grey gradient */
+      background: linear-gradient(135deg, #cfd9df 0%, #e2ebf0 100%);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* The "Window" */
+    .email-window {
+      background-color: #ffffff;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Minimalist Window Header */
+    .window-header {
+      background-color: #f3f4f6;
+      padding: 12px 20px;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 14px;
+      font-weight: 600;
+      color: #6b7280;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    .form-container {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background-color: #f9fafb;
+      font-size: 15px;
+      color: #1f2937;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #9ca3af;
+      background-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.2);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    button {
+      margin-top: 8px;
+      padding: 14px;
+      background-color: #374151;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    button:hover {
+      background-color: #1f2937;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="email-window">
+    <div class="window-header">
+      New Message
+    </div>
+    
+    <form class="form-container" action="https://formspree.io/f/mdaplwdo" method="POST">
+      
+      <div class="input-group">
+        <label for="email">Your Email</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required>
+      </div>
+
+      <div class="input-group">
+        <label for="subject">Subject</label>
+        <input type="text" id="subject" name="subject" placeholder="What is this regarding?" required>
+      </div>
+
+      <div class="input-group">
+        <label for="message">Message</label>
+        <textarea id="message" name="message" placeholder="Type your message here..." required></textarea>
+      </div>
+
+      <button type="submit">Send Message</button>
+
+    </form>
+  </div>
+
+</body>
+</html>
