@@ -1,5 +1,4 @@
-<script>
-  // Wait for the HTML to fully load before running the script
+// Wait for the HTML to fully load before running the script
   document.addEventListener("DOMContentLoaded", () => {
     
     const API_KEY = 'AIzaSyDPqRehZ_4fnFit6VygB19hRjpSE5pXuTs'; // Reminder: Restrict this key!
@@ -31,4 +30,3 @@
       .catch(error => console.error('Error fetching YouTube data:', error));
       
   });
-</script>
