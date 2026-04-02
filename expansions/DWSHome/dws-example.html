@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ladder Joke.</title>
+    <style>
+        /* Reset and Black Background */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: black;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Prevents scrollbars */
+        }
+
+        /* Container for the joke */
+        .joke-container {
+            text-align: center;
+            width: 80%; /* Keeps text from hitting the edges */
+            max-width: 900px;
+        }
+
+        /* Scalable Text */
+        p {
+            /* Clamp ensures the text doesn't get too tiny on phones 
+               or ridiculously huge on 4k monitors.
+            */
+            font-size: clamp(1.5rem, 5vw, 4rem);
+            line-height: 1.4;
+            margin: 0;
+            font-weight: 300;
+        }
+
+        .punchline {
+            display: block;
+            margin-top: 1rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="joke-container">
+        <p>
+            My friend was showing me his tool shed and pointed to a ladder. 
+            “That's my stepladder,” he said. 
+            <span class="punchline">“I never knew my real ladder.”</span>
+        </p>
+    </div>
+
+</body>
+</html>
