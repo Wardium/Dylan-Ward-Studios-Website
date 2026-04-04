@@ -1,1 +1,616 @@
-z
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DWS Stories</title>
+  <style>
+    /* --- GLOBAL STYLES & VARIABLES --- */
+    :root {
+      /* Green gradient for DWS Stories */
+      --bg-gradient: linear-gradient(135deg, #11998E 0%, #38EF7D 100%);
+      --text-color: #ffffff;
+      --book-text: #2c3e50;
+      --shadow: 0 15px 35px rgba(0,0,0,0.3);
+      --glass-bg: rgba(255, 255, 255, 0.1);
+      --glass-border: rgba(255, 255, 255, 0.2);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: var(--bg-gradient); 
+      background-attachment: fixed;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text-color);
+      overflow-x: hidden;
+    }
+
+    /* --- HEADER & INTRO ANIMATION --- */
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: height 1s cubic-bezier(0.8, 0, 0.2, 1), background 1s;
+      z-index: 100;
+    }
+
+    header.shrunk {
+      height: 90px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(15px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: clamp(10px, 3vw, 15px);
+    }
+
+    .logo {
+      width: clamp(60px, 15vw, 90px);
+      height: clamp(60px, 15vw, 90px);
+      border-radius: 20px;
+      opacity: 0;
+      transform: scale(0.8);
+      animation: logoFadeInGrow 1s forwards ease-out;
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-weight: 900;
+      font-size: clamp(18px, 5vw, 28px);
+      background: rgba(255,255,255,0.2);
+    }
+
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 20px;
+    }
+
+    @keyframes logoFadeInGrow {
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .animated-text {
+      display: flex;
+      font-size: clamp(2rem, 8vw, 3.5rem); 
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+
+    .animated-text span {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(60px) rotate(-20deg) scale(0.5);
+    }
+
+    .animated-text.show span {
+      animation: goofyJump 0.7s forwards cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .animated-text span:nth-child(1) { animation-delay: 0.1s; }
+    .animated-text span:nth-child(2) { animation-delay: 0.15s; }
+    .animated-text span:nth-child(3) { animation-delay: 0.2s; }
+    .animated-text span:nth-child(4) { animation-delay: 0.25s; }
+    .animated-text span:nth-child(5) { animation-delay: 0.3s; }
+    .animated-text span:nth-child(6) { animation-delay: 0.35s; }
+    .animated-text span:nth-child(7) { animation-delay: 0.4s; }
+
+    @keyframes goofyJump {
+      50% { transform: translateY(-25px) rotate(15deg) scale(1.1); opacity: 1; }
+      100% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+    }
+
+    /* --- MAIN BOOKSHELF LIST --- */
+    main {
+      padding-top: 130px; 
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-bottom: 80px;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 1s, transform 1s;
+      display: none; 
+    }
+
+    main.visible {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .bookshelf-grid {
+      display: grid;
+      /* Forces exactly two books per line */
+      grid-template-columns: repeat(2, 1fr);
+      gap: 60px;
+      padding: 0 40px;
+      perspective: 1200px; /* Gives the 3D depth to the shelf */
+    }
+
+    .book-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    /* --- 3D BOOK STYLING --- */
+    .book-3d-container {
+      width: 100%;
+      max-width: 300px;
+      aspect-ratio: 1 / 1; 
+      position: relative;
+      transform-style: preserve-3d;
+      /* Base resting angle */
+      transform: rotateY(-25deg) rotateX(10deg);
+      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    .book-item:hover .book-3d-container {
+      /* Pulls the book out and faces it forward slightly */
+      transform: rotateY(-5deg) rotateX(5deg) scale(1.08) translateZ(30px);
+    }
+
+    .book-front, .book-spine {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      border-radius: 5px 15px 15px 5px;
+      box-shadow: inset 4px 0 10px rgba(0,0,0,0.1);
+    }
+
+    .book-front {
+      width: 100%;
+      z-index: 2;
+      /* Book cover text overlay */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.2rem, 3vw, 2rem);
+      font-weight: bold;
+      color: white;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+      padding: 20px;
+      box-sizing: border-box;
+      background-color: #2c3e50; /* Fallback */
+    }
+
+    .book-spine {
+      width: 40px; /* Thickness of the book */
+      transform-origin: left;
+      transform: rotateY(-90deg);
+      background-color: rgba(0,0,0,0.2); /* Darkens spine slightly */
+      filter: brightness(0.8);
+      border-radius: 5px 0 0 5px;
+    }
+
+    /* Adds paper edge effect to the right side of the book */
+    .book-front::after {
+      content: '';
+      position: absolute;
+      right: -10px;
+      top: 2%;
+      width: 10px;
+      height: 96%;
+      background: #f0f0f0;
+      transform-origin: left;
+      transform: rotateY(90deg);
+      border-radius: 0 5px 5px 0;
+    }
+
+    .book-info h2 {
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      margin: 0 0 10px 0;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .book-info p {
+      font-size: clamp(0.9rem, 2vw, 1.1rem);
+      opacity: 0.85;
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    /* --- INTERACTIVE OPEN BOOK READER --- */
+    #reader-view {
+      display: none; 
+      opacity: 0;
+      transform: scale(0.95) translateY(20px);
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s;
+      max-width: 1200px;
+      margin: 130px auto 50px;
+      padding: 0 20px;
+    }
+
+    #reader-view.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    .back-btn {
+      align-self: flex-start;
+      margin-bottom: 25px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1.1rem;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+      background: var(--glass-bg);
+      padding: 10px 20px;
+      border-radius: 20px;
+      border: 1px solid var(--glass-border);
+    }
+
+    .back-btn:hover {
+      opacity: 1;
+      background: rgba(255,255,255,0.2);
+    }
+
+    .open-book-container {
+      width: 100%;
+      aspect-ratio: 16 / 10; /* Wide rectangle for open book */
+      max-height: 70vh;
+      display: flex;
+      background: #fdfdfd;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      position: relative;
+      perspective: 2000px;
+      color: var(--book-text);
+      /* The Shadow in the middle (the crease/spine) */
+      background-image: linear-gradient(
+        to right, 
+        #fdfdfd 0%, 
+        #fdfdfd 46%, 
+        #dcdcdc 50%, 
+        #fdfdfd 54%, 
+        #fdfdfd 100%
+      );
+    }
+
+    /* Paper texture edges */
+    .open-book-container::before {
+      content: '';
+      position: absolute;
+      top: -2px; bottom: -2px; left: -2px; right: -2px;
+      background: #e0e0e0;
+      z-index: -1;
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .page {
+      flex: 1;
+      padding: clamp(20px, 4vw, 50px);
+      box-sizing: border-box;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Page Numbers */
+    .page-number {
+      position: absolute;
+      bottom: 20px;
+      font-size: 0.9rem;
+      color: #999;
+    }
+    .left-page .page-number { left: 30px; }
+    .right-page .page-number { right: 30px; }
+
+    .page-content {
+      font-size: clamp(1.2rem, 2.5vw, 1.8rem); /* Large(ish) readable text */
+      line-height: 1.6;
+      flex-grow: 1;
+      /* Makes text look like a real printed book */
+      text-align: justify; 
+    }
+
+    .page-content h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      margin-top: 0;
+      color: #1a252f;
+      text-align: center;
+    }
+
+    /* --- PAGE FLIP ANIMATION MECHANICS --- */
+    .turning-page {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 50%; /* Right half of the book */
+      height: 100%;
+      transform-style: preserve-3d;
+      transform-origin: left center;
+      transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+      z-index: 10;
+      cursor: pointer;
+    }
+
+    .turning-page.is-flipping {
+      transform: rotateY(-180deg);
+    }
+
+    .page-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      background: #fdfdfd;
+      padding: clamp(20px, 4vw, 50px);
+      box-sizing: border-box;
+      background-image: linear-gradient(to right, #e8e8e8 0%, #fdfdfd 5%, #fdfdfd 100%);
+    }
+
+    .page-face.back {
+      transform: rotateY(180deg);
+      background-image: linear-gradient(to left, #e8e8e8 0%, #fdfdfd 5%, #fdfdfd 100%);
+    }
+
+    /* Click hints */
+    .click-hint {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 2rem;
+      color: rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: color 0.3s;
+      z-index: 20;
+    }
+    .right-page:hover .click-hint { color: rgba(0,0,0,0.4); }
+    .click-hint.right { right: 20px; }
+    .click-hint.left { left: 20px; display: none; } /* Only used if going backwards */
+
+    /* --- RESPONSIVE MEDIA QUERIES --- */
+    @media (max-width: 800px) {
+      .bookshelf-grid {
+        grid-template-columns: 1fr; /* 1 book per row on mobile for space */
+        gap: 50px;
+        padding: 0 20px;
+      }
+      
+      .open-book-container {
+        /* On narrow screens, the open book changes aspect ratio to stay readable */
+        aspect-ratio: 4 / 5;
+        max-height: 80vh;
+      }
+
+      .page-content {
+        text-align: left; /* Justify is hard to read on small screens */
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header id="main-header">
+    <div class="logo-container">
+      <div class="logo" id="dws-logo">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+      </div>
+      <div class="animated-text" id="animated-text">
+        <span>S</span><span>t</span><span>o</span><span>r</span><span>i</span><span>e</span><span>s</span>
+      </div>
+    </div>
+  </header>
+
+  <main id="bookshelf">
+    <div class="bookshelf-grid" id="bookshelf-grid">
+      </div>
+  </main>
+
+  <div id="reader-view">
+    <div class="back-btn" onclick="closeBook()">← Back to Bookshelf</div>
+    
+    <div class="open-book-container" id="open-book">
+      
+      <div class="page left-page">
+        <div class="page-content" id="left-page-content"></div>
+        <div class="page-number" id="left-page-num"></div>
+      </div>
+
+      <div class="page right-page" onclick="flipPageForward()">
+        <div class="page-content" id="right-page-content"></div>
+        <div class="page-number" id="right-page-num"></div>
+        <div class="click-hint right">▶</div>
+      </div>
+
+      <div class="turning-page" id="turning-page" onclick="flipPageForward()">
+        <div class="page-face front">
+          <div class="page-content" id="turn-front-content"></div>
+        </div>
+        <div class="page-face back">
+          <div class="page-content" id="turn-back-content"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // THE STORY DATABASE (EASY TO EDIT!)
+    // ==========================================
+    // To add a new book, just copy one of the { ... } blocks and change the text.
+    const storyDatabase = [];
+
+    // ==========================================
+    // APP LOGIC
+    // ==========================================
+    
+    // Variables to track reading state
+    let currentBook = null;
+    let currentPageIndex = 0; // The index of the LEFT page
+
+    window.onload = () => {
+      const animatedText = document.getElementById('animated-text');
+      const header = document.getElementById('main-header');
+      const mainContent = document.getElementById('bookshelf');
+
+      // 1. Intro Animation
+      setTimeout(() => {
+        animatedText.classList.add('show');
+      }, 1200);
+
+      // 2. Shrink Header & Show Shelf
+      setTimeout(() => {
+        header.classList.add('shrunk');
+        mainContent.style.display = 'block';
+        setTimeout(() => {
+           mainContent.classList.add('visible');
+        }, 50); 
+      }, 3500);
+
+      renderBookshelf();
+    };
+
+    function renderBookshelf() {
+      const grid = document.getElementById('bookshelf-grid');
+      grid.innerHTML = '';
+
+      storyDatabase.forEach(book => {
+        const bookDiv = document.createElement('div');
+        bookDiv.className = 'book-item';
+        
+        // Use an image if provided, otherwise use the color and title
+        const bgStyle = book.coverImage 
+          ? `background-image: url('${book.coverImage}');` 
+          : `background-color: ${book.coverColor};`;
+
+        bookDiv.innerHTML = `
+          <div class="book-3d-container" onclick="openBook(${book.id})">
+            <div class="book-front" style="${bgStyle}">
+              ${!book.coverImage ? book.title : ''}
+            </div>
+            <div class="book-spine" style="${bgStyle}"></div>
+          </div>
+          <div class="book-info">
+            <h2>${book.title}</h2>
+            <p>${book.description}</p>
+          </div>
+        `;
+        grid.appendChild(bookDiv);
+      });
+    }
+
+    function openBook(bookId) {
+      currentBook = storyDatabase.find(b => b.id === bookId);
+      currentPageIndex = 0; // Always start at the beginning
+
+      const shelf = document.getElementById('bookshelf');
+      const reader = document.getElementById('reader-view');
+
+      shelf.classList.remove('visible');
+      
+      setTimeout(() => {
+        shelf.style.display = 'none';
+        updatePageContent(); // Load the text into the DOM
+        
+        reader.style.display = 'flex';
+        setTimeout(() => {
+          reader.classList.add('active');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 50);
+
+      }, 500); 
+    }
+
+    function closeBook() {
+      const shelf = document.getElementById('bookshelf');
+      const reader = document.getElementById('reader-view');
+
+      reader.classList.remove('active');
+      
+      setTimeout(() => {
+        reader.style.display = 'none';
+        
+        shelf.style.display = 'block';
+        setTimeout(() => {
+           shelf.classList.add('visible');
+        }, 50);
+      }, 600);
+    }
+
+    // ==========================================
+    // PAGE FLIPPING LOGIC
+    // ==========================================
+    
+    function updatePageContent() {
+      const pages = currentBook.pages;
+      
+      // Update Static Left Page
+      document.getElementById('left-page-content').innerHTML = pages[currentPageIndex] || "";
+      document.getElementById('left-page-num').innerText = pages[currentPageIndex] ? (currentPageIndex + 1) : "";
+
+      // Update Static Right Page
+      document.getElementById('right-page-content').innerHTML = pages[currentPageIndex + 1] || "";
+      document.getElementById('right-page-num').innerText = pages[currentPageIndex + 1] ? (currentPageIndex + 2) : "";
+
+      // Reset the turning page element visually
+      const turnPageElement = document.getElementById('turning-page');
+      turnPageElement.style.transition = 'none';
+      turnPageElement.classList.remove('is-flipping');
+      
+      // Prep the turning page to look like the CURRENT right page before we click it
+      document.getElementById('turn-front-content').innerHTML = pages[currentPageIndex + 1] || "";
+      
+      // Hide the right hint if there are no more pages to turn
+      const rightHint = document.querySelector('.click-hint.right');
+      if (currentPageIndex + 2 >= pages.length) {
+         rightHint.style.display = 'none';
+         turnPageElement.style.cursor = 'default';
+      } else {
+         rightHint.style.display = 'block';
+         turnPageElement.style.cursor = 'pointer';
+      }
+    }
+
+    function flipPageForward() {
+      const pages = currentBook.pages;
+      
+      // Prevent flipping if we are at the end
+      if (currentPageIndex + 2 >= pages.length) return;
+
+      const turnPageElement = document.getElementById('turning-page');
+      
+      // 1. Prepare the BACK of the flipping page to show the NEXT left page
+      document.getElementById('turn-back-content').innerHTML = pages[currentPageIndex + 2] || "";
+
+      // 2. Temporarily update the static right page underneath so it shows the NEXT right page
+      document.getElementById('right-page-content').innerHTML = pages[currentPageIndex + 3] || "";
+      document.getElementById('right-page-num').innerText = pages[currentPageIndex + 3] ? (currentPageIndex + 4) : "";
+
+      // 3. Trigger the CSS Animation
+      turnPageElement.style.transition = 'transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1)';
+      turnPageElement.classList.add('is-flipping');
+
+      // 4. Wait for animation to finish, then finalize state
+      setTimeout(() => {
+        currentPageIndex += 2;
+        updatePageContent(); // Re-sync all variables and remove the flip class instantly
+      }, 800); // 800ms matches the CSS transition time
+    }
+  </script>
+</body>
+</html>
