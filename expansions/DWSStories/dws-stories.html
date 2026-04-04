@@ -449,44 +449,56 @@
     </div>
   </div>
 
-  <script>
-    // ==========================================
-    // THE STORY DATABASE (EASY TO EDIT!)
-    // ==========================================
-    // To add a new book, just copy one of the { ... } blocks and change the text.
-    const storyDatabase = [];
+  <script src="database.js"></script>
 
-    // ==========================================
-    // APP LOGIC
-    // ==========================================
-    
+  <script>
     // Variables to track reading state
     let currentBook = null;
-    let currentPageIndex = 0; // The index of the LEFT page
+    let currentPageIndex = 0; 
+
+    // --- AUTO PAGINATION ALGORITHM ---
+    function paginateText(rawText) {
+      if (!rawText) return [];
+      const paragraphs = rawText.split('\n\n');
+      const pages = [];
+      let currentPageHTML = "";
+      const maxCharsPerPage = 600; 
+
+      paragraphs.forEach(p => {
+        if ((currentPageHTML.length + p.length) > maxCharsPerPage && currentPageHTML.length > 0) {
+          pages.push(currentPageHTML);
+          currentPageHTML = `<p>${p}</p>`;
+        } else {
+          currentPageHTML += `<p>${p}</p>`;
+        }
+      });
+      
+      if (currentPageHTML.length > 0) {
+        pages.push(currentPageHTML);
+      }
+      
+      return pages;
+    }
 
     window.onload = () => {
+      // ... (Your intro animations and renderBookshelf call) ...
       const animatedText = document.getElementById('animated-text');
       const header = document.getElementById('main-header');
       const mainContent = document.getElementById('bookshelf');
 
-      // 1. Intro Animation
-      setTimeout(() => {
-        animatedText.classList.add('show');
-      }, 1200);
+      setTimeout(() => { animatedText.classList.add('show'); }, 1200);
 
-      // 2. Shrink Header & Show Shelf
       setTimeout(() => {
         header.classList.add('shrunk');
         mainContent.style.display = 'block';
-        setTimeout(() => {
-           mainContent.classList.add('visible');
-        }, 50); 
+        setTimeout(() => { mainContent.classList.add('visible'); }, 50); 
       }, 3500);
 
       renderBookshelf();
     };
 
     function renderBookshelf() {
+      // ... (Your existing renderBookshelf code) ...
       const grid = document.getElementById('bookshelf-grid');
       grid.innerHTML = '';
 
@@ -494,7 +506,6 @@
         const bookDiv = document.createElement('div');
         bookDiv.className = 'book-item';
         
-        // Use an image if provided, otherwise use the color and title
         const bgStyle = book.coverImage 
           ? `background-image: url('${book.coverImage}');` 
           : `background-color: ${book.coverColor};`;
@@ -515,9 +526,21 @@
       });
     }
 
+    // --- UPDATED OPEN BOOK FUNCTION ---
     function openBook(bookId) {
       currentBook = storyDatabase.find(b => b.id === bookId);
-      currentPageIndex = 0; // Always start at the beginning
+      
+      const formattedPages = paginateText(currentBook.text);
+      if(formattedPages.length > 0) {
+          formattedPages[0] = `<h1>${currentBook.title}</h1>` + formattedPages[0];
+      }
+      currentBook.pages = formattedPages;
+      
+      currentPageIndex = 0; 
+
+      if (currentBook.themeColor) {
+        document.body.style.background = currentBook.themeColor;
+      }
 
       const shelf = document.getElementById('bookshelf');
       const reader = document.getElementById('reader-view');
@@ -526,7 +549,7 @@
       
       setTimeout(() => {
         shelf.style.display = 'none';
-        updatePageContent(); // Load the text into the DOM
+        updatePageContent(); 
         
         reader.style.display = 'flex';
         setTimeout(() => {
@@ -537,15 +560,16 @@
       }, 500); 
     }
 
+    // --- UPDATED CLOSE BOOK FUNCTION ---
     function closeBook() {
       const shelf = document.getElementById('bookshelf');
       const reader = document.getElementById('reader-view');
 
       reader.classList.remove('active');
+      document.body.style.background = 'var(--bg-gradient)';
       
       setTimeout(() => {
         reader.style.display = 'none';
-        
         shelf.style.display = 'block';
         setTimeout(() => {
            shelf.classList.add('visible');
@@ -553,30 +577,22 @@
       }, 600);
     }
 
-    // ==========================================
-    // PAGE FLIPPING LOGIC
-    // ==========================================
-    
     function updatePageContent() {
+       // ... (Your existing updatePageContent code) ...
       const pages = currentBook.pages;
       
-      // Update Static Left Page
       document.getElementById('left-page-content').innerHTML = pages[currentPageIndex] || "";
       document.getElementById('left-page-num').innerText = pages[currentPageIndex] ? (currentPageIndex + 1) : "";
 
-      // Update Static Right Page
       document.getElementById('right-page-content').innerHTML = pages[currentPageIndex + 1] || "";
       document.getElementById('right-page-num').innerText = pages[currentPageIndex + 1] ? (currentPageIndex + 2) : "";
 
-      // Reset the turning page element visually
       const turnPageElement = document.getElementById('turning-page');
       turnPageElement.style.transition = 'none';
       turnPageElement.classList.remove('is-flipping');
       
-      // Prep the turning page to look like the CURRENT right page before we click it
       document.getElementById('turn-front-content').innerHTML = pages[currentPageIndex + 1] || "";
       
-      // Hide the right hint if there are no more pages to turn
       const rightHint = document.querySelector('.click-hint.right');
       if (currentPageIndex + 2 >= pages.length) {
          rightHint.style.display = 'none';
@@ -588,33 +604,25 @@
     }
 
     function flipPageForward() {
+       // ... (Your existing flipPageForward code) ...
       const pages = currentBook.pages;
-      
-      // Prevent flipping if we are at the end
       if (currentPageIndex + 2 >= pages.length) return;
 
       const turnPageElement = document.getElementById('turning-page');
       
-      // 1. Prepare the BACK of the flipping page to show the NEXT left page
       document.getElementById('turn-back-content').innerHTML = pages[currentPageIndex + 2] || "";
-
-      // 2. Temporarily update the static right page underneath so it shows the NEXT right page
       document.getElementById('right-page-content').innerHTML = pages[currentPageIndex + 3] || "";
       document.getElementById('right-page-num').innerText = pages[currentPageIndex + 3] ? (currentPageIndex + 4) : "";
 
-      // 3. Trigger the CSS Animation
       turnPageElement.style.transition = 'transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1)';
       turnPageElement.classList.add('is-flipping');
 
-      // 4. Wait for animation to finish, then finalize state
       setTimeout(() => {
         currentPageIndex += 2;
-        updatePageContent(); // Re-sync all variables and remove the flip class instantly
-      }, 800); // 800ms matches the CSS transition time
+        updatePageContent(); 
+      }, 800); 
     }
   </script>
-
-  <script src="database.js"></script>
   
 </body>
 </html>
