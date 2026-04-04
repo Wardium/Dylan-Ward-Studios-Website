@@ -3,7 +3,14 @@ name: Build and Deploy DWS Website
 on:
   push:
     branches:
-      - main # Change this if your default branch is 'master'
+      - main
+    # --- ONLY RUN IF THESE FILES CHANGE ---
+    paths:
+      - 'expansions/DWSStories/stories/**'     # Any new or edited story JSON
+      - 'expansions/DWSStories/build.js'      # Changes to the build logic
+      - 'expansions/DWSStories/index.html'    # Changes to the stories interface
+      - '.github/workflows/deploy.yml'        # Changes to this deployment file
+    # ---------------------------------------
 
 permissions:
   contents: read
@@ -12,6 +19,10 @@ permissions:
 
 jobs:
   build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -23,7 +34,6 @@ jobs:
           node-version: '20'
 
       - name: Run Stories Build Script
-        # This tells the action to run the script from your specific folder
         working-directory: expansions/DWSStories
         run: node build.js
 
@@ -33,8 +43,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Uploads the entire root directory (the whole website)
           path: '.' 
 
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
