@@ -4,12 +4,11 @@ on:
   push:
     branches:
       - main
-    # --- ONLY RUN IF THESE FILES CHANGE ---
     paths:
-      - 'expansions/DWSStories/stories/**'     # Any new or edited story JSON
-      - 'expansions/DWSStories/build.js'      # Changes to the build logic
-      - 'expansions/DWSStories/index.html'    # Changes to the stories interface
-      - '.github/workflows/deploy.yml'        # Changes to this deployment file
+      - 'expansions/DWSStories/stories/**'
+      - 'expansions/DWSStories/build.js'
+      - 'expansions/DWSStories/dws-stories.html' # <-- Updated this line!
+      - '.github/workflows/deploy.yml'
     # ---------------------------------------
 
 permissions:
