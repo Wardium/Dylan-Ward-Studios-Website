@@ -7,9 +7,8 @@ on:
     paths:
       - 'expansions/DWSStories/stories/**'
       - 'expansions/DWSStories/build.js'
-      - 'expansions/DWSStories/dws-stories.html' # <-- Updated this line!
+      - 'expansions/DWSStories/dws-stories.html'
       - '.github/workflows/deploy.yml'
-    # ---------------------------------------
 
 permissions:
   contents: read
@@ -18,6 +17,7 @@ permissions:
 
 jobs:
   build-and-deploy:
+    # THIS MUST BE INDENTED EXACTLY 4 SPACES
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
