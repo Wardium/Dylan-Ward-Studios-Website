@@ -10,44 +10,92 @@ let isAnimating = false;
 // 1. Dynamic Pagination: Measures text against the actual DOM element height
 function paginateTextDynamically() {
   if (!rawStoryText) return;
-  
   const pageContainer = document.getElementById('left-page-content');
   if (!pageContainer) return;
 
-  // Create a hidden tester element to measure text wrapping
-  const tester = document.createElement('div');
-  tester.className = 'page-content';
+  // Ensure the DOM has calculated the layout before we start measuring
+  const maxHeight = pageContainer.clientHeight;
+  if (maxHeight === 0) {
+    setTimeout(paginateTextDynamically, 50);
+    return;
+  }
+
+  // Create a perfect hidden clone to measure text heights precisely
+  const tester = pageContainer.cloneNode(false);
   tester.style.position = 'absolute';
   tester.style.visibility = 'hidden';
+  tester.style.pointerEvents = 'none';
+  tester.style.top = '0';
+  tester.style.left = '0';
   tester.style.width = pageContainer.clientWidth + 'px';
-  tester.style.height = pageContainer.clientHeight + 'px';
-  document.body.appendChild(tester);
+  tester.style.height = maxHeight + 'px';
+  pageContainer.parentElement.appendChild(tester);
 
-  const paragraphs = rawStoryText.split('\n\n');
+  // Safely split the text into paragraphs (handles different types of line breaks)
+  const paragraphs = rawStoryText.split(/\n\s*\n/);
   currentPages = [];
-  let currentHTML = "";
+  
+  // Grab title to safely measure it on the first page
+  const metaScript = document.getElementById('story-meta').innerText;
+  const bookData = JSON.parse(metaScript);
+  let currentHTML = `<h1>${bookData.title}</h1>`;
 
   for (let i = 0; i < paragraphs.length; i++) {
-    const p = `<p>${paragraphs[i].trim()}</p>`;
-    tester.innerHTML = currentHTML + p;
+    let pText = paragraphs[i].trim();
+    if (!pText) continue;
 
-    // If adding this paragraph exceeds the container height, save the page and start a new one
-    if (tester.scrollHeight > tester.clientHeight) {
+    let pHTML = `<p>${pText}</p>`;
+    tester.innerHTML = currentHTML + pHTML;
+
+    // If adding this paragraph exceeds the page height
+    if (tester.scrollHeight > maxHeight) {
       if (currentHTML !== "") {
         currentPages.push(currentHTML);
-        currentHTML = p; 
+        currentHTML = pHTML;
+        tester.innerHTML = currentHTML;
+
+        // If a SINGLE paragraph is so massive it exceeds the height on a blank page
+        if (tester.scrollHeight > maxHeight) {
+          currentHTML = breakLongParagraph(pText, tester, maxHeight, currentPages);
+        }
       } else {
-        // Fallback: If a single paragraph is larger than a page, just force it in
-        currentPages.push(p);
-        currentHTML = "";
+        // Fallback if the very first content is too large
+        currentHTML = breakLongParagraph(pText, tester, maxHeight, currentPages);
       }
     } else {
-      currentHTML += p;
+      currentHTML += pHTML;
     }
   }
+
+  if (currentHTML && currentHTML.trim() !== "") {
+    currentPages.push(currentHTML);
+  }
+
+  // Cleanup hidden tester
+  pageContainer.parentElement.removeChild(tester);
   
-  if (currentHTML) currentPages.push(currentHTML);
-  document.body.removeChild(tester);
+  // Ensure index isn't out of bounds if the user shrunk their window
+  if (currentPageIndex >= currentPages.length) {
+    currentPageIndex = Math.max(0, currentPages.length - (currentPages.length % 2 === 0 ? 2 : 1));
+  }
+  updatePageContent();
+}
+
+// Helper: Wraps long paragraphs word-by-word if they are larger than a single page
+function breakLongParagraph(text, tester, maxHeight, pagesArray) {
+  let words = text.split(" ");
+  let tempHTML = "<p>";
+
+  for (let w = 0; w < words.length; w++) {
+    tester.innerHTML = tempHTML + words[w] + "</p>";
+    if (tester.scrollHeight > maxHeight) {
+      pagesArray.push(tempHTML.trim() + "</p>");
+      tempHTML = "<p>" + words[w] + " ";
+    } else {
+      tempHTML += words[w] + " ";
+    }
+  }
+  return tempHTML + "</p>";
 }
 
 window.onload = () => {
@@ -75,15 +123,10 @@ window.onload = () => {
   }
 };
 
-// Recalculate pages if the user resizes their window
+// Recalculate pages seamlessly if the user resizes their window
 window.addEventListener('resize', () => {
   if (document.getElementById('reader-view') && document.getElementById('reader-view').classList.contains('active')) {
     paginateTextDynamically();
-    // Ensure we don't go out of bounds after resize
-    if (currentPageIndex >= currentPages.length) {
-      currentPageIndex = Math.max(0, currentPages.length - (currentPages.length % 2 === 0 ? 2 : 1));
-    }
-    updatePageContent();
   }
 });
 
@@ -152,14 +195,11 @@ function initializeStoryReader() {
     const reader = document.getElementById('reader-view');
     reader.style.display = 'flex';
     
-    // Paginate dynamically once the container is visible to get accurate measurements
-    paginateTextDynamically();
-    if (currentPages.length > 0) {
-      currentPages[0] = `<h1>${bookData.title}</h1>` + currentPages[0];
-    }
-    
-    updatePageContent();
-    setTimeout(() => { reader.classList.add('active'); }, 50);
+    // The key fix: Wait 50ms so 'display: flex' applies dimensions before we measure
+    setTimeout(() => { 
+      paginateTextDynamically(); 
+      reader.classList.add('active'); 
+    }, 50);
   }, 3500);
 }
 
@@ -169,12 +209,10 @@ function updatePageContent() {
   document.getElementById('right-page-content').innerHTML = currentPages[currentPageIndex + 1] || "";
   document.getElementById('right-page-num').innerText = currentPages[currentPageIndex + 1] ? (currentPageIndex + 2) : "";
 
-  // Reset turning page state securely
   const turnPageElement = document.getElementById('turning-page');
   turnPageElement.style.transition = 'none';
   turnPageElement.classList.remove('is-flipping');
   
-  // Update visibility of the subtle corner arrows
   document.getElementById('left-hint').style.display = currentPageIndex > 0 ? 'block' : 'none';
   document.getElementById('right-hint').style.display = (currentPageIndex + 2) < currentPages.length ? 'block' : 'none';
 }
@@ -185,15 +223,12 @@ function flipPageForward() {
 
   const turnPageElement = document.getElementById('turning-page');
   
-  // Set up the faces for the turning page
   document.getElementById('turn-front-content').innerHTML = currentPages[currentPageIndex + 1] || "";
   document.getElementById('turn-back-content').innerHTML = currentPages[currentPageIndex + 2] || "";
 
-  // Update underlying right page so it reveals the next text
   document.getElementById('right-page-content').innerHTML = currentPages[currentPageIndex + 3] || "";
   document.getElementById('right-page-num').innerText = currentPages[currentPageIndex + 3] ? (currentPageIndex + 4) : "";
 
-  // Apply smooth bezier transition
   turnPageElement.style.transition = 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
   turnPageElement.classList.add('is-flipping');
 
@@ -210,22 +245,17 @@ function flipPageBackward() {
 
   const turnPageElement = document.getElementById('turning-page');
 
-  // To flip backwards seamlessly, we instantly flip the turning page to the left side (-180deg) without animating
   turnPageElement.style.transition = 'none';
   turnPageElement.classList.add('is-flipping');
 
-  // Setup the faces: The back face is currently showing on the left. The front face will land on the right.
   document.getElementById('turn-back-content').innerHTML = currentPages[currentPageIndex] || "";
   document.getElementById('turn-front-content').innerHTML = currentPages[currentPageIndex - 1] || "";
 
-  // Instantly update the underlying left page so the previous text is ready
   document.getElementById('left-page-content').innerHTML = currentPages[currentPageIndex - 2] || "";
   document.getElementById('left-page-num').innerText = currentPages[currentPageIndex - 2] ? (currentPageIndex - 1) : "";
 
-  // Force the browser to register the instant setup before animating
   void turnPageElement.offsetWidth;
 
-  // Animate the page falling back to the right
   turnPageElement.style.transition = 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
   turnPageElement.classList.remove('is-flipping');
 
