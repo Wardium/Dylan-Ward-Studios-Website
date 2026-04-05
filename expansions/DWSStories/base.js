@@ -19,6 +19,19 @@ function paginateTextDynamically() {
     return;
   }
 
+  // Generate Title/Cover Page
+  const metaScript = document.getElementById('story-meta').innerText;
+  const bookData = JSON.parse(metaScript);
+  
+  const coverHTML = `
+    <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: var(--book-text);">
+      <h1 style="font-size: clamp(2.5rem, 5vw, 4rem); margin: 0 0 15px 0;">${bookData.title}</h1>
+      <div style="width: 50px; height: 3px; background: ${bookData.coverColor || '#333'}; margin-bottom: 20px; border-radius: 2px;"></div>
+      <p style="font-size: clamp(1.1rem, 2.5vw, 1.4rem); font-style: italic; opacity: 0.8; margin: 0;">${bookData.description}</p>
+    </div>
+  `;
+
+  // Create a hidden clone to measure text heights precisely
   const tester = pageContainer.cloneNode(false);
   tester.style.position = 'absolute';
   tester.style.visibility = 'hidden';
@@ -30,11 +43,10 @@ function paginateTextDynamically() {
   pageContainer.parentElement.appendChild(tester);
 
   const paragraphs = rawStoryText.split(/\n\s*\n/);
-  currentPages = [];
   
-  const metaScript = document.getElementById('story-meta').innerText;
-  const bookData = JSON.parse(metaScript);
-  let currentHTML = `<h1>${bookData.title}</h1>`;
+  // Start array with the Cover Page
+  currentPages = [coverHTML];
+  let currentHTML = "";
 
   for (let i = 0; i < paragraphs.length; i++) {
     let pText = paragraphs[i].trim();
@@ -151,7 +163,6 @@ function initializeBookshelf() {
 }
 
 function initializeStoryReader() {
-  // Inject single omni-page HTML
   const readerHTML = `
     <div id="reader-view">
       <div class="open-book-container" id="open-book">
@@ -197,13 +208,19 @@ function initializeStoryReader() {
 }
 
 function updatePageContent() {
+  // Update the static text underneath
   document.getElementById('main-page-content').innerHTML = currentPages[currentPageIndex] || "";
-  document.getElementById('main-page-num').innerText = currentPages[currentPageIndex] ? (currentPageIndex + 1) : "";
+  
+  // Hide page number on the cover (index 0)
+  document.getElementById('main-page-num').innerText = currentPageIndex === 0 ? "" : currentPageIndex;
 
+  // Hide the turning page when resting
   const turnPageElement = document.getElementById('turning-page');
   turnPageElement.style.transition = 'none';
   turnPageElement.classList.remove('is-flipping');
+  turnPageElement.style.opacity = '0'; 
   
+  // Update navigation hints
   document.getElementById('left-hint').style.display = currentPageIndex > 0 ? 'block' : 'none';
   document.getElementById('right-hint').style.display = (currentPageIndex + 1) < currentPages.length ? 'block' : 'none';
 }
@@ -214,20 +231,24 @@ function flipPageForward() {
 
   const turnPageElement = document.getElementById('turning-page');
   
-  // The sheet lifting up shows current page on front, blank on back
+  // Prepare the lifting sheet: Front matches the text we are currently looking at, Back is blank paper
   document.getElementById('turn-front-content').innerHTML = currentPages[currentPageIndex] || "";
   document.getElementById('turn-back-content').innerHTML = ""; 
+  
+  // Unhide the lifting sheet
+  turnPageElement.style.opacity = '1';
 
-  // The static page underneath reveals the NEXT page
+  // The static page underneath instantly switches to the next page so it's revealed as the sheet lifts
   document.getElementById('main-page-content').innerHTML = currentPages[currentPageIndex + 1] || "";
-  document.getElementById('main-page-num').innerText = currentPages[currentPageIndex + 1] ? (currentPageIndex + 2) : "";
+  document.getElementById('main-page-num').innerText = (currentPageIndex + 1) === 0 ? "" : (currentPageIndex + 1);
 
+  // Trigger smooth turn
   turnPageElement.style.transition = 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
   turnPageElement.classList.add('is-flipping');
 
   setTimeout(() => {
     currentPageIndex++;
-    updatePageContent(); 
+    updatePageContent(); // This cleans up and hides the turning page again
     isAnimating = false;
   }, 800); 
 }
@@ -238,27 +259,27 @@ function flipPageBackward() {
 
   const turnPageElement = document.getElementById('turning-page');
 
-  // Instantly move the turning page to the flipped left side
+  // Instantly position the invisible turning sheet flipped over to the left side
   turnPageElement.style.transition = 'none';
   turnPageElement.classList.add('is-flipping');
-
-  // Setup the sheet coming back: Front is blank, Back has the previous page
+  
+  // Setup the falling sheet: Front is blank paper, Back contains the previous page's text
   document.getElementById('turn-front-content').innerHTML = ""; 
   document.getElementById('turn-back-content').innerHTML = currentPages[currentPageIndex - 1] || "";
+  
+  // Unhide the sheet
+  turnPageElement.style.opacity = '1';
 
-  // The main page stays the same while the previous page falls over it
-  document.getElementById('main-page-content').innerHTML = currentPages[currentPageIndex] || "";
-
-  // Force reflow so the browser registers the instant snap before animating
+  // Force reflow so the browser registers it on the left side before animating
   void turnPageElement.offsetWidth;
 
-  // Animate falling back to the right
+  // Animate the sheet falling back down onto the right side
   turnPageElement.style.transition = 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
   turnPageElement.classList.remove('is-flipping');
 
   setTimeout(() => {
     currentPageIndex--;
-    updatePageContent();
+    updatePageContent(); // This cleans up and sets the main page to the new text
     isAnimating = false;
   }, 800);
 }
