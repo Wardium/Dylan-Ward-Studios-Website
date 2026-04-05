@@ -7,8 +7,8 @@ on:
     paths:
       - 'expansions/DWSStories/stories/**'
       - 'expansions/DWSStories/build.js'
-      - 'expansions/DWSStories/dws-stories.html'
-      - '.github/workflows/deploy.yml'
+      - 'expansions/DWSStories/bookshelf.html'
+      - '.github/workflows/update-story.yml'
 
 permissions:
   contents: read
