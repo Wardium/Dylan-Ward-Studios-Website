@@ -7,7 +7,7 @@ function paginateText(rawText) {
   const paragraphs = rawText.split('\n\n');
   const pages = [];
   let currentPageHTML = "";
-  const maxCharsPerPage = 600; 
+  const maxCharsPerPage = 315; 
 
   paragraphs.forEach(p => {
     if ((currentPageHTML.length + p.length) > maxCharsPerPage && currentPageHTML.length > 0) {
