@@ -7,20 +7,18 @@ let currentPageIndex = 0;
 let rawStoryText = "";
 let isAnimating = false;
 
-// 1. Dynamic Pagination: Measures text against the actual DOM element height
+// 1. Dynamic Pagination: Measures against the single omni-page
 function paginateTextDynamically() {
   if (!rawStoryText) return;
-  const pageContainer = document.getElementById('left-page-content');
+  const pageContainer = document.getElementById('main-page-content');
   if (!pageContainer) return;
 
-  // Ensure the DOM has calculated the layout before we start measuring
   const maxHeight = pageContainer.clientHeight;
   if (maxHeight === 0) {
     setTimeout(paginateTextDynamically, 50);
     return;
   }
 
-  // Create a perfect hidden clone to measure text heights precisely
   const tester = pageContainer.cloneNode(false);
   tester.style.position = 'absolute';
   tester.style.visibility = 'hidden';
@@ -31,11 +29,9 @@ function paginateTextDynamically() {
   tester.style.height = maxHeight + 'px';
   pageContainer.parentElement.appendChild(tester);
 
-  // Safely split the text into paragraphs (handles different types of line breaks)
   const paragraphs = rawStoryText.split(/\n\s*\n/);
   currentPages = [];
   
-  // Grab title to safely measure it on the first page
   const metaScript = document.getElementById('story-meta').innerText;
   const bookData = JSON.parse(metaScript);
   let currentHTML = `<h1>${bookData.title}</h1>`;
@@ -47,19 +43,16 @@ function paginateTextDynamically() {
     let pHTML = `<p>${pText}</p>`;
     tester.innerHTML = currentHTML + pHTML;
 
-    // If adding this paragraph exceeds the page height
     if (tester.scrollHeight > maxHeight) {
       if (currentHTML !== "") {
         currentPages.push(currentHTML);
         currentHTML = pHTML;
         tester.innerHTML = currentHTML;
 
-        // If a SINGLE paragraph is so massive it exceeds the height on a blank page
         if (tester.scrollHeight > maxHeight) {
           currentHTML = breakLongParagraph(pText, tester, maxHeight, currentPages);
         }
       } else {
-        // Fallback if the very first content is too large
         currentHTML = breakLongParagraph(pText, tester, maxHeight, currentPages);
       }
     } else {
@@ -71,17 +64,14 @@ function paginateTextDynamically() {
     currentPages.push(currentHTML);
   }
 
-  // Cleanup hidden tester
   pageContainer.parentElement.removeChild(tester);
   
-  // Ensure index isn't out of bounds if the user shrunk their window
   if (currentPageIndex >= currentPages.length) {
-    currentPageIndex = Math.max(0, currentPages.length - (currentPages.length % 2 === 0 ? 2 : 1));
+    currentPageIndex = Math.max(0, currentPages.length - 1);
   }
   updatePageContent();
 }
 
-// Helper: Wraps long paragraphs word-by-word if they are larger than a single page
 function breakLongParagraph(text, tester, maxHeight, pagesArray) {
   let words = text.split(" ");
   let tempHTML = "<p>";
@@ -123,7 +113,6 @@ window.onload = () => {
   }
 };
 
-// Recalculate pages seamlessly if the user resizes their window
 window.addEventListener('resize', () => {
   if (document.getElementById('reader-view') && document.getElementById('reader-view').classList.contains('active')) {
     paginateTextDynamically();
@@ -162,23 +151,28 @@ function initializeBookshelf() {
 }
 
 function initializeStoryReader() {
+  // Inject single omni-page HTML
   const readerHTML = `
     <div id="reader-view">
       <div class="open-book-container" id="open-book">
-        <div class="page left-page" onclick="flipPageBackward()">
-          <div class="page-content" id="left-page-content"></div>
-          <div class="page-number" id="left-page-num"></div>
-          <div class="click-hint left" id="left-hint">◀</div>
+        
+        <div class="page main-page">
+          <div class="page-content" id="main-page-content"></div>
+          <div class="page-number" id="main-page-num"></div>
         </div>
-        <div class="page right-page" onclick="flipPageForward()">
-          <div class="page-content" id="right-page-content"></div>
-          <div class="page-number" id="right-page-num"></div>
-          <div class="click-hint right" id="right-hint">▶</div>
-        </div>
+        
         <div class="turning-page" id="turning-page">
           <div class="page-face front"><div class="page-content" id="turn-front-content"></div></div>
           <div class="page-face back"><div class="page-content" id="turn-back-content"></div></div>
         </div>
+
+        <div class="click-zone left-zone" onclick="flipPageBackward()">
+          <div class="click-hint" id="left-hint">◀</div>
+        </div>
+        <div class="click-zone right-zone" onclick="flipPageForward()">
+          <div class="click-hint" id="right-hint">▶</div>
+        </div>
+
       </div>
     </div>
   `;
@@ -195,7 +189,6 @@ function initializeStoryReader() {
     const reader = document.getElementById('reader-view');
     reader.style.display = 'flex';
     
-    // The key fix: Wait 50ms so 'display: flex' applies dimensions before we measure
     setTimeout(() => { 
       paginateTextDynamically(); 
       reader.classList.add('active'); 
@@ -204,36 +197,36 @@ function initializeStoryReader() {
 }
 
 function updatePageContent() {
-  document.getElementById('left-page-content').innerHTML = currentPages[currentPageIndex] || "";
-  document.getElementById('left-page-num').innerText = currentPages[currentPageIndex] ? (currentPageIndex + 1) : "";
-  document.getElementById('right-page-content').innerHTML = currentPages[currentPageIndex + 1] || "";
-  document.getElementById('right-page-num').innerText = currentPages[currentPageIndex + 1] ? (currentPageIndex + 2) : "";
+  document.getElementById('main-page-content').innerHTML = currentPages[currentPageIndex] || "";
+  document.getElementById('main-page-num').innerText = currentPages[currentPageIndex] ? (currentPageIndex + 1) : "";
 
   const turnPageElement = document.getElementById('turning-page');
   turnPageElement.style.transition = 'none';
   turnPageElement.classList.remove('is-flipping');
   
   document.getElementById('left-hint').style.display = currentPageIndex > 0 ? 'block' : 'none';
-  document.getElementById('right-hint').style.display = (currentPageIndex + 2) < currentPages.length ? 'block' : 'none';
+  document.getElementById('right-hint').style.display = (currentPageIndex + 1) < currentPages.length ? 'block' : 'none';
 }
 
 function flipPageForward() {
-  if (isAnimating || currentPageIndex + 2 >= currentPages.length) return;
+  if (isAnimating || currentPageIndex + 1 >= currentPages.length) return;
   isAnimating = true;
 
   const turnPageElement = document.getElementById('turning-page');
   
-  document.getElementById('turn-front-content').innerHTML = currentPages[currentPageIndex + 1] || "";
-  document.getElementById('turn-back-content').innerHTML = currentPages[currentPageIndex + 2] || "";
+  // The sheet lifting up shows current page on front, blank on back
+  document.getElementById('turn-front-content').innerHTML = currentPages[currentPageIndex] || "";
+  document.getElementById('turn-back-content').innerHTML = ""; 
 
-  document.getElementById('right-page-content').innerHTML = currentPages[currentPageIndex + 3] || "";
-  document.getElementById('right-page-num').innerText = currentPages[currentPageIndex + 3] ? (currentPageIndex + 4) : "";
+  // The static page underneath reveals the NEXT page
+  document.getElementById('main-page-content').innerHTML = currentPages[currentPageIndex + 1] || "";
+  document.getElementById('main-page-num').innerText = currentPages[currentPageIndex + 1] ? (currentPageIndex + 2) : "";
 
   turnPageElement.style.transition = 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
   turnPageElement.classList.add('is-flipping');
 
   setTimeout(() => {
-    currentPageIndex += 2;
+    currentPageIndex++;
     updatePageContent(); 
     isAnimating = false;
   }, 800); 
@@ -245,22 +238,26 @@ function flipPageBackward() {
 
   const turnPageElement = document.getElementById('turning-page');
 
+  // Instantly move the turning page to the flipped left side
   turnPageElement.style.transition = 'none';
   turnPageElement.classList.add('is-flipping');
 
-  document.getElementById('turn-back-content').innerHTML = currentPages[currentPageIndex] || "";
-  document.getElementById('turn-front-content').innerHTML = currentPages[currentPageIndex - 1] || "";
+  // Setup the sheet coming back: Front is blank, Back has the previous page
+  document.getElementById('turn-front-content').innerHTML = ""; 
+  document.getElementById('turn-back-content').innerHTML = currentPages[currentPageIndex - 1] || "";
 
-  document.getElementById('left-page-content').innerHTML = currentPages[currentPageIndex - 2] || "";
-  document.getElementById('left-page-num').innerText = currentPages[currentPageIndex - 2] ? (currentPageIndex - 1) : "";
+  // The main page stays the same while the previous page falls over it
+  document.getElementById('main-page-content').innerHTML = currentPages[currentPageIndex] || "";
 
+  // Force reflow so the browser registers the instant snap before animating
   void turnPageElement.offsetWidth;
 
+  // Animate falling back to the right
   turnPageElement.style.transition = 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
   turnPageElement.classList.remove('is-flipping');
 
   setTimeout(() => {
-    currentPageIndex -= 2;
+    currentPageIndex--;
     updatePageContent();
     isAnimating = false;
   }, 800);
