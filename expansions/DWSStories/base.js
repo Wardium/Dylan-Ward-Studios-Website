@@ -7,7 +7,6 @@ let currentPageIndex = 0;
 let rawStoryText = "";
 let isAnimating = false;
 
-// 1. Dynamic Pagination: Chops text to perfectly fit the containers
 function paginateTextDynamically() {
   if (!rawStoryText) return;
   const pageContainer = document.getElementById('right-page-content');
@@ -19,7 +18,6 @@ function paginateTextDynamically() {
     return;
   }
 
-  // Generate the Title/Cover Page HTML
   const metaScript = document.getElementById('story-meta').innerText;
   const bookData = JSON.parse(metaScript);
   
@@ -31,7 +29,6 @@ function paginateTextDynamically() {
     </div>
   `;
 
-  // Hidden tester element to measure text wrapping
   const tester = pageContainer.cloneNode(false);
   tester.style.position = 'absolute';
   tester.style.visibility = 'hidden';
@@ -44,7 +41,6 @@ function paginateTextDynamically() {
 
   const paragraphs = rawStoryText.split(/\n\s*\n/);
   
-  // Page 0 = Blank Inside Cover | Page 1 = Title Page
   currentPages = ["<div style='height:100%; width:100%;'></div>", coverHTML];
   let currentHTML = "";
 
@@ -78,7 +74,6 @@ function paginateTextDynamically() {
 
   pageContainer.parentElement.removeChild(tester);
   
-  // Ensure we stay on an even left/right pairing if the user resizes the window
   if (currentPageIndex >= currentPages.length) {
     currentPageIndex = Math.max(0, currentPages.length - (currentPages.length % 2 === 0 ? 2 : 1));
   }
@@ -159,7 +154,6 @@ function initializeBookshelf() {
 }
 
 function initializeStoryReader() {
-  // Inject the two-page HTML layout
   const readerHTML = `
     <div id="reader-view">
       <div class="open-book-container" id="open-book">
@@ -177,8 +171,14 @@ function initializeStoryReader() {
         </div>
 
         <div class="turning-page" id="turning-page">
-          <div class="page-face front"><div class="page-content" id="turn-front-content"></div></div>
-          <div class="page-face back"><div class="page-content" id="turn-back-content"></div></div>
+          <div class="page-face front">
+            <div class="page-content" id="turn-front-content"></div>
+            <div class="page-number" id="turn-front-num"></div>
+          </div>
+          <div class="page-face back">
+            <div class="page-content" id="turn-back-content"></div>
+            <div class="page-number" id="turn-back-num"></div>
+          </div>
         </div>
 
       </div>
@@ -201,21 +201,17 @@ function initializeStoryReader() {
 }
 
 function updatePageContent() {
-  // Apply text to the underlying left and right pages
   document.getElementById('left-page-content').innerHTML = currentPages[currentPageIndex] || "";
   document.getElementById('right-page-content').innerHTML = currentPages[currentPageIndex + 1] || "";
   
-  // Page Numbers (Hidden on Cover pages)
   document.getElementById('left-page-num').innerText = (currentPageIndex > 1 && currentPages[currentPageIndex]) ? (currentPageIndex) : "";
   document.getElementById('right-page-num').innerText = (currentPageIndex + 1 > 1 && currentPages[currentPageIndex + 1]) ? (currentPageIndex + 1) : "";
 
-  // Reset turning page and hide it so we just see the static pages
   const turnPageElement = document.getElementById('turning-page');
   turnPageElement.style.transition = 'none';
   turnPageElement.classList.remove('is-flipping');
   turnPageElement.style.opacity = '0'; 
   
-  // Update hints
   document.getElementById('left-hint').style.display = currentPageIndex > 0 ? 'block' : 'none';
   document.getElementById('right-hint').style.display = (currentPageIndex + 2) < currentPages.length ? 'block' : 'none';
 }
@@ -226,23 +222,25 @@ function flipPageForward() {
 
   const turnPageElement = document.getElementById('turning-page');
   
-  // Setup turning page: Front shows current Right page, Back shows NEXT Left page
+  // Front face gets current Right page content & number
   document.getElementById('turn-front-content').innerHTML = currentPages[currentPageIndex + 1] || "";
+  document.getElementById('turn-front-num').innerText = (currentPageIndex + 1 > 1 && currentPages[currentPageIndex + 1]) ? (currentPageIndex + 1) : "";
+
+  // Back face gets NEXT Left page content & number
   document.getElementById('turn-back-content').innerHTML = currentPages[currentPageIndex + 2] || ""; 
+  document.getElementById('turn-back-num').innerText = (currentPageIndex + 2 > 1 && currentPages[currentPageIndex + 2]) ? (currentPageIndex + 2) : "";
   
   turnPageElement.style.opacity = '1';
 
-  // The static Right page instantly updates to the NEXT right page so it reveals as the sheet lifts
   document.getElementById('right-page-content').innerHTML = currentPages[currentPageIndex + 3] || "";
   document.getElementById('right-page-num').innerText = (currentPageIndex + 3 > 1 && currentPages[currentPageIndex + 3]) ? (currentPageIndex + 3) : "";
 
-  // Trigger smooth turn
   turnPageElement.style.transition = 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
   turnPageElement.classList.add('is-flipping');
 
   setTimeout(() => {
     currentPageIndex += 2;
-    updatePageContent(); // Turning page hides, Left page assumes exact content of turning page Back. Zero flash!
+    updatePageContent(); 
     isAnimating = false;
   }, 800); 
 }
@@ -253,24 +251,24 @@ function flipPageBackward() {
 
   const turnPageElement = document.getElementById('turning-page');
 
-  // Instantly flip the turning page over to the left side
   turnPageElement.style.transition = 'none';
   turnPageElement.classList.add('is-flipping');
   
-  // Setup turning page: Back (facing up on left) shows current Left page. Front shows PREVIOUS Right page.
+  // Back face (currently up on the left) gets current Left page content & number
   document.getElementById('turn-back-content').innerHTML = currentPages[currentPageIndex] || ""; 
+  document.getElementById('turn-back-num').innerText = (currentPageIndex > 1 && currentPages[currentPageIndex]) ? (currentPageIndex) : "";
+
+  // Front face gets PREVIOUS Right page content & number
   document.getElementById('turn-front-content').innerHTML = currentPages[currentPageIndex - 1] || "";
+  document.getElementById('turn-front-num').innerText = (currentPageIndex - 1 > 1 && currentPages[currentPageIndex - 1]) ? (currentPageIndex - 1) : "";
   
   turnPageElement.style.opacity = '1';
 
-  // The static Left page instantly sets to the PREVIOUS left page so it's ready when the sheet lifts
   document.getElementById('left-page-content').innerHTML = currentPages[currentPageIndex - 2] || "";
   document.getElementById('left-page-num').innerText = (currentPageIndex - 2 > 1 && currentPages[currentPageIndex - 2]) ? (currentPageIndex - 2) : "";
 
-  // Force reflow so the browser registers the snap before animating
   void turnPageElement.offsetWidth;
 
-  // Animate it falling back to the right
   turnPageElement.style.transition = 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
   turnPageElement.classList.remove('is-flipping');
 
