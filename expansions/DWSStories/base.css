@@ -72,14 +72,22 @@ main.visible { display: block; opacity: 1; transform: translateY(0); }
 
 .open-book-container {
   width: 100%; aspect-ratio: 16 / 10; max-height: 75vh; display: flex; 
-  background: #fdfdfd; border-radius: 10px; box-shadow: var(--shadow); position: relative; perspective: 2000px; color: var(--book-text);
-  /* Creates a realistic center crease shadow */
-  background-image: linear-gradient(to right, #f8f8f8 0%, #fdfdfd 5%, #fdfdfd 48%, #e8e8e8 50%, #fdfdfd 52%, #fdfdfd 95%, #f8f8f8 100%);
+  border-radius: 10px; box-shadow: var(--shadow); position: relative; perspective: 2000px; color: var(--book-text);
+  background-color: #1a252f; /* A dark spine behind the pages */
 }
 .open-book-container::before { content: ''; position: absolute; top: -2px; bottom: -2px; left: -2px; right: -2px; background: #e0e0e0; z-index: -1; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
 
-.page { flex: 1; padding: clamp(20px, 4vw, 50px); box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; position: relative; cursor: pointer; transition: background 0.3s; }
-.page:hover { background: rgba(0,0,0,0.02); }
+/* Identical solid background and flex properties applied */
+.page { 
+  flex: 1; padding: clamp(20px, 4vw, 50px); box-sizing: border-box; overflow: hidden; 
+  display: flex; flex-direction: column; position: relative; cursor: pointer; 
+  transition: background-color 0.3s; background-color: #fdfdfd; 
+}
+.page:hover { background-color: #f6f6f6; }
+
+/* Inset shadows create the book crease without gradients */
+.left-page { box-shadow: inset -20px 0 40px -20px rgba(0,0,0,0.15); border-radius: 10px 0 0 10px; }
+.right-page { box-shadow: inset 20px 0 40px -20px rgba(0,0,0,0.15); border-radius: 0 10px 10px 0; }
 
 .page-number { position: absolute; bottom: 20px; font-size: 0.9rem; color: #999; }
 .left-page .page-number { left: 30px; } 
@@ -94,7 +102,6 @@ main.visible { display: block; opacity: 1; transform: translateY(0); }
   margin-bottom: 30px;
 }
 
-/* Subtle click hints */
 .click-hint { position: absolute; bottom: 18px; font-size: 1.2rem; color: rgba(0,0,0,0.15); transition: color 0.3s, transform 0.3s; z-index: 20; font-weight: bold; }
 .left-page:hover .click-hint { color: rgba(0,0,0,0.5); transform: translateX(-5px); }
 .right-page:hover .click-hint { color: rgba(0,0,0,0.5); transform: translateX(5px); }
@@ -104,9 +111,21 @@ main.visible { display: block; opacity: 1; transform: translateY(0); }
 /* The 3D turning page */
 .turning-page { position: absolute; top: 0; right: 0; width: 50%; height: 100%; transform-style: preserve-3d; transform-origin: left center; z-index: 10; pointer-events: none; opacity: 0; }
 .turning-page.is-flipping { transform: rotateY(-180deg); }
-.page-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; padding: clamp(20px, 4vw, 50px); box-sizing: border-box; }
 
-.page-face.front { background-image: linear-gradient(to right, #e8e8e8 0%, #fdfdfd 4%, #fdfdfd 95%, #f8f8f8 100%); }
-.page-face.back { transform: rotateY(180deg); background-image: linear-gradient(to left, #e8e8e8 0%, #fdfdfd 4%, #fdfdfd 95%, #f8f8f8 100%); }
+/* THE FIX: Added flexbox to strictly match the formatting of `.page` */
+.page-face { 
+  position: absolute; width: 100%; height: 100%; backface-visibility: hidden; 
+  padding: clamp(20px, 4vw, 50px); box-sizing: border-box; 
+  display: flex; flex-direction: column; 
+  background-color: #fdfdfd; 
+}
+
+/* THE FIX: Page numbers on the animated faces */
+.page-face.front .page-number { right: 30px; }
+.page-face.back .page-number { left: 30px; }
+
+/* THE FIX: Matched crease shadows exactly to the static pages */
+.page-face.front { box-shadow: inset 20px 0 40px -20px rgba(0,0,0,0.15); border-radius: 0 10px 10px 0; }
+.page-face.back { transform: rotateY(180deg); box-shadow: inset -20px 0 40px -20px rgba(0,0,0,0.15); border-radius: 10px 0 0 10px; }
 
 @media (max-width: 800px) { .bookshelf-grid { grid-template-columns: 1fr; } .open-book-container { aspect-ratio: 4 / 5; max-height: 80vh; } .page-content { text-align: left; font-size: 1.1rem; } }
