@@ -100,7 +100,7 @@ window.onload = () => {
   const logoPath = isStoryMode ? '../../../assets/logo.svg' : '../../assets/logo.svg';
   
   const headerHTML = `
-    <header id="main-header" style="cursor: pointer;" onclick="window.location.href='${isStoryMode ? '../bookshelf.html' : 'bookshelf.html'}'">
+    <header id="main-header">
       <div class="logo-container">
         <div class="logo"><img src="${logoPath}" alt="DWS Logo" /></div>
         <div class="animated-text" id="animated-text">
@@ -109,6 +109,7 @@ window.onload = () => {
       </div>
     </header>
   `;
+  
   document.body.insertAdjacentHTML('afterbegin', headerHTML);
   setTimeout(() => { document.getElementById('animated-text').classList.add('show'); }, 1200);
 
