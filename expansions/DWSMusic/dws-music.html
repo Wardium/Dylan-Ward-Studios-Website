@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DWS Stories</title>
+  <title>DWS Music</title>
   <style>
     /* --- GLOBAL STYLES & VARIABLES --- */
     :root {
-      --bg-gradient: linear-gradient(135deg, #11998E 0%, #38EF7D 100%);
+      /* FIX 1: Removed the "var()" part here. It should just be --bg-gradient */
+      --bg-gradient: linear-gradient(135deg, #FC5566 0%, #F77647 100%);
       --text-color: #ffffff;
-      --book-text: #2c3e50;
       --shadow: 0 15px 35px rgba(0,0,0,0.3);
       --glass-bg: rgba(255, 255, 255, 0.1);
       --glass-border: rgba(255, 255, 255, 0.2);
@@ -19,6 +19,7 @@
       margin: 0;
       padding: 0;
       min-height: 100vh;
+      /* FIX 2: Actually call the variable here, instead of hardcoding the colors */
       background: var(--bg-gradient); 
       background-attachment: fixed;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -65,7 +66,6 @@
       justify-content: center; 
       font-weight: 900;
       font-size: clamp(18px, 5vw, 28px);
-      background: rgba(255,255,255,0.2);
     }
 
     .logo img {
@@ -79,42 +79,40 @@
       to { opacity: 1; transform: scale(1); }
     }
 
-    .animated-text {
+    .music-text {
       display: flex;
       font-size: clamp(2rem, 8vw, 3.5rem); 
       font-weight: 800;
       letter-spacing: 2px;
     }
 
-    .animated-text span {
+    .music-text span {
       display: inline-block;
       opacity: 0;
       transform: translateY(60px) rotate(-20deg) scale(0.5);
     }
 
-    .animated-text.show span {
+    .music-text.show span {
       animation: goofyJump 0.7s forwards cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    .animated-text span:nth-child(1) { animation-delay: 0.1s; }
-    .animated-text span:nth-child(2) { animation-delay: 0.15s; }
-    .animated-text span:nth-child(3) { animation-delay: 0.2s; }
-    .animated-text span:nth-child(4) { animation-delay: 0.25s; }
-    .animated-text span:nth-child(5) { animation-delay: 0.3s; }
-    .animated-text span:nth-child(6) { animation-delay: 0.35s; }
-    .animated-text span:nth-child(7) { animation-delay: 0.4s; }
+    .music-text span:nth-child(1) { animation-delay: 0.1s; }
+    .music-text span:nth-child(2) { animation-delay: 0.2s; }
+    .music-text span:nth-child(3) { animation-delay: 0.3s; }
+    .music-text span:nth-child(4) { animation-delay: 0.4s; }
+    .music-text span:nth-child(5) { animation-delay: 0.5s; }
 
     @keyframes goofyJump {
       50% { transform: translateY(-25px) rotate(15deg) scale(1.1); opacity: 1; }
       100% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
     }
 
-    /* --- MAIN BOOKSHELF LIST --- */
+    /* --- MAIN ALBUM LIST --- */
     main {
       padding-top: 130px; 
-      max-width: 1200px;
+      max-width: 1100px;
       margin: 0 auto;
-      padding-bottom: 80px;
+      padding-bottom: 50px;
       opacity: 0;
       transform: translateY(40px);
       transition: opacity 1s, transform 1s;
@@ -127,263 +125,207 @@
       transform: translateY(0);
     }
 
-    .bookshelf-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 60px;
-      padding: 0 40px;
-      perspective: 1200px; 
-    }
-
-    .book-item {
+    .album-row {
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      text-align: center;
+      margin-bottom: 80px;
+      gap: 50px;
+      padding: 0 20px;
     }
 
-    /* --- 3D BOOK STYLING --- */
-    .book-3d-container {
-      width: 100%;
-      max-width: 300px;
-      aspect-ratio: 1 / 1; 
-      position: relative;
-      transform-style: preserve-3d;
-      transform: rotateY(-25deg) rotateX(10deg);
-      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      cursor: pointer;
-      margin-bottom: 20px;
+    .album-info {
+      flex: 1;
+      text-align: left;
     }
 
-    .book-item:hover .book-3d-container {
-      transform: rotateY(-5deg) rotateX(5deg) scale(1.08) translateZ(30px);
-    }
-
-    .book-front, .book-spine {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      background-size: cover;
-      background-position: center;
-      border-radius: 5px 15px 15px 5px;
-      box-shadow: inset 4px 0 10px rgba(0,0,0,0.1);
-    }
-
-    .book-front {
-      width: 100%;
-      z-index: 2;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: clamp(1.2rem, 3vw, 2rem);
-      font-weight: bold;
-      color: white;
-      text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
-      padding: 20px;
-      box-sizing: border-box;
-      background-color: #2c3e50; 
-    }
-
-    .book-spine {
-      width: 40px; 
-      transform-origin: left;
-      transform: rotateY(-90deg);
-      background-color: rgba(0,0,0,0.2); 
-      filter: brightness(0.8);
-      border-radius: 5px 0 0 5px;
-    }
-
-    .book-front::after {
-      content: '';
-      position: absolute;
-      right: -10px;
-      top: 2%;
-      width: 10px;
-      height: 96%;
-      background: #f0f0f0;
-      transform-origin: left;
-      transform: rotateY(90deg);
-      border-radius: 0 5px 5px 0;
-    }
-
-    .book-info h2 {
-      font-size: clamp(1.5rem, 4vw, 2.2rem);
-      margin: 0 0 10px 0;
+    .album-info h2 {
+      font-size: clamp(2rem, 6vw, 3rem);
+      margin: 0 0 15px 0;
       text-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
 
-    .book-info p {
-      font-size: clamp(0.9rem, 2vw, 1.1rem);
+    .album-info p {
+      font-size: clamp(1rem, 3vw, 1.2rem);
       opacity: 0.85;
-      line-height: 1.4;
-      margin: 0;
+      line-height: 1.6;
     }
 
-    /* --- INTERACTIVE OPEN BOOK READER --- */
-    #reader-view {
+    .album-cover-container {
+      flex: 1;
+      display: flex;
+      justify-content: flex-end;
+      perspective: 1000px; 
+    }
+
+    .album-cover {
+      width: 100%;
+      max-width: 320px;
+      aspect-ratio: 1 / 1; 
+      background: #ccc; 
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      transform-style: preserve-3d;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .album-cover:hover {
+      transform: rotateY(-12deg) rotateX(8deg) scale(1.05);
+      box-shadow: -15px 25px 40px rgba(0,0,0,0.4);
+    }
+
+    /* --- SINGLE ALBUM INTERIOR VIEW --- */
+    #single-album-view {
       display: none; 
       opacity: 0;
       transform: scale(0.95) translateY(20px);
-      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s;
-      max-width: 1200px;
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 1100px;
       margin: 130px auto 50px;
       padding: 0 20px;
     }
 
-    #reader-view.active {
+    #single-album-view.active {
       display: flex;
-      flex-direction: column;
-      align-items: center;
       opacity: 1;
       transform: scale(1) translateY(0);
+      gap: 60px;
+    }
+
+    .single-cover-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .single-cover {
+      width: 100%;
+      max-width: 450px;
+      aspect-ratio: 1 / 1;
+      border-radius: 25px;
+      box-shadow: var(--shadow);
+      background-size: cover;
+      background-position: center;
+      /* The slow, ambient float when paused */
+      animation: floatAlive 5s infinite ease-in-out; 
+      transition: transform 0.2s;
+    }
+
+    /* NEW: The faster, punchy dance when playing */
+    .single-cover.dancing {
+      animation: danceToBeat 0.8s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes floatAlive {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-15px) rotate(1deg); }
+    }
+
+    @keyframes danceToBeat {
+      0% { transform: scale(1) rotate(-1deg); box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+      100% { transform: scale(1.05) rotate(2deg); box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+    }
+
+    .track-list-container {
+      flex: 1.2;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 25px;
+      padding: clamp(20px, 5vw, 40px);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .back-btn {
-      align-self: flex-start;
+      display: inline-block;
       margin-bottom: 25px;
       cursor: pointer;
       font-weight: 600;
       font-size: 1.1rem;
-      opacity: 0.8;
+      opacity: 0.7;
       transition: opacity 0.2s;
-      background: var(--glass-bg);
-      padding: 10px 20px;
-      border-radius: 20px;
-      border: 1px solid var(--glass-border);
     }
 
     .back-btn:hover {
       opacity: 1;
-      background: rgba(255,255,255,0.2);
     }
 
-    .open-book-container {
-      width: 100%;
-      aspect-ratio: 16 / 10; 
-      max-height: 70vh;
-      display: flex;
-      background: #fdfdfd;
-      border-radius: 10px;
-      box-shadow: var(--shadow);
-      position: relative;
-      perspective: 2000px;
-      color: var(--book-text);
-      background-image: linear-gradient(
-        to right, 
-        #fdfdfd 0%, 
-        #fdfdfd 46%, 
-        #dcdcdc 50%, 
-        #fdfdfd 54%, 
-        #fdfdfd 100%
-      );
+    #active-album-title {
+      font-size: clamp(1.8rem, 6vw, 2.5rem);
+      margin: 0 0 30px 0;
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 15px;
     }
 
-    .open-book-container::before {
-      content: '';
-      position: absolute;
-      top: -2px; bottom: -2px; left: -2px; right: -2px;
-      background: #e0e0e0;
-      z-index: -1;
-      border-radius: 12px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    }
-
-    .page {
-      flex: 1;
-      padding: clamp(20px, 4vw, 50px);
-      box-sizing: border-box;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
-
-    .page-number {
-      position: absolute;
-      bottom: 20px;
-      font-size: 0.9rem;
-      color: #999;
-    }
-    .left-page .page-number { left: 30px; }
-    .right-page .page-number { right: 30px; }
-
-    .page-content {
-      font-size: clamp(1.2rem, 2.5vw, 1.8rem); 
-      line-height: 1.6;
+    .track-list {
       flex-grow: 1;
-      text-align: justify; 
+      overflow-y: auto;
     }
 
-    .page-content h1 {
-      font-size: clamp(2rem, 4vw, 3rem);
-      margin-top: 0;
-      color: #1a252f;
-      text-align: center;
-    }
-
-    .turning-page {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 50%; 
-      height: 100%;
-      transform-style: preserve-3d;
-      transform-origin: left center;
-      transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
-      z-index: 10;
+    .track-item {
+      display: flex;
+      align-items: center;
+      padding: 15px 20px;
+      margin-bottom: 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
       cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
     }
 
-    .turning-page.is-flipping {
-      transform: rotateY(-180deg);
+    .track-item:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateX(10px);
     }
 
-    .page-face {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      backface-visibility: hidden;
-      background: #fdfdfd;
-      padding: clamp(20px, 4vw, 50px);
-      box-sizing: border-box;
-      background-image: linear-gradient(to right, #e8e8e8 0%, #fdfdfd 5%, #fdfdfd 100%);
+    .play-btn {
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      background: var(--text-color);
+      color: #000;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 20px;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
-    .page-face.back {
-      transform: rotateY(180deg);
-      background-image: linear-gradient(to left, #e8e8e8 0%, #fdfdfd 5%, #fdfdfd 100%);
-    }
-
-    .click-hint {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 2rem;
-      color: rgba(0,0,0,0.1);
-      cursor: pointer;
-      transition: color 0.3s;
-      z-index: 20;
-    }
-    .right-page:hover .click-hint { color: rgba(0,0,0,0.4); }
-    .click-hint.right { right: 20px; }
-    .click-hint.left { left: 20px; display: none; }
-
+    /* --- RESPONSIVE MEDIA QUERIES (VERTICAL STACKING) --- */
     @media (max-width: 800px) {
-      .bookshelf-grid {
-        grid-template-columns: 1fr; 
-        gap: 50px;
-        padding: 0 20px;
+      .album-row {
+        flex-direction: column; 
+        text-align: center;
+        gap: 30px;
+        margin-bottom: 70px;
+      }
+
+      .album-info { width: 100%; }
+      .album-cover-container { justify-content: center; width: 100%; }
+      .album-cover { max-width: 320px; width: 100%; }
+
+      #single-album-view.active {
+        flex-direction: column; 
+        gap: 40px;
+        align-items: center;
       }
       
-      .open-book-container {
-        aspect-ratio: 4 / 5;
-        max-height: 80vh;
-      }
-
-      .page-content {
-        text-align: left; 
-        font-size: 1.1rem;
+      .single-cover-container { width: 100%; }
+      .single-cover { max-width: 320px; }
+      
+      .track-item:hover {
+        transform: none; 
+        background: rgba(255, 255, 255, 0.2);
       }
     }
   </style>
@@ -391,91 +333,50 @@
 <body>
 
   <header id="main-header">
-    <div class="logo-container">
-      <div class="logo" id="dws-logo">
-        <img src="../../assets/logo.svg" alt="DWS Logo" />
-      </div>
-      <div class="animated-text" id="animated-text">
-        <span>S</span><span>t</span><span>o</span><span>r</span><span>i</span><span>e</span><span>s</span>
-      </div>
+  <div class="logo-container">
+    <div class="logo" id="dws-logo">
+      <img src="../../assets/logo.svg" alt="DWS Logo" />
     </div>
-  </header>
+    <div class="music-text" id="music-text">
+      <span>M</span><span>u</span><span>s</span><span>i</span><span>c</span>
+    </div>
+  </div>
+</header>
 
-  <main id="bookshelf">
-    <div class="bookshelf-grid" id="bookshelf-grid">
-      </div>
-  </main>
+  <main id="album-list">
+    </main>
 
-  <div id="reader-view">
-    <div class="back-btn" onclick="closeBook()">← Back to Bookshelf</div>
-    
-    <div class="open-book-container" id="open-book">
-      
-      <div class="page left-page">
-        <div class="page-content" id="left-page-content"></div>
-        <div class="page-number" id="left-page-num"></div>
-      </div>
-
-      <div class="page right-page" onclick="flipPageForward()">
-        <div class="page-content" id="right-page-content"></div>
-        <div class="page-number" id="right-page-num"></div>
-        <div class="click-hint right">▶</div>
-      </div>
-
-      <div class="turning-page" id="turning-page" onclick="flipPageForward()">
-        <div class="page-face front">
-          <div class="page-content" id="turn-front-content"></div>
+  <div id="single-album-view">
+    <div class="single-cover-container">
+      <div class="single-cover" id="active-cover"></div>
+    </div>
+    <div class="track-list-container">
+      <div class="back-btn" onclick="goBack()">← Back to Library</div>
+      <h2 id="active-album-title">Album Name</h2>
+      <div class="track-list" id="track-list">
         </div>
-        <div class="page-face back">
-          <div class="page-content" id="turn-back-content"></div>
-        </div>
-      </div>
-
     </div>
   </div>
 
+  <audio id="audio-player"></audio>
+
   <script src="database.js"></script>
-
+  
   <script>
-    // Variables to track reading state
-    let currentBook = null;
-    let currentPageIndex = 0; 
 
-    // --- AUTO PAGINATION ALGORITHM ---
-    function paginateText(rawText) {
-      if (!rawText) return [];
-      const paragraphs = rawText.split('\n\n');
-      const pages = [];
-      let currentPageHTML = "";
-      const maxCharsPerPage = 600; 
-
-      paragraphs.forEach(p => {
-        if ((currentPageHTML.length + p.length) > maxCharsPerPage && currentPageHTML.length > 0) {
-          pages.push(currentPageHTML);
-          currentPageHTML = `<p>${p}</p>`;
-        } else {
-          currentPageHTML += `<p>${p}</p>`;
-        }
-      });
-      
-      if (currentPageHTML.length > 0) {
-        pages.push(currentPageHTML);
-      }
-      
-      return pages;
-    }
+    // NEW: Global variables to track what is currently playing
+    let currentAudioSrc = null;
+    let isPlaying = false;
 
     window.onload = () => {
-      const animatedText = document.getElementById('animated-text');
+      const musicText = document.getElementById('music-text');
       const header = document.getElementById('main-header');
-      const mainContent = document.getElementById('bookshelf');
+      const mainContent = document.getElementById('album-list');
 
-      // 1. Intro Animation
       setTimeout(() => {
-        animatedText.classList.add('show');
+        musicText.classList.add('show');
       }, 1200);
 
-      // 2. Shrink Header & Show Shelf
       setTimeout(() => {
         header.classList.add('shrunk');
         mainContent.style.display = 'block';
@@ -484,134 +385,149 @@
         }, 50); 
       }, 3500);
 
-      renderBookshelf();
+      renderAlbums();
     };
 
-    function renderBookshelf() {
-      const grid = document.getElementById('bookshelf-grid');
-      grid.innerHTML = '';
+    function renderAlbums() {
+      const listContainer = document.getElementById('album-list');
+      listContainer.innerHTML = '';
 
-      storyDatabase.forEach(book => {
-        const bookDiv = document.createElement('div');
-        bookDiv.className = 'book-item';
-        
-        const bgStyle = book.coverImage 
-          ? `background-image: url('${book.coverImage}');` 
-          : `background-color: ${book.coverColor};`;
+      musicDatabase.forEach(album => {
+        const row = document.createElement('div');
+        row.className = 'album-row';
 
-        bookDiv.innerHTML = `
-          <div class="book-3d-container" onclick="openBook(${book.id})">
-            <div class="book-front" style="${bgStyle}">
-              ${!book.coverImage ? book.title : ''}
-            </div>
-            <div class="book-spine" style="${bgStyle}"></div>
+        // NEW: Check if an image exists, and format it as a CSS background-image
+        const bgStyle = album.coverImage 
+          ? `background-image: url('${album.coverImage}');` 
+          : `background-color: #ccc;`;
+
+        row.innerHTML = `
+          <div class="album-info">
+            <h2>${album.title}</h2>
+            <p>${album.description}</p>
           </div>
-          <div class="book-info">
-            <h2>${book.title}</h2>
-            <p>${book.description}</p>
+          <div class="album-cover-container">
+            <div class="album-cover" style="${bgStyle}" onclick="openAlbum(${album.id})"></div>
           </div>
         `;
-        grid.appendChild(bookDiv);
+        listContainer.appendChild(row);
       });
     }
 
-    function openBook(bookId) {
-      currentBook = storyDatabase.find(b => b.id === bookId);
-      
-      // Auto-format text into pages
-      const formattedPages = paginateText(currentBook.text);
-      if(formattedPages.length > 0) {
-          formattedPages[0] = `<h1>${currentBook.title}</h1>` + formattedPages[0];
-      }
-      currentBook.pages = formattedPages;
-      
-      currentPageIndex = 0; 
+    function openAlbum(albumId) {
+      const album = musicDatabase.find(a => a.id === albumId);
+      const listContainer = document.getElementById('album-list');
+      const singleView = document.getElementById('single-album-view');
+      const cover = document.getElementById('active-cover');
 
-      // Apply theme color
-      if (currentBook.themeColor) {
-        document.body.style.background = currentBook.themeColor;
-      }
-
-      const shelf = document.getElementById('bookshelf');
-      const reader = document.getElementById('reader-view');
-
-      shelf.classList.remove('visible');
+      listContainer.classList.remove('visible');
       
       setTimeout(() => {
-        shelf.style.display = 'none';
-        updatePageContent(); 
+        listContainer.style.display = 'none';
+
+        if (album.coverImage) {
+            cover.style.backgroundImage = `url('${album.coverImage}')`;
+        } else {
+          // Fallback just in case you forget to upload a cover.png!
+          cover.style.backgroundImage = 'none';
+          cover.style.backgroundColor = '#ccc'; 
+        }
         
-        reader.style.display = 'flex';
+        document.getElementById('active-album-title').innerText = album.title;
+
+        // Clear existing tracks
+        const trackList = document.getElementById('track-list');
+        trackList.innerHTML = '';
+        
+        // Generate new tracks and check if one is currently playing
+        let albumHasPlayingTrack = false;
+
+        album.tracks.forEach((track, index) => {
+          const buttonId = `play-btn-${index}`;
+          const isThisTrackPlaying = (currentAudioSrc === track.src && isPlaying);
+          const icon = isThisTrackPlaying ? '⏸' : '▶';
+          
+          if (isThisTrackPlaying) albumHasPlayingTrack = true;
+
+          trackList.innerHTML += `
+            <div class="track-item" onclick="togglePlay('${track.src}', '${buttonId}')">
+              <div class="play-btn" id="${buttonId}">${icon}</div>
+              <div style="font-weight: bold;">${index + 1}. ${track.title}</div>
+            </div>
+          `;
+        });
+
+        // If we opened the album and a song inside it is playing, make it dance!
+        if (albumHasPlayingTrack) {
+          cover.classList.add('dancing');
+        } else {
+          cover.classList.remove('dancing');
+        }
+
+        singleView.style.display = 'flex';
         setTimeout(() => {
-          reader.classList.add('active');
+          singleView.classList.add('active');
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }, 50);
 
       }, 500); 
     }
 
-    function closeBook() {
-      const shelf = document.getElementById('bookshelf');
-      const reader = document.getElementById('reader-view');
+    function goBack() {
+      const listContainer = document.getElementById('album-list');
+      const singleView = document.getElementById('single-album-view');
 
-      reader.classList.remove('active');
-      
-      // Reset the theme
-      document.body.style.background = 'var(--bg-gradient)';
+      singleView.classList.remove('active');
       
       setTimeout(() => {
-        reader.style.display = 'none';
+        singleView.style.display = 'none';
         
-        shelf.style.display = 'block';
+        listContainer.style.display = 'block';
         setTimeout(() => {
-           shelf.classList.add('visible');
+           listContainer.classList.add('visible');
         }, 50);
       }, 600);
     }
 
-    function updatePageContent() {
-      const pages = currentBook.pages;
-      
-      document.getElementById('left-page-content').innerHTML = pages[currentPageIndex] || "";
-      document.getElementById('left-page-num').innerText = pages[currentPageIndex] ? (currentPageIndex + 1) : "";
+    // NEW: Function to handle Play/Pause and visual updates
+    function togglePlay(src, buttonId) {
+      const player = document.getElementById('audio-player');
+      const cover = document.getElementById('active-cover');
+      const clickedBtn = document.getElementById(buttonId);
+      const allButtons = document.querySelectorAll('.play-btn');
 
-      document.getElementById('right-page-content').innerHTML = pages[currentPageIndex + 1] || "";
-      document.getElementById('right-page-num').innerText = pages[currentPageIndex + 1] ? (currentPageIndex + 2) : "";
+      // 1. If we clicked the song that is ALREADY playing
+      if (currentAudioSrc === src && isPlaying) {
+        // Pause it
+        player.pause();
+        isPlaying = false;
+        cover.classList.remove('dancing');
+        clickedBtn.innerText = '▶';
+      } 
+      // 2. If we clicked a NEW song, or resumed a paused song
+      else {
+        // Reset ALL buttons back to Play icon
+        allButtons.forEach(btn => btn.innerText = '▶');
 
-      const turnPageElement = document.getElementById('turning-page');
-      turnPageElement.style.transition = 'none';
-      turnPageElement.classList.remove('is-flipping');
-      
-      document.getElementById('turn-front-content').innerHTML = pages[currentPageIndex + 1] || "";
-      
-      const rightHint = document.querySelector('.click-hint.right');
-      if (currentPageIndex + 2 >= pages.length) {
-         rightHint.style.display = 'none';
-         turnPageElement.style.cursor = 'default';
-      } else {
-         rightHint.style.display = 'block';
-         turnPageElement.style.cursor = 'pointer';
+        // Only load a new track if the source actually changed
+        if (currentAudioSrc !== src) {
+          player.src = src;
+          currentAudioSrc = src;
+        }
+
+        // Try to play the audio. If the file doesn't exist yet, catch the error so the animation still works for prototyping!
+        let playPromise = player.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.log("Audio file not found yet. Simulating playback animation.");
+          });
+        }
+
+        // Update visuals
+        isPlaying = true;
+        cover.classList.add('dancing');
+        clickedBtn.innerText = '⏸';
       }
-    }
-
-    function flipPageForward() {
-      const pages = currentBook.pages;
-      
-      if (currentPageIndex + 2 >= pages.length) return;
-
-      const turnPageElement = document.getElementById('turning-page');
-      
-      document.getElementById('turn-back-content').innerHTML = pages[currentPageIndex + 2] || "";
-      document.getElementById('right-page-content').innerHTML = pages[currentPageIndex + 3] || "";
-      document.getElementById('right-page-num').innerText = pages[currentPageIndex + 3] ? (currentPageIndex + 4) : "";
-
-      turnPageElement.style.transition = 'transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1)';
-      turnPageElement.classList.add('is-flipping');
-
-      setTimeout(() => {
-        currentPageIndex += 2;
-        updatePageContent(); 
-      }, 800); 
     }
   </script>
 </body>
