@@ -3,7 +3,7 @@ const storyDatabase = [
     "title": "The Legend of Aurora Stars",
     "description": "The War of the celestials",
     "coverColor": "#1B5E20",
-    "coverImage": "",
+    "coverImage": "/assets/stories/aurora.jpeg",
     "themeColor": "linear-gradient(135deg, #1B5E20 0%, #004D40 100%)",
     "url": "/expansions/DWSStories/stories/aurora.html"
   },
