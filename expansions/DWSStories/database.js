@@ -11,7 +11,7 @@ const storyDatabase = [
     "title": "The Faewind",
     "description": "The Ballad of Ivy",
     "coverColor": "#1B5E20",
-    "coverImage": "",
+    "coverImage": "assets/stories/faewind1.jpeg",
     "themeColor": "linear-gradient(135deg, #1B5E20 0%, #004D40 100%)",
     "url": "/expansions/DWSStories/stories/faewind.html"
   },
@@ -19,7 +19,7 @@ const storyDatabase = [
     "title": "The Faewind",
     "description": "Exile.",
     "coverColor": "#1B5E20",
-    "coverImage": "",
+    "coverImage": "assets/stories/faewind2.jpeg",
     "themeColor": "linear-gradient(135deg, #1B5E20 0%, #004D40 100%)",
     "url": "/expansions/DWSStories/stories/faewind2.html"
   },
@@ -27,7 +27,7 @@ const storyDatabase = [
     "title": "Battle of the Forests Heart",
     "description": "The War Giants and Druids",
     "coverColor": "#1B5E20",
-    "coverImage": "",
+    "coverImage": "assets/stories/forest.jpeg",
     "themeColor": "linear-gradient(135deg, #1B5E20 0%, #004D40 100%)",
     "url": "/expansions/DWSStories/stories/forest.html"
   },
@@ -35,7 +35,7 @@ const storyDatabase = [
     "title": "A Story About a Life",
     "description": "Rin",
     "coverColor": "#1B5E20",
-    "coverImage": "",
+    "coverImage": "assets/stories/life.jpeg",
     "themeColor": "linear-gradient(135deg, #1B5E20 0%, #004D40 100%)",
     "url": "/expansions/DWSStories/stories/life.html"
   },
@@ -43,7 +43,7 @@ const storyDatabase = [
     "title": "Neon",
     "description": "The Story of Neon",
     "coverColor": "#1B5E20",
-    "coverImage": "",
+    "coverImage": "assets/stories/neon.jpeg",
     "themeColor": "linear-gradient(135deg, #1B5E20 0%, #004D40 100%)",
     "url": "/expansions/DWSStories/stories/neon.html"
   }
