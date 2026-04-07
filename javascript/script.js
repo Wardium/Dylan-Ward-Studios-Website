@@ -44,9 +44,6 @@ const rightArrow = document.querySelector('.arrow.right');
 let current = 0;
 let isAnimating = false;
 
-// Add this right under where you define 'current = 0;'
-const hash = window.location.hash.substring(1); // gets "stories" out of "#stories"
-
 // ----------------------
 // SECTION TRANSITION
 // ----------------------
