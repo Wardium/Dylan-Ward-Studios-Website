@@ -1,9 +1,14 @@
-window.addEventListener('DOMContentLoaded', () => {
+indow.addEventListener('DOMContentLoaded', () => {
   const hash = window.location.hash.substring(1);
   if (!hash) return; 
 
-  const targetSection = document.getElementById(hash);
-  if (!targetSection) return; 
+  // CHANGE THIS LINE:
+  // const targetSection = document.getElementById(hash);
+  
+  // TO THIS:
+  const targetSection = document.querySelector(`[data-id="${hash}"]`);
+  
+  if (!targetSection) return;
 
   // 1. Deploy the shield
   const shield = document.createElement('div');
