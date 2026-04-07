@@ -44,6 +44,20 @@ const rightArrow = document.querySelector('.arrow.right');
 let current = 0;
 let isAnimating = false;
 
+// Add this right under where you define 'current = 0;'
+const hash = window.location.hash.substring(1); // gets "stories" out of "#stories"
+
+if (hash) {
+  const targetIndex = sections.findIndex(sec => sec.id === hash);
+  if (targetIndex !== -1) {
+    // Remove active from the default first section
+    sections[current].classList.remove('active');
+    // Set current to the linked section
+    current = targetIndex;
+    sections[current].classList.add('active');
+  }
+}
+
 // ----------------------
 // SECTION TRANSITION
 // ----------------------
@@ -153,7 +167,7 @@ footer.style.opacity = '0';
 header.style.transition = 'opacity 1s ease';
 footer.style.transition = 'opacity 1s ease';
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('load', () => {
   const introOverlay = document.querySelector('.intro-overlay');
   setTimeout(() => introOverlay.classList.add('fade-out'), 2200);
   setTimeout(() => {
