@@ -36,7 +36,7 @@ if (bgBlur) {
 document.body.style.background = 'none';
 
 // ----------------------
-// INITIAL SECTIONS 
+// INITIAL SECTIONS & ROUTING
 // ----------------------
 let sections = Array.from(document.querySelectorAll('.section:not(.dev-section)'));
 const leftArrow = document.querySelector('.arrow.left');
@@ -44,17 +44,14 @@ const rightArrow = document.querySelector('.arrow.right');
 let current = 0;
 let isAnimating = false;
 
-// Add this right under where you define 'current = 0;'
-const hash = window.location.hash.substring(1); // gets "stories" out of "#stories"
-
+// 1. Instantly check hash before anything else!
+const hash = window.location.hash.substring(1);
 if (hash) {
   const targetIndex = sections.findIndex(sec => sec.id === hash);
   if (targetIndex !== -1) {
-    // Remove active from the default first section
-    sections[current].classList.remove('active');
-    // Set current to the linked section
-    current = targetIndex;
-    sections[current].classList.add('active');
+    sections[0].classList.remove('active');    // Turn off default Home
+    current = targetIndex;                     // Update our SINGLE source of truth
+    sections[current].classList.add('active'); // Make the linked section active
   }
 }
 
@@ -67,34 +64,45 @@ function showSection(newIndex, direction) {
 
   const currentSection = sections[current];
   const nextSection = sections[newIndex];
+  const container = document.querySelector('.section-container');
 
+  // Smooth height animation (brought over from section.js)
+  if (container) {
+    const nextHeight = nextSection.scrollHeight;
+    container.style.height = container.offsetHeight + "px"; // Start from current
+    requestAnimationFrame(() => {
+      container.style.height = nextHeight + "px"; // Animate to new
+    });
+  }
+
+  // Reset classes
   sections.forEach(sec => sec.classList.remove(
-    'slide-in-from-left',
-    'slide-in-from-right',
-    'slide-out-to-left',
-    'slide-out-to-right',
-    'active'
+    'slide-in-from-left', 'slide-in-from-right',
+    'slide-out-to-left', 'slide-out-to-right', 'active'
   ));
 
+  // Set up incoming section
   if (direction === 'right') nextSection.classList.add('slide-in-from-right');
   else nextSection.classList.add('slide-in-from-left');
 
   nextSection.classList.add('active');
+  
+  // Force reflow
   void nextSection.offsetWidth;
 
-  if (direction === 'right') {
-    currentSection.classList.add('slide-out-to-left');
-    nextSection.classList.remove('slide-in-from-right');
-  } else {
-    currentSection.classList.add('slide-out-to-right');
-    nextSection.classList.remove('slide-in-from-left');
-  }
+  // Animate outgoing
+  if (direction === 'right') currentSection.classList.add('slide-out-to-left');
+  else currentSection.classList.add('slide-out-to-right');
 
+  // Finish animation
   setTimeout(() => {
     currentSection.classList.remove('active', 'slide-out-to-left', 'slide-out-to-right');
     current = newIndex;
     isAnimating = false;
-  }, 500);
+
+    // Reset container height to auto
+    if (container) container.style.height = "auto";
+  }, 500); // match CSS transition
 }
 
 // ----------------------
@@ -111,6 +119,7 @@ leftArrow.addEventListener('click', () => {
   showSection(newIndex, 'left');
   registerInput('left');
 });
+
 
 // ----------------------
 // SECTION LOGIC
