@@ -23,12 +23,10 @@ document.addEventListener("DOMContentLoaded", () => {
         <h2>${book.title}</h2>
         <p>${book.description}</p>
       </div>
-      
-      <a href="${book.url}" target="_blank" class="seamless-redirect glass-block col-half">
-          <img src="${coverImg}" class="link-bg" alt="${book.title} Cover" loading="lazy">
-          <div class="link-content">
+
+      <div class="glass-block media-block col-half expandable-link" data-iframe-src="${book.url}" loading="lazy">
+              <img src="${coverImg}" alt="${book.title} Cover" loading="lazy">
             </div>
-      </a>
     `;
   });
 
