@@ -58,7 +58,7 @@ window.addEventListener('DOMContentLoaded', () => {
       // Failsafe: Force the bot to rest immediately after a click just in case
       // the DOM takes a few milliseconds to add the animation classes
       isResting = true;
-      setTimeout(() => { isResting = false; }, 100); 
+      setTimeout(() => { isResting = false; }, 50); 
     }
 
     // Check again in 50ms
@@ -75,7 +75,7 @@ window.addEventListener('DOMContentLoaded', () => {
       // Wait for the fly-in to settle
       setTimeout(() => {
         clickToTarget();
-      }, 1500);
+      }, 300);
 
     } else if (!introOverlay) {
       clearInterval(checkIntro);
