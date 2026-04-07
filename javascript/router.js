@@ -7,6 +7,10 @@ window.addEventListener('DOMContentLoaded', () => {
   
   // TO THIS:
   const targetSection = document.querySelector(`[data-id="${hash}"]`);
+
+  if (!targetSection) {
+    targetSection = document.querySelector(`[data-aliases~="${hash}"]`);
+  }
   
   if (!targetSection) return;
 
