@@ -1,30 +1,31 @@
-name: Build and Deploy DWS Website
+name: Build and Deploy DWS Stories
 
 on:
+  # Runs on pushes targeting the main branch
   push:
-    branches:
-      - main
-    paths:
-      - 'expansions/DWSStories/stories/**'
-      - 'expansions/DWSStories/build.js'
-      - 'expansions/DWSStories/bookshelf.html'
-      - '.github/workflows/update-story.yml'
+    branches: ["main"]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
-    # THIS MUST BE INDENTED EXACTLY 4 SPACES
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -32,17 +33,20 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Run Stories Build Script
-        working-directory: expansions/DWSStories
-        run: node build.js
+      - name: Run Database Build Script
+        # This navigates to the folder and runs the script before deploying
+        run: |
+          cd expansions/DWSStories
+          node build.js
 
-      - name: Setup Pages
+      - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.' 
+          # Uploads the entire repository to be hosted on Pages
+          path: '.'
 
       - name: Deploy to GitHub Pages
         id: deployment
