@@ -1,4 +1,4 @@
-indow.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', () => {
   const hash = window.location.hash.substring(1);
   if (!hash) return; 
 
