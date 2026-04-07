@@ -1,4 +1,4 @@
-name: Auto-Generate Music Database
+name: DWS Music
 
 # Wakes the robot up ONLY when files inside the specific albums folder change
 on:
