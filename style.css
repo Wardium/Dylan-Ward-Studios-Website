@@ -1024,3 +1024,7 @@ body.web-infinity-no-scroll .scrollsection {
   /* Prevents scrolling gestures entirely on touch devices */
   touch-action: none !important; 
 }
+
+.expandable-link {
+  cursor: pointer;
+}
