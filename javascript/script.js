@@ -47,17 +47,6 @@ let isAnimating = false;
 // Add this right under where you define 'current = 0;'
 const hash = window.location.hash.substring(1); // gets "stories" out of "#stories"
 
-if (hash) {
-  const targetIndex = sections.findIndex(sec => sec.id === hash);
-  if (targetIndex !== -1) {
-    // Remove active from the default first section
-    sections[current].classList.remove('active');
-    // Set current to the linked section
-    current = targetIndex;
-    sections[current].classList.add('active');
-  }
-}
-
 // ----------------------
 // SECTION TRANSITION
 // ----------------------
