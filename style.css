@@ -229,6 +229,17 @@ main {
   min-height: 86vh; /* ensures minimum size */
 }
 
+@media (prefers-color-scheme: dark) {
+  .section-container {
+    background: linear-gradient(
+      135deg,
+      rgba(30, 30, 30, 0.60) 0%,
+      rgba(0, 0, 0, 0.40) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.08); /* Dims the border for dark mode */
+  }
+}
+
 .section {
   position: absolute;
   width: 100%;
