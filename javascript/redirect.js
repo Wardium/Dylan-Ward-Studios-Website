@@ -1,87 +1,119 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const transitionElements = document.querySelectorAll('.seamless-redirect');
+window.addEventListener('DOMContentLoaded', () => {
+  const hash = window.location.hash.substring(1);
+  if (!hash) return;
 
-  transitionElements.forEach(el => {
-    el.addEventListener('click', function(e) {
-      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
-      
-      const targetUrl = this.getAttribute('href') || this.getAttribute('data-href');
-      if (!targetUrl) return;
+  // Determine if we are in the special "#console" sequence mode
+  const isConsoleMode = (hash === 'console');
+  let targetSection = null;
 
-      e.preventDefault(); 
-
-      const rect = this.getBoundingClientRect();
-      const clone = this.cloneNode(true);
-      const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const targetColor = isDarkMode ? '#202124' : '#ffffff'; 
-
-      // Setup Clone
-      clone.classList.add('redirect-clone');
-      Object.assign(clone.style, {
-        position: 'fixed',
-        top: `${rect.top}px`,
-        left: `${rect.left}px`,
-        width: `${rect.width}px`,
-        height: `${rect.height}px`,
-        margin: '0',
-        zIndex: '9999',
-        pointerEvents: 'none',
-        transition: 'all 1s cubic-bezier(0.16, 1, 0.3, 1)' // Your new Ease-Out
-      });
-      
-      const computedStyle = window.getComputedStyle(this);
-      clone.style.borderRadius = computedStyle.borderRadius;
-      clone.style.backgroundColor = computedStyle.backgroundColor;
-
-      document.body.appendChild(clone);
-      
-      // Hide original
-      this.style.opacity = '0';
-      this.classList.add('redirect-hidden-original');
-
-      // Trigger Animation
-      requestAnimationFrame(() => {
-        clone.classList.add('expanding');
-        // Expand to fill viewport
-        Object.assign(clone.style, {
-          top: '0',
-          left: '0',
-          width: '100vw',
-          height: '100vh',
-          borderRadius: '0',
-          backgroundColor: targetColor
-        });
-      });
-
-      // REDIRECT: Only redirect after the bulk of the animation is done
-      // but DO NOT clean up here.
-      setTimeout(() => {
-        window.location.href = targetUrl;
-      }, 800); 
-    });
-  });
-});
-
-// THE CLEANUP FUNCTION
-function resetRedirectAnimation() {
-  document.querySelectorAll('.redirect-clone').forEach(c => c.remove());
-  document.querySelectorAll('.redirect-hidden-original').forEach(el => {
-    el.style.opacity = '1';
-    el.classList.remove('redirect-hidden-original');
-  });
-}
-
-// THE BELT: Trigger when returning to the page
-window.addEventListener('pageshow', (event) => {
-  if (event.persisted || document.querySelector('.redirect-clone')) {
-    // requestAnimationFrame forces iOS Safari to acknowledge the DOM change and repaint
-    requestAnimationFrame(() => {
-      resetRedirectAnimation();
-    });
+  if (!isConsoleMode) {
+    // Regular routing mode (Fixed from const to let to prevent reassignment errors)
+    targetSection = document.querySelector(`[data-id="${hash}"]`);
+    
+    if (!targetSection) {
+      targetSection = document.querySelector(`[data-aliases~="${hash}"]`);
+    }
+    
+    if (!targetSection) return;
   }
-});
 
-// THE SUSPENDERS: Trigger right before the browser takes the cache snapshot
-window.addEventListener('pagehide', () => {
-  resetRedirectAnimation();
+  // 1. Deploy the shield
+  const shield = document.createElement('div');
+  shield.style.position = 'fixed';
+  shield.style.top = '0';
+  shield.style.left = '0';
+  shield.style.width = '100vw';
+  shield.style.height = '100vh';
+  shield.style.zIndex = '9999'; 
+  shield.style.cursor = 'wait'; 
+  document.body.appendChild(shield);
+
+  // 2. Grab both arrows
+  const rightArrow = document.querySelector('.arrow.right');
+  const leftArrow = document.querySelector('.arrow.left');
+  
+  // The Bot's State Variables
+  let isResting = false; 
+  let wasAnimatingLastCheck = false;
+  
+  // Adjust this to change how long it pauses BETWEEN pages
+  const extraRestTimeMs = 200; 
+
+  // Console Sequence State
+  const consoleSequence = ['left', 'right', 'right', 'left', 'right'];
+  let currentSequenceIndex = 0;
+
+  function clickToTarget() {
+    // 1. Victory Check
+    if (isConsoleMode) {
+      // If we've finished the sequence, remove the shield
+      if (currentSequenceIndex >= consoleSequence.length) {
+        shield.remove();
+        // You can add logic here to open your console or trigger the final event
+        return; 
+      }
+    } else {
+      // Normal routing: wait for target section to be active
+      if (targetSection.classList.contains('active')) {
+        shield.remove(); 
+        return; 
+      }
+    }
+
+    // 2. Read the current DOM state
+    const isCurrentlyAnimating = !!document.querySelector('.slide-out-to-left, .slide-out-to-right');
+
+    // 3. Did the animation JUST finish? If yes, trigger the rest period.
+    if (wasAnimatingLastCheck && !isCurrentlyAnimating) {
+      isResting = true;
+      setTimeout(() => {
+        isResting = false;
+      }, extraRestTimeMs);
+    }
+    
+    // Remember this state for the next loop
+    wasAnimatingLastCheck = isCurrentlyAnimating;
+
+    // 4. Action Phase: Only click if nothing is moving AND we aren't resting
+    if (!isCurrentlyAnimating && !isResting) {
+      
+      if (isConsoleMode) {
+        // Execute the next move in the console sequence
+        const move = consoleSequence[currentSequenceIndex];
+        if (move === 'left' && leftArrow) leftArrow.click();
+        else if (move === 'right' && rightArrow) rightArrow.click();
+        
+        currentSequenceIndex++;
+      } else {
+        // Normal routing: just keep clicking right
+        if (rightArrow) rightArrow.click();
+      }
+      
+      // Failsafe: Force the bot to rest immediately after a click just in case
+      // the DOM takes a few milliseconds to add the animation classes
+      isResting = true;
+      setTimeout(() => { isResting = false; }, 50); 
+    }
+
+    // Check again in 50ms
+    setTimeout(clickToTarget, 50);
+  }
+
+  // Watcher for the Intro Animation
+  const checkIntro = setInterval(() => {
+    const introOverlay = document.querySelector('.intro-overlay');
+    
+    if (introOverlay && introOverlay.classList.contains('fade-out')) {
+      clearInterval(checkIntro);
+      
+      // Wait for the fly-in to settle
+      setTimeout(() => {
+        clickToTarget();
+      }, 300);
+
+    } else if (!introOverlay) {
+      clearInterval(checkIntro);
+      clickToTarget();
+    }
+  }, 100);
 });
