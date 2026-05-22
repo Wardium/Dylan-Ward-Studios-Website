@@ -46,5 +46,13 @@ const storyDatabase = [
     "coverImage": "assets/stories/neon.jpeg",
     "themeColor": "linear-gradient(135deg, #1B5E20 0%, #004D40 100%)",
     "url": "/expansions/DWSStories/stories/neon.html"
+  },
+  {
+    "title": "The ballad of Sunrider",
+    "description": "The tale of a True God",
+    "coverColor": "#FFFFFF",
+    "coverImage": "assets/stories/life.jpeg",
+    "themeColor": "linear-gradient(135deg, #1B5E20 0%, #004D40 100%)",
+    "url": "/expansions/DWSStories/stories/sunrider.html"
   }
 ];
