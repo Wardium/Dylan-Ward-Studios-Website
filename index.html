@@ -598,87 +598,152 @@
         <section class="scrollsection">
           <div class="content-grid">
             
-            <style>
-              /* The class that makes the container take over the whole screen */
-              .gateway-expansion {
-                top: 0 !important;
-                left: 0 !important;
-                width: 100vw !important;
-                height: 100vh !important;
-                margin: 0 !important;
-                border-radius: 0 !important;
-                background-color: #000 !important;
-                z-index: 99999 !important;
-                /* Smooth exponential curve for the size expansion */
-                transition: all 1.2s cubic-bezier(0.85, 0, 0.15, 1) !important; 
-              }
-            
-              /* The Glitch Keyframes */
-              @keyframes cyberGlitch {
-                0%   { transform: translate(0, 0) scale(1); filter: brightness(1) hue-rotate(0deg); }
-                10%  { transform: translate(-5px, 5px) scale(1.05) skewX(2deg); filter: brightness(1.2) hue-rotate(90deg) contrast(150%); }
-                20%  { transform: translate(5px, -5px) scale(1.1) skewX(-2deg); filter: blur(2px) invert(10%); }
-                30%  { transform: translate(-2px, 2px) scale(1.2) skewX(1deg); filter: hue-rotate(-90deg); }
-                40%  { transform: translate(3px, -3px) scale(1.3) skewX(-1deg); filter: blur(0px); }
-                50%  { transform: translate(-5px, 5px) scale(1.4) skewX(3deg); filter: sepia(50%) contrast(200%); }
-                60%  { transform: translate(4px, -4px) scale(1.5); filter: brightness(0.6); }
-                70%  { transform: translate(-3px, 3px) scale(1.7) skewX(2deg); filter: grayscale(100%); }
-                80%  { transform: translate(5px, -5px) scale(1.9) skewX(-2deg); filter: brightness(0.3); opacity: 1;}
-                90%  { transform: translate(-2px, 2px) scale(2.2); filter: brightness(0.1); }
-                100% { transform: translate(0, 0) scale(2.5); filter: brightness(0); opacity: 0; } /* Complete fade to black */
-              }
-            </style>
-            
-            <a id="dwsGatewayLink" style="position: relative; display: block; width: 100%; height: 50vh; margin-top: 13vh; border-radius: 20px; overflow: hidden; background-color: #f0f0f0; text-decoration: none;" href="https://dwsgateway.teamexist.com" target="_blank" class="seamless-redirect glass-block col-full">
-              <img id="dwsGatewayImg" src="assets/gateway.png" class="link-bg" alt="Gateway" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; transition: all 1.2s ease;">
-              <div class="link-content"></div>
-            </a>
-            
-            <script>
-              document.getElementById('dwsGatewayLink').addEventListener('click', function(e) {
-                e.preventDefault(); // Stop the immediate jump
-                
-                const link = this;
-                const img = document.getElementById('dwsGatewayImg');
-                const targetUrl = link.getAttribute('href');
-                const isNewTab = link.getAttribute('target') === '_blank';
-                
-                // 1. Get exact current position to prevent layout snapping
-                const rect = link.getBoundingClientRect();
-                
-                // Lock it into fixed position exactly where it currently is
-                link.style.position = 'fixed';
-                link.style.top = rect.top + 'px';
-                link.style.left = rect.left + 'px';
-                link.style.width = rect.width + 'px';
-                link.style.height = rect.height + 'px';
-                link.style.margin = '0';
-                link.style.zIndex = '99999';
-            
-                // Force browser to register the fixed coordinates before expanding
-                link.offsetHeight; 
-            
-                // 2. Trigger the expansion CSS and the Glitch animation
-                link.classList.add('gateway-expansion');
-                img.style.animation = 'cyberGlitch 1.3s forwards ease-in-out';
-                
-                // 3. Wait for animation to finish, then route the user
-                setTimeout(() => {
-                  if (isNewTab) {
-                    window.open(targetUrl, '_blank');
-                    
-                    // Failsafe: Reset the element so the page isn't broken if they close the new tab and come back
-                    setTimeout(() => {
-                      link.classList.remove('gateway-expansion');
-                      img.style.animation = '';
-                      link.style = "position: relative; display: block; width: 100%; height: 50vh; margin-top: 13vh; border-radius: 20px; overflow: hidden; background-color: #f0f0f0; text-decoration: none;";
-                    }, 500);
-                  } else {
-                    window.location.href = targetUrl;
-                  }
-                }, 1300); // 1.3s matches the animation timing
-              });
-          </script>
+<style>
+  /* --- The Expanding Clone Styles --- */
+  .dws-gateway-clone {
+    position: fixed !important;
+    z-index: 999999 !important;
+    margin: 0 !important;
+    transition: all 2.5s cubic-bezier(0.64, 0, 0.04, 1), background-color 2.5s ease !important;
+    text-decoration: none !important;
+    overflow: hidden !important;
+  }
+  
+  .dws-gateway-clone-expanded {
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    background-color: #000 !important;
+  }
+
+  .dws-gateway-clone img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 2.5s ease-in-out, transform 2.5s linear;
+  }
+  
+  .dws-gateway-clone-expanded img {
+    opacity: 0 !important;
+    transform: scale(1.5) !important; /* Gentle scale inward as it fades */
+  }
+
+  /* --- The Website Glitch Styles --- */
+  .dws-glitch-body {
+    /* Pulses weird colors on the whole page */
+    animation: bodySpasm 0.3s infinite alternate !important; 
+  }
+
+  .dws-element-spasm {
+    /* Violently shakes and skews random hijacked elements */
+    animation: elSpasm 0.15s infinite random !important;
+    filter: invert(1) contrast(200%) !important;
+    position: relative !important;
+    z-index: 999998 !important; /* Keep below the clone, but above normal stuff */
+  }
+
+  @keyframes bodySpasm {
+    0% { filter: hue-rotate(0deg) saturate(100%); }
+    33% { filter: hue-rotate(90deg) saturate(200%) contrast(150%); }
+    66% { filter: invert(0.2) hue-rotate(-45deg); }
+    100% { filter: hue-rotate(180deg) blur(1px); }
+  }
+
+  @keyframes elSpasm {
+    0% { transform: translate(0, 0) skew(0deg); opacity: 1;}
+    25% { transform: translate(-10px, 5px) skew(15deg); opacity: 0.8;}
+    50% { transform: translate(15px, -5px) skew(-20deg); opacity: 0.5;}
+    75% { transform: translate(-5px, -15px) skew(10deg); opacity: 0.9;}
+    100% { transform: translate(10px, 10px) skew(-5deg); opacity: 1;}
+  }
+</style>
+
+<!-- Your original anchor element -->
+<a id="dwsGatewayLink" style="position: relative; display: block; width: 100%; height: 50vh; margin-top: 13vh; border-radius: 20px; overflow: hidden; background-color: #f0f0f0;" href="https://dwsgateway.teamexist.com" target="_blank" class="seamless-redirect glass-block col-full">
+  <img src="assets/gateway.png" class="link-bg" alt="Gateway" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
+  <div class="link-content"></div>
+</a>
+
+<script>
+  document.getElementById('dwsGatewayLink').addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    const originalLink = this;
+    const targetUrl = originalLink.getAttribute('href');
+    const isNewTab = originalLink.getAttribute('target') === '_blank';
+    
+    // 1. Get exact position relative to the viewport
+    const rect = originalLink.getBoundingClientRect();
+    
+    // 2. Create the Clone at the Root (Body) Level
+    const clone = originalLink.cloneNode(true);
+    clone.id = ""; // Remove ID to prevent duplicates
+    clone.className = "dws-gateway-clone";
+    
+    // Lock clone to the exact starting coordinates
+    clone.style.top = rect.top + 'px';
+    clone.style.left = rect.left + 'px';
+    clone.style.width = rect.width + 'px';
+    clone.style.height = rect.height + 'px';
+    clone.style.borderRadius = originalLink.style.borderRadius || '20px';
+    
+    document.body.appendChild(clone);
+    
+    // Hide the original so it doesn't look like there are two
+    originalLink.style.opacity = '0';
+
+    // Force browser reflow so the starting coordinates register
+    clone.offsetHeight;
+
+    // 3. Start the slow growth/fade on the clone
+    clone.classList.add('dws-gateway-clone-expanded');
+
+    // 4. Start hijacking the website
+    document.body.classList.add('dws-glitch-body');
+    
+    // Grab all text/image elements on the page (excluding the clone)
+    const allElements = Array.from(document.querySelectorAll('h1, h2, p, img, button, div.glass-block')).filter(el => !clone.contains(el));
+    let hijackedElements = [];
+
+    // Interval to randomly swap which elements are spasming
+    const glitchInterval = setInterval(() => {
+      // Clear old glitches
+      hijackedElements.forEach(el => el.classList.remove('dws-element-spasm'));
+      hijackedElements = [];
+      
+      // Pick 5-15 random elements to glitch this frame
+      const numToGlitch = Math.floor(Math.random() * 10) + 5;
+      for (let i = 0; i < numToGlitch; i++) {
+        if (allElements.length === 0) break;
+        const randomEl = allElements[Math.floor(Math.random() * allElements.length)];
+        randomEl.classList.add('dws-element-spasm');
+        hijackedElements.push(randomEl);
+      }
+    }, 150); // Shifts targets every 150ms for maximum chaos
+
+    // 5. Cleanup and Redirect
+    setTimeout(() => {
+      // Stop the madness
+      clearInterval(glitchInterval);
+      hijackedElements.forEach(el => el.classList.remove('dws-element-spasm'));
+      document.body.classList.remove('dws-glitch-body');
+      
+      if (isNewTab) {
+        window.open(targetUrl, '_blank');
+        
+        // Reset everything if they come back to the tab
+        setTimeout(() => {
+          clone.remove();
+          originalLink.style.opacity = '1';
+        }, 300);
+      } else {
+        window.location.href = targetUrl;
+      }
+    }, 2500); // 2.5 seconds (Matches the CSS transition duration)
+  });
+</script>
             
           </div>
         </section>
