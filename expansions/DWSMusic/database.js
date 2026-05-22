@@ -172,7 +172,7 @@ const musicDatabase = [
     "id": 2,
     "title": "The John Tapes SoundTrack",
     "description": "The short soundtrack of my original film: The John Tapes.",
-    "coverImage": null,
+    "coverImage": "albums/TheJohnTapes/cover.png",
     "tracks": []
   }
 ];
