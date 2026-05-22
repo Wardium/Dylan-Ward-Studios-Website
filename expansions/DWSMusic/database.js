@@ -173,6 +173,15 @@ const musicDatabase = [
     "title": "The John Tapes SoundTrack",
     "description": "The short soundtrack of my original film: The John Tapes.",
     "coverImage": "albums/TheJohnTapes/cover.png",
-    "tracks": []
+    "tracks": [
+      {
+        "title": "Stinger",
+        "src": "albums/TheJohnTapes/Stinger.mp3"
+      },
+      {
+        "title": "The Fate of Eight",
+        "src": "albums/TheJohnTapes/The Fate of Eight.mp3"
+      }
+    ]
   }
 ];
