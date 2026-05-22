@@ -167,5 +167,12 @@ const musicDatabase = [
         "src": "albums/MayhemsWorld/You Like Jazz.mp3"
       }
     ]
+  },
+  {
+    "id": 2,
+    "title": "The John Tapes SoundTrack",
+    "description": "The short soundtrack of my original film: The John Tapes.",
+    "coverImage": null,
+    "tracks": []
   }
 ];
