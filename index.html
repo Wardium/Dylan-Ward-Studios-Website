@@ -631,19 +631,18 @@
   }
 
   /* --- The Color Overlay (Replaces Body Spasm) --- */
-  /* Keeps the screen-wide color flash from affecting the expanding clone */
   #dws-glitch-overlay {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
     pointer-events: none;
-    z-index: 999998; /* Sits directly beneath the clone */
+    z-index: 999998;
     mix-blend-mode: difference;
     opacity: 0;
   }
 </style>
 
-<!-- Your original anchor element -->
-<a id="dwsGatewayLink" style="opacity: 1; position: relative; display: block; width: 100%; height: 68vh; border-radius: 20px; overflow: hidden; background-color: #f0f0f0;" href="https://dwsgateway.teamexist.com/gateway" target="_blank" class="seamless-redirect glass-block col-full">
+<!-- Removed target="_blank" from the anchor tag -->
+<a id="dwsGatewayLink" style="opacity: 1; position: relative; display: block; width: 100%; height: 68vh; border-radius: 20px; overflow: hidden; background-color: #f0f0f0;" href="https://dwsgateway.teamexist.com/gateway" class="seamless-redirect glass-block col-full">
   <img src="assets/thegateway.png" class="link-bg" alt="Gateway" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
   <div class="link-content"></div>
 </a>
@@ -654,7 +653,6 @@
     
     const originalLink = this;
     const targetUrl = originalLink.getAttribute('href');
-    const isNewTab = originalLink.getAttribute('target') === '_blank';
     
     // 1. Get exact position relative to the viewport
     const rect = originalLink.getBoundingClientRect();
@@ -681,11 +679,10 @@
     overlay.id = 'dws-glitch-overlay';
     document.body.appendChild(overlay);
 
-    // 4. Collect target elements (Avoid layout wrappers so the page doesn't entirely break too early)
+    // 4. Collect target elements
     const allElements = Array.from(document.querySelectorAll('h1, h2, h3, p, span, a, img, button, li, .glass-block'))
       .filter(el => !clone.contains(el));
       
-    // Save original inline styles to restore them later
     allElements.forEach(el => el.dataset.origStyle = el.getAttribute('style') || '');
 
     // 5. Glitch Configurations
@@ -700,34 +697,26 @@
       if (!startTime) startTime = timestamp;
       const elapsed = timestamp - startTime;
       
-      // Calculate progress from 0.0 to 1.0
       let progress = elapsed / duration;
       if (progress > 1) progress = 1;
 
-      // Exponential intensity (Ramps up slowly, then goes insane at the end)
       const intensity = Math.pow(progress, 3); 
 
-      // Smoothly fade in the color-inverting overlay
       overlay.style.opacity = intensity;
 
-      // Throttle the heavy element mutations to run every 50ms for performance and a strobe effect
       if (timestamp - lastGlitchTime > 50) {
-        // Flash overlay color
         overlay.style.backgroundColor = `rgb(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255})`;
 
-        // Reset previously glitched elements to original state to create flickering
         currentlyGlitched.forEach(el => el.style.cssText = el.dataset.origStyle);
         currentlyGlitched = [];
 
-        // The higher the intensity, the more elements get targeted
         const numToGlitch = Math.floor(allElements.length * intensity * 0.8);
 
         for (let i = 0; i < numToGlitch; i++) {
           const el = allElements[Math.floor(Math.random() * allElements.length)];
           
-          // Ramp up the physical distortion
-          const scaleX = 1 + (Math.random() - 0.5) * 4 * intensity; // Up to 3x wider/narrower
-          const scaleY = 1 + (Math.random() - 0.5) * 4 * intensity; // Up to 3x taller/shorter
+          const scaleX = 1 + (Math.random() - 0.5) * 4 * intensity;
+          const scaleY = 1 + (Math.random() - 0.5) * 4 * intensity;
           const skewX = (Math.random() - 0.5) * 180 * intensity;
           const skewY = (Math.random() - 0.5) * 180 * intensity;
           const transX = (Math.random() - 0.5) * 200 * intensity;
@@ -735,9 +724,8 @@
 
           el.style.transform = `translate(${transX}px, ${transY}px) scale(${scaleX}, ${scaleY}) skew(${skewX}deg, ${skewY}deg)`;
           el.style.position = 'relative';
-          el.style.zIndex = '999997'; // Keep below the overlay and clone
+          el.style.zIndex = '999997';
 
-          // Ramp up text mutations
           if (Math.random() < intensity) {
             el.style.fontFamily = weirdFonts[Math.floor(Math.random() * weirdFonts.length)];
             el.style.letterSpacing = `${(Math.random() - 0.5) * 30 * intensity}px`;
@@ -754,20 +742,8 @@
       if (elapsed < duration) {
         requestAnimationFrame(glitchStep);
       } else {
-        // Cleanup and Redirect
-        if (isNewTab) {
-          window.open(targetUrl, '_blank');
-          
-          // Reset the DOM if the user returns to the tab
-          setTimeout(() => {
-            clone.remove();
-            overlay.remove();
-            originalLink.style.opacity = '1';
-            allElements.forEach(el => el.style.cssText = el.dataset.origStyle);
-          }, 300);
-        } else {
-          window.location.href = targetUrl;
-        }
+        // Simplified redirect logic: forces a same-tab redirect
+        window.location.href = targetUrl;
       }
     }
 
