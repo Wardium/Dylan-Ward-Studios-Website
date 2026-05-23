@@ -641,13 +641,19 @@
   }
 </style>
 
-<!-- Removed target="_blank" from the anchor tag -->
 <a id="dwsGatewayLink" style="opacity: 1; position: relative; display: block; width: 100%; height: 68vh; border-radius: 20px; overflow: hidden; background-color: #f0f0f0;" href="https://dwsgateway.teamexist.com/gateway" class="seamless-redirect glass-block col-full">
   <img src="assets/thegateway.png" class="link-bg" alt="Gateway" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
   <div class="link-content"></div>
 </a>
 
 <script>
+  // Force a full reload if the user navigates back to this page
+  window.addEventListener("pageshow", function(event) {
+    if (event.persisted) {
+      window.location.reload();
+    }
+  });
+
   document.getElementById('dwsGatewayLink').addEventListener('click', function(e) {
     e.preventDefault();
     
@@ -742,8 +748,17 @@
       if (elapsed < duration) {
         requestAnimationFrame(glitchStep);
       } else {
-        // Simplified redirect logic: forces a same-tab redirect
+        // Redirect to the new page
         window.location.href = targetUrl;
+
+        // Clean up the DOM so the browser's snapshot cache is completely reset
+        setTimeout(() => {
+          clone.remove();
+          overlay.remove();
+          originalLink.style.opacity = '1';
+          currentlyGlitched.forEach(el => el.style.cssText = el.dataset.origStyle);
+          allElements.forEach(el => el.style.cssText = el.dataset.origStyle);
+        }, 50);
       }
     }
 
