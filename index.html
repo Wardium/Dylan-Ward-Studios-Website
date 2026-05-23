@@ -627,41 +627,23 @@
   
   .dws-gateway-clone-expanded img {
     opacity: 0 !important;
-    transform: scale(1.5) !important; /* Gentle scale inward as it fades */
+    transform: scale(1.5) !important;
   }
 
-  /* --- The Website Glitch Styles --- */
-  .dws-glitch-body {
-    /* Pulses weird colors on the whole page */
-    animation: bodySpasm 0.3s infinite alternate !important; 
-  }
-
-  .dws-element-spasm {
-    /* Violently shakes and skews random hijacked elements */
-    animation: elSpasm 0.15s infinite random !important;
-    filter: invert(1) contrast(200%) !important;
-    position: relative !important;
-    z-index: 999998 !important; /* Keep below the clone, but above normal stuff */
-  }
-
-  @keyframes bodySpasm {
-    0% { filter: hue-rotate(0deg) saturate(100%); }
-    33% { filter: hue-rotate(90deg) saturate(200%) contrast(150%); }
-    66% { filter: invert(0.2) hue-rotate(-45deg); }
-    100% { filter: hue-rotate(180deg) blur(1px); }
-  }
-
-  @keyframes elSpasm {
-    0% { transform: translate(0, 0) skew(0deg); opacity: 1;}
-    25% { transform: translate(-10px, 5px) skew(15deg); opacity: 0.8;}
-    50% { transform: translate(15px, -5px) skew(-20deg); opacity: 0.5;}
-    75% { transform: translate(-5px, -15px) skew(10deg); opacity: 0.9;}
-    100% { transform: translate(10px, 10px) skew(-5deg); opacity: 1;}
+  /* --- The Color Overlay (Replaces Body Spasm) --- */
+  /* Keeps the screen-wide color flash from affecting the expanding clone */
+  #dws-glitch-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none;
+    z-index: 999998; /* Sits directly beneath the clone */
+    mix-blend-mode: difference;
+    opacity: 0;
   }
 </style>
 
 <!-- Your original anchor element -->
-<a id="dwsGatewayLink" style=" opacity: 1; position: relative; display: block; width: 100%; height: 68vh; border-radius: 20px; overflow: hidden; background-color: #f0f0f0;" href="https://dwsgateway.teamexist.com" target="_blank" class="seamless-redirect glass-block col-full">
+<a id="dwsGatewayLink" style="opacity: 1; position: relative; display: block; width: 100%; height: 68vh; border-radius: 20px; overflow: hidden; background-color: #f0f0f0;" href="https://dwsgateway.teamexist.com" target="_blank" class="seamless-redirect glass-block col-full">
   <img src="assets/thegateway.png" class="link-bg" alt="Gateway" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
   <div class="link-content"></div>
 </a>
@@ -677,12 +659,12 @@
     // 1. Get exact position relative to the viewport
     const rect = originalLink.getBoundingClientRect();
     
-    // 2. Create the Clone at the Root (Body) Level
+    // 2. Create the Clone
     const clone = originalLink.cloneNode(true);
-    clone.id = ""; // Remove ID to prevent duplicates
+    clone.id = ""; 
     clone.className = "dws-gateway-clone";
     
-    // Lock clone to the exact starting coordinates
+    // Lock clone to starting coordinates
     clone.style.top = rect.top + 'px';
     clone.style.left = rect.left + 'px';
     clone.style.width = rect.width + 'px';
@@ -690,58 +672,107 @@
     clone.style.borderRadius = originalLink.style.borderRadius || '20px';
     
     document.body.appendChild(clone);
-    
-    // Hide the original so it doesn't look like there are two
     originalLink.style.opacity = '0';
-
-    // Force browser reflow so the starting coordinates register
-    clone.offsetHeight;
-
-    // 3. Start the slow growth/fade on the clone
+    clone.offsetHeight; // Force reflow
     clone.classList.add('dws-gateway-clone-expanded');
 
-    // 4. Start hijacking the website
-    document.body.classList.add('dws-glitch-body');
-    
-    // Grab all text/image elements on the page (excluding the clone)
-    const allElements = Array.from(document.querySelectorAll('h1, h2, p, img, button, div.glass-block')).filter(el => !clone.contains(el));
-    let hijackedElements = [];
+    // 3. Create the Screen-wide Color Glitch Overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'dws-glitch-overlay';
+    document.body.appendChild(overlay);
 
-    // Interval to randomly swap which elements are spasming
-    const glitchInterval = setInterval(() => {
-      // Clear old glitches
-      hijackedElements.forEach(el => el.classList.remove('dws-element-spasm'));
-      hijackedElements = [];
+    // 4. Collect target elements (Avoid layout wrappers so the page doesn't entirely break too early)
+    const allElements = Array.from(document.querySelectorAll('h1, h2, h3, p, span, a, img, button, li, .glass-block'))
+      .filter(el => !clone.contains(el));
       
-      // Pick 5-15 random elements to glitch this frame
-      const numToGlitch = Math.floor(Math.random() * 10) + 5;
-      for (let i = 0; i < numToGlitch; i++) {
-        if (allElements.length === 0) break;
-        const randomEl = allElements[Math.floor(Math.random() * allElements.length)];
-        randomEl.classList.add('dws-element-spasm');
-        hijackedElements.push(randomEl);
+    // Save original inline styles to restore them later
+    allElements.forEach(el => el.dataset.origStyle = el.getAttribute('style') || '');
+
+    // 5. Glitch Configurations
+    const weirdFonts = ['Impact', 'Courier New', 'Comic Sans MS', 'Chiller', 'monospace', 'fantasy', 'serif'];
+    let startTime = null;
+    const duration = 2500;
+    let lastGlitchTime = 0;
+    let currentlyGlitched = [];
+
+    // 6. The Progressive Ramp-Up Animation Loop
+    function glitchStep(timestamp) {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      
+      // Calculate progress from 0.0 to 1.0
+      let progress = elapsed / duration;
+      if (progress > 1) progress = 1;
+
+      // Exponential intensity (Ramps up slowly, then goes insane at the end)
+      const intensity = Math.pow(progress, 3); 
+
+      // Smoothly fade in the color-inverting overlay
+      overlay.style.opacity = intensity;
+
+      // Throttle the heavy element mutations to run every 50ms for performance and a strobe effect
+      if (timestamp - lastGlitchTime > 50) {
+        // Flash overlay color
+        overlay.style.backgroundColor = `rgb(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255})`;
+
+        // Reset previously glitched elements to original state to create flickering
+        currentlyGlitched.forEach(el => el.style.cssText = el.dataset.origStyle);
+        currentlyGlitched = [];
+
+        // The higher the intensity, the more elements get targeted
+        const numToGlitch = Math.floor(allElements.length * intensity * 0.8);
+
+        for (let i = 0; i < numToGlitch; i++) {
+          const el = allElements[Math.floor(Math.random() * allElements.length)];
+          
+          // Ramp up the physical distortion
+          const scaleX = 1 + (Math.random() - 0.5) * 4 * intensity; // Up to 3x wider/narrower
+          const scaleY = 1 + (Math.random() - 0.5) * 4 * intensity; // Up to 3x taller/shorter
+          const skewX = (Math.random() - 0.5) * 180 * intensity;
+          const skewY = (Math.random() - 0.5) * 180 * intensity;
+          const transX = (Math.random() - 0.5) * 200 * intensity;
+          const transY = (Math.random() - 0.5) * 200 * intensity;
+
+          el.style.transform = `translate(${transX}px, ${transY}px) scale(${scaleX}, ${scaleY}) skew(${skewX}deg, ${skewY}deg)`;
+          el.style.position = 'relative';
+          el.style.zIndex = '999997'; // Keep below the overlay and clone
+
+          // Ramp up text mutations
+          if (Math.random() < intensity) {
+            el.style.fontFamily = weirdFonts[Math.floor(Math.random() * weirdFonts.length)];
+            el.style.letterSpacing = `${(Math.random() - 0.5) * 30 * intensity}px`;
+            el.style.fontWeight = Math.random() > 0.5 ? '900' : '100';
+            el.style.filter = `hue-rotate(${Math.random() * 360}deg) invert(${Math.random() > 0.5 ? 1 : 0}) contrast(200%)`;
+          }
+
+          currentlyGlitched.push(el);
+        }
+        lastGlitchTime = timestamp;
       }
-    }, 150); // Shifts targets every 150ms for maximum chaos
 
-    // 5. Cleanup and Redirect
-    setTimeout(() => {
-      // Stop the madness
-      clearInterval(glitchInterval);
-      hijackedElements.forEach(el => el.classList.remove('dws-element-spasm'));
-      document.body.classList.remove('dws-glitch-body');
-      
-      if (isNewTab) {
-        window.open(targetUrl, '_blank');
-        
-        // Reset everything if they come back to the tab
-        setTimeout(() => {
-          clone.remove();
-          originalLink.style.opacity = '1';
-        }, 300);
+      // 7. Loop or Redirect
+      if (elapsed < duration) {
+        requestAnimationFrame(glitchStep);
       } else {
-        window.location.href = targetUrl;
+        // Cleanup and Redirect
+        if (isNewTab) {
+          window.open(targetUrl, '_blank');
+          
+          // Reset the DOM if the user returns to the tab
+          setTimeout(() => {
+            clone.remove();
+            overlay.remove();
+            originalLink.style.opacity = '1';
+            allElements.forEach(el => el.style.cssText = el.dataset.origStyle);
+          }, 300);
+        } else {
+          window.location.href = targetUrl;
+        }
       }
-    }, 2500); // 2.5 seconds (Matches the CSS transition duration)
+    }
+
+    // Start the madness
+    requestAnimationFrame(glitchStep);
   });
 </script>
             
