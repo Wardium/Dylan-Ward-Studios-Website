@@ -11,6 +11,15 @@
 </head>
 
 <style>
+  
+  /* Only apply this zoom on screens smaller than 600px */
+  @media screen and (max-width: 600px) {
+    html {
+      zoom: 0.25; /* 25% scale */
+    }
+  }
+
+
   body {
     opacity: 0;               /* start hidden */
     transition: opacity 1s ease; /* fade duration and easing */
