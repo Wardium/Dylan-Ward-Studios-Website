@@ -1,9 +1,19 @@
-  @media screen and (max-width: 767px) {
+@media screen and (max-width: 767px) {
   html, body {
     margin: 0;
     padding: 0;
     overflow-x: hidden; /* Prevents side-to-side scrolling */
   }
+    html {
+    /* Scale to 25% */
+    transform: scale(0.25);
+    transform-origin: top left;
+    
+    /* These two lines fix the whitespace issue */
+    width: 400%; 
+    height: 400vh; /* Forces the browser to treat the page as 4x taller */
+  }
+}
 
 
 
