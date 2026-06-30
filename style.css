@@ -1,3 +1,13 @@
+  @media screen and (max-width: 767px) {
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Prevents side-to-side scrolling */
+  }
+
+
+
+
 @keyframes floatDown {
   0% { transform: translateY(-40px); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
