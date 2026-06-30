@@ -5,13 +5,13 @@
     overflow-x: hidden; /* Prevents side-to-side scrolling */
   }
     html {
-    /* Scale to 25% */
-    transform: scale(0.25);
+    /* Scale to 50% */
+    transform: scale(0.5);
     transform-origin: top left;
     
     /* These two lines fix the whitespace issue */
-    width: 400%; 
-    height: 400vh; /* Forces the browser to treat the page as 4x taller */
+    width: 200%; 
+    height: 200vh; /* Forces the browser to treat the page as 4x taller */
   }
 }
 
