@@ -1032,18 +1032,7 @@ body.web-infinity-no-scroll .scrollsection {
 
 
 @media screen and (max-width: 767px) {
-  html, body {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden; /* Prevents side-to-side scrolling */
-  }
-    html {
-    /* Scale to 50% */
-    transform: scale(0.5);
-    transform-origin: top left;
-    
-    /* These two lines fix the whitespace issue */
-    width: 200%; 
-    height: 200vh; /* Forces the browser to treat the page as 4x taller */
+  html {
+    zoom: 0.5;
   }
 }
