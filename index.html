@@ -12,12 +12,17 @@
 
 <style>
   
-  /* Only apply this zoom on screens smaller than 600px */
-  @media screen and (max-width: 600px) {
-    html {
-      zoom: 0.25; /* 25% scale */
-    }
+  @media screen and (max-width: 767px) {
+  html {
+    /* Scale the site to 25% */
+    transform: scale(0.25);
+    /* Set the transformation origin to the top-left */
+    transform-origin: top left;
+    /* Ensure the width takes up 400% of the screen so it fits perfectly after scaling */
+    width: 400%;
   }
+}
+
 
 
   body {
