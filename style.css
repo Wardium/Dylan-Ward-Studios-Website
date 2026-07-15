@@ -1050,5 +1050,19 @@ body.web-infinity-no-scroll .scrollsection {
 	.scrollsection {
 		height: 100%;
 	}
+
+	.scrollsection.fullscreen-mode {
+		height: 200vh;
+	}
+
+	.web-infinity-iframe {
+		width: 200%;
+		height: 200%;
+	}
+
+	.video-wrapper iframe, .video-wrapper video {
+		width: 200%;
+		height: 200%;
+	}
 	
 }
