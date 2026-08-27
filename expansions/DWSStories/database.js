@@ -48,6 +48,14 @@ const storyDatabase = [
     "url": "/expansions/DWSStories/stories/neon.html"
   },
   {
+    "title": "Ross",
+    "description": "A story about the smallest galaxial.",
+    "coverColor": "#1B5E20",
+    "coverImage": "assets/stories/rose.JPEG",
+    "themeColor": "linear-gradient(135deg, #1B5E20 0%, #004D40 100%)",
+    "url": "/expansions/DWSStories/stories/rose.html"
+  },
+  {
     "title": "The ballad of Sunrider",
     "description": "The tale of a True God",
     "coverColor": "#FFFFFF",
