@@ -122,7 +122,7 @@ async function runConnectionSequence(dashboardUrl) {
     overlay.style.opacity = '1';
     
     // Start initial glitch with 15 active target slots
-    startBackgroundGlitch(15);
+    startBackgroundGlitch(5);
     
     const proceed1 = await interruptibleSleep(800); 
     if (!proceed1) return;
@@ -136,7 +136,7 @@ async function runConnectionSequence(dashboardUrl) {
     document.getElementById('dws-cancel-btn').style.display = 'none';
 
     // Inject 15 more slots for the finale
-    startBackgroundGlitch(15); 
+    startBackgroundGlitch(10); 
 
     document.getElementById('line-1').classList.replace('glowing', 'solid');
     document.getElementById('node-web').classList.add('active');
