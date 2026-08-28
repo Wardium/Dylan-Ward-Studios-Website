@@ -7,23 +7,29 @@ window.addEventListener('load', () => {
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function checkAuthorization() {
+    console.log("[Auth] 1. Initiating authorization check...");
     try {
-        // Swap this URL with your actual private API endpoint
+        console.log("[Auth] 2. Sending fetch request to API with credentials included...");
+        
         const response = await fetch('https://auth.teamexist.com/api/verify', {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' }
         });
         
-        const data = await response.json();
+        console.log(`[Auth] 3. Received response. HTTP Status: ${response.status}`);
         
-        // If the API says yes, begin the sequence
+        const data = await response.json();
+        console.log("[Auth] 4. Decoded JSON payload from server:", data);
+        
         if (data.authorized && data.dashboard_url) {
+            console.log("[Auth] 5. Access GRANTED. Beginning animation sequence...");
             await runConnectionSequence(data.dashboard_url);
+        } else {
+            console.warn("[Auth] 5. Access DENIED (or missing target URL). Remaining on public site.");
         }
-        // If not authorized, it does nothing, leaving them on the public site.
     } catch (error) {
-        console.error("Auth check failed:", error);
+        console.error("[Auth] FATAL ERROR: The fetch request failed completely.", error);
     }
 }
 
