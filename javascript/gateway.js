@@ -39,9 +39,9 @@ async function runConnectionSequence(dashboardUrl) {
     style.innerHTML = `
         #dws-auth-overlay {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 400px; height: 200px; background: #0b0b0b; border-radius: 20px;
+            width: 400px; height: 200px; background: #000000; border-radius: 20px;
             z-index: 999999; display: flex; align-items: center; justify-content: center;
-            flex-direction: column; opacity: 0; transition: all 0.8s ease-in-out;
+            opacity: 0; transition: all 0.8s ease-in-out;
             box-shadow: 0 0 30px rgba(0,0,0,0.8); color: white; font-family: monospace;
         }
         /* Lock out background clicking */
@@ -50,22 +50,25 @@ async function runConnectionSequence(dashboardUrl) {
         }
         .dws-node-container { display: flex; align-items: center; justify-content: center; width: 100%; transition: opacity 0.5s; }
         .dws-node { width: 40px; height: 40px; fill: #444; transition: fill 0.5s, filter 0.5s; }
-        .dws-node.active { fill: #00ffcc; filter: drop-shadow(0 0 8px #00ffcc); }
+        
+        /* Updated Blue Colors */
+        .dws-node.active { fill: #00aaff; filter: drop-shadow(0 0 8px #00aaff); }
         .dws-line { height: 4px; width: 60px; background: #333; margin: 0 15px; position: relative; overflow: hidden; }
         .dws-line::after {
             content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, #00ffcc, transparent); transition: opacity 0.3s; opacity: 0;
+            background: linear-gradient(90deg, transparent, #00aaff, transparent); transition: opacity 0.3s; opacity: 0;
         }
         .dws-line.glowing::after { opacity: 1; animation: flow 1s linear infinite; }
         .dws-line.blinking::after { opacity: 1; animation: blink 0.2s step-end infinite; }
-        .dws-line.solid { background: #00ffcc; box-shadow: 0 0 8px #00ffcc; }
-        .dws-text { margin-top: 20px; font-size: 1.2rem; opacity: 0; transition: opacity 0.5s; font-weight: bold; }
+        .dws-line.solid { background: #00aaff; box-shadow: 0 0 8px #00aaff; }
+        
+        /* Absolute positioning forces it to stay perfectly centered */
+        .dws-text { position: absolute; font-size: 1.2rem; opacity: 0; transition: opacity 0.5s; font-weight: bold; letter-spacing: 2px; }
         
         @keyframes flow { 100% { left: 100%; } }
         @keyframes blink { 50% { opacity: 0; } }
         
-        /* The Glitch Class for the background */
-        .glitch-element { transition: all 0.1s; pointer-events: none; }
+        .glitch-element { transition: transform 0.1s, opacity 0.1s; pointer-events: none; }
     `;
     document.head.appendChild(style);
 
@@ -77,7 +80,6 @@ async function runConnectionSequence(dashboardUrl) {
     const overlay = document.createElement('div');
     overlay.id = 'dws-auth-overlay';
     
-    // Simple SVGs for PC, Web, and Server
     overlay.innerHTML = `
         <div class="dws-node-container" id="node-container">
             <svg class="dws-node" id="node-pc" viewBox="0 0 24 24"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg>
@@ -91,74 +93,68 @@ async function runConnectionSequence(dashboardUrl) {
     document.body.appendChild(overlay);
 
     // 3. Begin Animation Sequence
-    
-    // Fade in the black box
     await sleep(50); 
     overlay.style.opacity = '1';
-    await sleep(800); // Wait for box to appear
+    await sleep(800); 
 
-    // Light up PC and first line
     document.getElementById('node-pc').classList.add('active');
     document.getElementById('line-1').classList.add('glowing');
     
-    // Connect to Web
     await sleep(1000);
     document.getElementById('line-1').classList.replace('glowing', 'solid');
     document.getElementById('node-web').classList.add('active');
     
-    // Web to Server (Blinking)
     await sleep(500);
     document.getElementById('line-2').classList.add('blinking');
     
-    // Random wait between 1 and 2 seconds
     const randomWait = Math.floor(Math.random() * 1000) + 1000;
     await sleep(randomWait);
     
-    // Final Connection
     document.getElementById('line-2').classList.replace('blinking', 'solid');
     document.getElementById('node-server').classList.add('active');
     await sleep(800);
 
     // 4. The Transition & Glitch
-    
-    // Start background glitch
     startBackgroundGlitch();
     
-    // Expand box to full screen
     overlay.style.width = '100vw';
     overlay.style.height = '100vh';
     overlay.style.borderRadius = '0px';
     
-    // Swap icons for text
     document.getElementById('node-container').style.opacity = '0';
     await sleep(500);
+    
     document.getElementById('node-container').style.display = 'none';
     document.getElementById('auth-text').style.opacity = '1';
     
-    // Redirect to dashboard
     await sleep(1200);
     window.location.href = dashboardUrl;
 }
 
 function startBackgroundGlitch() {
-    // Grab everything that isn't part of the overlay
-    const elements = document.querySelectorAll('body *:not(#dws-auth-overlay):not(#dws-auth-overlay *):not(#dws-auth-blocker)');
+    // Grab elements and filter out hidden/structural tags to prevent errors
+    const rawElements = document.querySelectorAll('body *:not(#dws-auth-overlay):not(#dws-auth-overlay *):not(#dws-auth-blocker)');
+    const elements = Array.from(rawElements).filter(el => {
+        return el.tagName !== 'SCRIPT' && el.tagName !== 'STYLE' && el.tagName !== 'META';
+    });
     
     elements.forEach(el => el.classList.add('glitch-element'));
 
     setInterval(() => {
-        elements.forEach(el => {
-            if (Math.random() > 0.6) {
-                // Random transformations and colors to simulate corruption
-                const x = Math.random() * 20 - 10;
-                const y = Math.random() * 20 - 10;
-                const skew = Math.random() * 30 - 15;
-                
-                el.style.transform = `translate(${x}px, ${y}px) skew(${skew}deg)`;
-                el.style.color = Math.random() > 0.5 ? '#ff003c' : '#00ffff';
-                el.style.opacity = Math.random() * 0.8 + 0.2;
-                el.style.backgroundColor = Math.random() > 0.9 ? 'white' : 'transparent';
-            }
-        });
-    }, 80); // Fast interval for a chaotic look
+        // Only modify 4 random elements per tick to keep browser performance butter-smooth
+        for (let i = 0; i < 4; i++) {
+            if (elements.length === 0) break;
+            
+            const randomEl = elements[Math.floor(Math.random() * elements.length)];
+            
+            const x = Math.random() * 20 - 10;
+            const y = Math.random() * 20 - 10;
+            const skew = Math.random() * 30 - 15;
+            
+            randomEl.style.transform = `translate(${x}px, ${y}px) skew(${skew}deg)`;
+            randomEl.style.color = Math.random() > 0.5 ? '#ff003c' : '#00aaff';
+            randomEl.style.opacity = Math.random() * 0.8 + 0.2;
+            randomEl.style.backgroundColor = Math.random() > 0.9 ? 'white' : 'transparent';
+        }
+    }, 80);
 }
