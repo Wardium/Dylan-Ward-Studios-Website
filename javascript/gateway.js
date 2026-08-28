@@ -130,13 +130,13 @@ async function runConnectionSequence(dashboardUrl) {
     document.getElementById('node-pc').classList.add('active');
     document.getElementById('line-1').classList.add('glowing');
     
-    const proceed2 = await interruptibleSleep(3000); 
+    const proceed2 = await interruptibleSleep(1500); 
     if (!proceed2) return; 
 
     document.getElementById('dws-cancel-btn').style.display = 'none';
 
     // Inject 15 more slots for the finale
-    startBackgroundGlitch(10); 
+    startBackgroundGlitch(5); 
 
     document.getElementById('line-1').classList.replace('glowing', 'solid');
     document.getElementById('node-web').classList.add('active');
