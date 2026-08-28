@@ -1,17 +1,13 @@
 window.addEventListener('load', () => {
-    // Wait 3 seconds before checking auth
     setTimeout(checkAuthorization, 3000);
 });
 
-// Standard sleep for non-interruptible moments
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-// Global states for the cancel logic
 let isCancelled = false;
-let activeGlitchTimers = [];
 let glitchElements = [];
+let glitchSlots = []; // New array to hold the independent targeting loops
 
-// A custom sleep function that instantly breaks if 'isCancelled' becomes true
 async function interruptibleSleep(ms) {
     const steps = Math.floor(ms / 100);
     for (let i = 0; i < steps; i++) {
@@ -125,7 +121,7 @@ async function runConnectionSequence(dashboardUrl) {
     if (!proceed0) return;
     overlay.style.opacity = '1';
     
-    // Start initial glitch with 15 highly active elements
+    // Start initial glitch with 15 active target slots
     startBackgroundGlitch(15);
     
     const proceed1 = await interruptibleSleep(800); 
@@ -134,13 +130,12 @@ async function runConnectionSequence(dashboardUrl) {
     document.getElementById('node-pc').classList.add('active');
     document.getElementById('line-1').classList.add('glowing');
     
-    // 3-Second Cancel Window
     const proceed2 = await interruptibleSleep(3000); 
     if (!proceed2) return; 
 
     document.getElementById('dws-cancel-btn').style.display = 'none';
 
-    // MAXIMUM CHAOS: Inject 15 more slots (Total 30 elements tearing apart)
+    // Inject 15 more slots for the finale
     startBackgroundGlitch(15); 
 
     document.getElementById('line-1').classList.replace('glowing', 'solid');
@@ -173,7 +168,6 @@ async function runConnectionSequence(dashboardUrl) {
 
 function startBackgroundGlitch(countToAdd) {
     if (glitchElements.length === 0) {
-        // Broaden the search to make sure we grab as many DOM elements as possible
         const rawElements = document.querySelectorAll('body *:not(#dws-auth-overlay):not(#dws-auth-overlay *):not(#dws-auth-blocker)');
         glitchElements = Array.from(rawElements).filter(el => {
             return el.tagName !== 'SCRIPT' && el.tagName !== 'STYLE' && el.tagName !== 'META' && el.tagName !== 'LINK';
@@ -181,59 +175,88 @@ function startBackgroundGlitch(countToAdd) {
     }
 
     for (let i = 0; i < countToAdd; i++) {
-        fireGlitchSlot();
+        // Create an independent slot object that tracks its own targets and timers
+        let slot = {
+            targetElement: null,
+            targetTimer: null,
+            animTimer: null
+        };
+        glitchSlots.push(slot);
+        runSlotTargetLoop(slot);
+        runSlotAnimLoop(slot);
     }
 }
 
-function fireGlitchSlot() {
+// 1. Target Loop: Picks a new element to torment every 500ms
+function runSlotTargetLoop(slot) {
     if (isCancelled || glitchElements.length === 0) return;
     
-    const randomEl = glitchElements[Math.floor(Math.random() * glitchElements.length)];
+    // Clean up the previous element before moving on
+    if (slot.targetElement) {
+        slot.targetElement.style.removeProperty('transform');
+        slot.targetElement.style.removeProperty('filter');
+        slot.targetElement.style.removeProperty('color');
+        slot.targetElement.style.removeProperty('textShadow');
+        slot.targetElement.style.removeProperty('boxShadow');
+        slot.targetElement.style.removeProperty('opacity');
+        slot.targetElement.style.removeProperty('transition');
+    }
+
+    // Pick a new element for this slot
+    slot.targetElement = glitchElements[Math.floor(Math.random() * glitchElements.length)];
     
-    // ABSOLUTE CHAOS MATH
-    const x = (Math.random() * 300 - 150); // Thrown up to 150px horizontally
-    const y = (Math.random() * 300 - 150); // Thrown up to 150px vertically
-    const rot = (Math.random() * 180 - 90); // Spin wildly up to 90 degrees
-    const skewX = (Math.random() * 60 - 30); // Heavy shearing
-    const skewY = (Math.random() * 60 - 30); // Heavy shearing
-    const scale = 0.5 + Math.random() * 1.5; // Shrink to 50% or blow up to 200%
-    const hue = Math.floor(Math.random() * 360);
+    // Switch elements in exactly 500ms
+    slot.targetTimer = setTimeout(() => runSlotTargetLoop(slot), 500);
+}
+
+// 2. Animation Loop: Thrashes the current targeted element rapidly
+function runSlotAnimLoop(slot) {
+    if (isCancelled) return;
     
-    // Random 3D Flips (Upside down or backward)
-    const flipX = Math.random() > 0.85 ? 180 : 0;
-    const flipY = Math.random() > 0.85 ? 180 : 0;
+    if (slot.targetElement) {
+        const x = (Math.random() * 300 - 150); 
+        const y = (Math.random() * 300 - 150); 
+        const rot = (Math.random() * 180 - 90); 
+        const skewX = (Math.random() * 60 - 30); 
+        const skewY = (Math.random() * 60 - 30); 
+        const scale = 0.5 + Math.random() * 1.5; 
+        const hue = Math.floor(Math.random() * 360);
+        
+        const flipX = Math.random() > 0.85 ? 180 : 0;
+        const flipY = Math.random() > 0.85 ? 180 : 0;
+        
+        const colors = ['#ff003c', '#00aaff', '#00ffcc', '#ff00ff', '#ffff00'];
+        const chosenColor = colors[Math.floor(Math.random() * colors.length)];
+        
+        const shadowDist = Math.random() * 15;
+        const textShadow = `${shadowDist}px ${Math.random()*5}px rgba(255,0,60,0.9), -${shadowDist}px -${Math.random()*5}px rgba(0,170,255,0.9)`;
+        
+        // Accelerated transitions for the thrashing effect
+        slot.targetElement.style.transition = 'transform 0.03s linear, filter 0.03s linear, color 0.03s linear';
+        slot.targetElement.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg) rotateX(${flipX}deg) rotateY(${flipY}deg) skew(${skewX}deg, ${skewY}deg) scale(${scale})`;
+        slot.targetElement.style.filter = `hue-rotate(${hue}deg) ${Math.random() > 0.6 ? 'invert(1)' : ''} blur(${Math.random() > 0.8 ? '3px' : '0px'})`;
+        slot.targetElement.style.color = chosenColor;
+        slot.targetElement.style.textShadow = textShadow;
+        slot.targetElement.style.boxShadow = Math.random() > 0.5 ? `0 0 ${Math.random() * 30 + 10}px ${chosenColor}` : 'none'; 
+        slot.targetElement.style.opacity = Math.random() * 0.8 + 0.2;
+    }
     
-    const colors = ['#ff003c', '#00aaff', '#00ffcc', '#ff00ff', '#ffff00'];
-    const chosenColor = colors[Math.floor(Math.random() * colors.length)];
-    
-    // Extreme Chromatic text shadow split
-    const shadowDist = Math.random() * 15;
-    const textShadow = `${shadowDist}px ${Math.random()*5}px rgba(255,0,60,0.9), -${shadowDist}px -${Math.random()*5}px rgba(0,170,255,0.9)`;
-    
-    // Hardware accelerated transforms keep the framerate high while moving huge distances
-    randomEl.style.transition = 'transform 0.04s linear, filter 0.04s linear, color 0.04s linear';
-    randomEl.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg) rotateX(${flipX}deg) rotateY(${flipY}deg) skew(${skewX}deg, ${skewY}deg) scale(${scale})`;
-    randomEl.style.filter = `hue-rotate(${hue}deg) ${Math.random() > 0.6 ? 'invert(1)' : ''} blur(${Math.random() > 0.8 ? '3px' : '0px'})`;
-    randomEl.style.color = chosenColor;
-    randomEl.style.textShadow = textShadow;
-    randomEl.style.boxShadow = Math.random() > 0.5 ? `0 0 ${Math.random() * 30 + 10}px ${chosenColor}` : 'none'; // Neon box glows
-    randomEl.style.opacity = Math.random() * 0.8 + 0.2;
-    
-    // Ultra-fast independent tick delay (between 40ms and 150ms)
-    const delay = Math.floor(Math.random() * 110) + 40;
-    
-    const tId = setTimeout(fireGlitchSlot, delay);
-    activeGlitchTimers.push(tId);
+    // Extremely fast independent jitter delay (between 20ms and 80ms)
+    const delay = Math.floor(Math.random() * 60) + 20;
+    slot.animTimer = setTimeout(() => runSlotAnimLoop(slot), delay);
 }
 
 function executeCancel() {
     isCancelled = true;
     
-    // Kill the loops
-    activeGlitchTimers.forEach(tId => clearTimeout(tId));
-    activeGlitchTimers = [];
+    // Halt all slot loops immediately
+    glitchSlots.forEach(slot => {
+        clearTimeout(slot.targetTimer);
+        clearTimeout(slot.animTimer);
+    });
+    glitchSlots = [];
     
-    // INSTANTLY snap everything back to perfect reality
+    // INSTANTLY snap every single element back to perfect reality
     glitchElements.forEach(el => {
         el.style.removeProperty('transform');
         el.style.removeProperty('filter');
