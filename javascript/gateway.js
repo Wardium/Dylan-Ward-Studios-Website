@@ -48,7 +48,7 @@ async function checkAuthorization() {
 async function runConnectionSequence(dashboardUrl) {
     isCancelled = false;
     
-    // 1. Inject Styles (Including the Cancel Button and the Death Animation)
+    // 1. Inject Styles
     const style = document.createElement('style');
     style.innerHTML = `
         #dws-auth-overlay {
@@ -76,7 +76,6 @@ async function runConnectionSequence(dashboardUrl) {
         
         .dws-text { position: absolute; font-size: 1.2rem; opacity: 0; transition: opacity 0.5s; font-weight: bold; letter-spacing: 2px; text-align: center; }
         
-        /* Cancel Button Styling */
         #dws-cancel-btn {
             position: absolute; bottom: 15px; background: transparent; color: #ff003c;
             border: 1px solid #ff003c; border-radius: 4px; padding: 6px 16px;
@@ -87,7 +86,6 @@ async function runConnectionSequence(dashboardUrl) {
         @keyframes flow { 100% { left: 100%; } }
         @keyframes blink { 50% { opacity: 0; } }
         
-        /* Box Glitching Away Animation */
         .box-glitch-out { animation: box-die 0.4s forwards !important; }
         @keyframes box-die {
             0% { transform: translate(-50%, -50%) scale(1) skew(0deg); opacity: 1; }
@@ -120,7 +118,6 @@ async function runConnectionSequence(dashboardUrl) {
     `;
     document.body.appendChild(overlay);
 
-    // Bind the cancel event
     document.getElementById('dws-cancel-btn').addEventListener('click', executeCancel);
 
     // 3. Begin Animation Sequence
@@ -128,8 +125,8 @@ async function runConnectionSequence(dashboardUrl) {
     if (!proceed0) return;
     overlay.style.opacity = '1';
     
-    // Start initial background glitch with only 3 elements
-    startBackgroundGlitch(3);
+    // Start initial glitch slots (6 elements running fast)
+    startBackgroundGlitch(6);
     
     const proceed1 = await interruptibleSleep(800); 
     if (!proceed1) return;
@@ -137,15 +134,14 @@ async function runConnectionSequence(dashboardUrl) {
     document.getElementById('node-pc').classList.add('active');
     document.getElementById('line-1').classList.add('glowing');
     
-    // --- THIS IS THE 3 SECOND CANCEL WINDOW ---
+    // 3-Second Cancel Window
     const proceed2 = await interruptibleSleep(3000); 
     if (!proceed2) return; 
 
-    // Once past 3 seconds, remove the cancel button and lock in
     document.getElementById('dws-cancel-btn').style.display = 'none';
 
-    // Connection successful, ramp up glitch to 8 elements
-    startBackgroundGlitch(5); 
+    // Ramp up to 12 active slots for maximum trippy chaos
+    startBackgroundGlitch(6); 
 
     document.getElementById('line-1').classList.replace('glowing', 'solid');
     document.getElementById('node-web').classList.add('active');
@@ -160,7 +156,7 @@ async function runConnectionSequence(dashboardUrl) {
     document.getElementById('node-server').classList.add('active');
     await interruptibleSleep(800);
 
-    // 4. The Final Transition
+    // 4. Final Transition
     overlay.style.width = '100vw';
     overlay.style.height = '100vh';
     overlay.style.borderRadius = '0px';
@@ -175,7 +171,6 @@ async function runConnectionSequence(dashboardUrl) {
     window.location.href = dashboardUrl;
 }
 
-// Spawns a specific number of independent glitch "slots"
 function startBackgroundGlitch(countToAdd) {
     if (glitchElements.length === 0) {
         const rawElements = document.querySelectorAll('body *:not(#dws-auth-overlay):not(#dws-auth-overlay *):not(#dws-auth-blocker)');
@@ -189,66 +184,68 @@ function startBackgroundGlitch(countToAdd) {
     }
 }
 
-// The recursive glitch loop for a single element slot
 function fireGlitchSlot() {
     if (isCancelled || glitchElements.length === 0) return;
     
     const randomEl = glitchElements[Math.floor(Math.random() * glitchElements.length)];
     
-    const x = (Math.random() * 40 - 20);
-    const y = (Math.random() * 40 - 20);
-    const skewX = (Math.random() * 60 - 30);
+    // High intensity trippy parameters: Rotation, Skew, Jitter, and Scale
+    const x = (Math.random() * 70 - 35);
+    const y = (Math.random() * 70 - 35);
+    const rot = (Math.random() * 20 - 10);
+    const skew = (Math.random() * 40 - 20);
+    const scale = 0.9 + Math.random() * 0.3;
     const hue = Math.floor(Math.random() * 360);
     
-    // Apply styling
-    randomEl.style.transition = 'transform 0.1s linear, filter 0.1s linear';
-    randomEl.style.transform = `translate(${x}px, ${y}px) skew(${skewX}deg)`;
-    randomEl.style.filter = `hue-rotate(${hue}deg) ${Math.random() > 0.8 ? 'invert(1)' : ''}`;
-    randomEl.style.opacity = Math.random() * 0.7 + 0.3;
+    const colors = ['#ff003c', '#00aaff', '#00ffcc', '#ff00ff', '#ffff00'];
+    const chosenColor = colors[Math.floor(Math.random() * colors.length)];
     
-    // Calculate a random delay for the NEXT movement (between 200ms and 800ms)
-    const delay = Math.floor(Math.random() * 600) + 200;
+    // Chromatic text shadow split
+    const shadowDist = Math.random() * 8;
+    const textShadow = `${shadowDist}px 0px rgba(255,0,60,0.8), -${shadowDist}px 0px rgba(0,170,255,0.8)`;
     
-    // Fire this specific slot again after the delay
+    randomEl.style.transition = 'transform 0.06s linear, filter 0.06s linear, color 0.06s linear';
+    randomEl.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg) skew(${skew}deg) scale(${scale})`;
+    randomEl.style.filter = `hue-rotate(${hue}deg) ${Math.random() > 0.7 ? 'invert(1)' : ''}`;
+    randomEl.style.color = chosenColor;
+    randomEl.style.textShadow = textShadow;
+    randomEl.style.opacity = Math.random() * 0.6 + 0.4;
+    
+    // Fast independent tick delay (between 80ms and 300ms for rapid jitter)
+    const delay = Math.floor(Math.random() * 220) + 80;
+    
     const tId = setTimeout(fireGlitchSlot, delay);
     activeGlitchTimers.push(tId);
 }
 
-// Executes when the CANCEL button is clicked
 function executeCancel() {
     isCancelled = true;
     
-    // 1. Terminate all active glitch timers
     activeGlitchTimers.forEach(tId => clearTimeout(tId));
     activeGlitchTimers = [];
     
-    // 2. Revert the website back to normal instantly
     glitchElements.forEach(el => {
         el.style.removeProperty('transform');
         el.style.removeProperty('filter');
+        el.style.removeProperty('color');
+        el.style.removeProperty('textShadow');
         el.style.removeProperty('opacity');
         el.style.removeProperty('transition');
     });
     
-    // 3. Hide the nodes and the button
     document.getElementById('dws-cancel-btn').style.display = 'none';
     document.getElementById('node-container').style.display = 'none';
     
-    // 4. Update the text to "Severed" in red
     const authText = document.getElementById('auth-text');
     authText.innerHTML = 'CONNECTION<br>SEVERED';
     authText.style.color = '#ff003c';
     authText.style.opacity = '1';
     
-    // 5. Trigger the final failure sequence
     setTimeout(() => {
         authText.innerHTML = 'CONNECTION<br>FAILED...';
         const overlay = document.getElementById('dws-auth-overlay');
-        
-        // Throw the CSS animation class onto the box
         overlay.classList.add('box-glitch-out');
         
-        // Remove the elements entirely once the animation finishes
         setTimeout(() => {
             overlay.remove();
             const blocker = document.getElementById('dws-auth-blocker');
