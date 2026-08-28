@@ -125,8 +125,8 @@ async function runConnectionSequence(dashboardUrl) {
     if (!proceed0) return;
     overlay.style.opacity = '1';
     
-    // Start initial glitch slots (6 elements running fast)
-    startBackgroundGlitch(6);
+    // Start initial glitch with 15 highly active elements
+    startBackgroundGlitch(15);
     
     const proceed1 = await interruptibleSleep(800); 
     if (!proceed1) return;
@@ -140,8 +140,8 @@ async function runConnectionSequence(dashboardUrl) {
 
     document.getElementById('dws-cancel-btn').style.display = 'none';
 
-    // Ramp up to 12 active slots for maximum trippy chaos
-    startBackgroundGlitch(6); 
+    // MAXIMUM CHAOS: Inject 15 more slots (Total 30 elements tearing apart)
+    startBackgroundGlitch(15); 
 
     document.getElementById('line-1').classList.replace('glowing', 'solid');
     document.getElementById('node-web').classList.add('active');
@@ -173,6 +173,7 @@ async function runConnectionSequence(dashboardUrl) {
 
 function startBackgroundGlitch(countToAdd) {
     if (glitchElements.length === 0) {
+        // Broaden the search to make sure we grab as many DOM elements as possible
         const rawElements = document.querySelectorAll('body *:not(#dws-auth-overlay):not(#dws-auth-overlay *):not(#dws-auth-blocker)');
         glitchElements = Array.from(rawElements).filter(el => {
             return el.tagName !== 'SCRIPT' && el.tagName !== 'STYLE' && el.tagName !== 'META' && el.tagName !== 'LINK';
@@ -189,30 +190,37 @@ function fireGlitchSlot() {
     
     const randomEl = glitchElements[Math.floor(Math.random() * glitchElements.length)];
     
-    // High intensity trippy parameters: Rotation, Skew, Jitter, and Scale
-    const x = (Math.random() * 70 - 35);
-    const y = (Math.random() * 70 - 35);
-    const rot = (Math.random() * 20 - 10);
-    const skew = (Math.random() * 40 - 20);
-    const scale = 0.9 + Math.random() * 0.3;
+    // ABSOLUTE CHAOS MATH
+    const x = (Math.random() * 300 - 150); // Thrown up to 150px horizontally
+    const y = (Math.random() * 300 - 150); // Thrown up to 150px vertically
+    const rot = (Math.random() * 180 - 90); // Spin wildly up to 90 degrees
+    const skewX = (Math.random() * 60 - 30); // Heavy shearing
+    const skewY = (Math.random() * 60 - 30); // Heavy shearing
+    const scale = 0.5 + Math.random() * 1.5; // Shrink to 50% or blow up to 200%
     const hue = Math.floor(Math.random() * 360);
+    
+    // Random 3D Flips (Upside down or backward)
+    const flipX = Math.random() > 0.85 ? 180 : 0;
+    const flipY = Math.random() > 0.85 ? 180 : 0;
     
     const colors = ['#ff003c', '#00aaff', '#00ffcc', '#ff00ff', '#ffff00'];
     const chosenColor = colors[Math.floor(Math.random() * colors.length)];
     
-    // Chromatic text shadow split
-    const shadowDist = Math.random() * 8;
-    const textShadow = `${shadowDist}px 0px rgba(255,0,60,0.8), -${shadowDist}px 0px rgba(0,170,255,0.8)`;
+    // Extreme Chromatic text shadow split
+    const shadowDist = Math.random() * 15;
+    const textShadow = `${shadowDist}px ${Math.random()*5}px rgba(255,0,60,0.9), -${shadowDist}px -${Math.random()*5}px rgba(0,170,255,0.9)`;
     
-    randomEl.style.transition = 'transform 0.06s linear, filter 0.06s linear, color 0.06s linear';
-    randomEl.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg) skew(${skew}deg) scale(${scale})`;
-    randomEl.style.filter = `hue-rotate(${hue}deg) ${Math.random() > 0.7 ? 'invert(1)' : ''}`;
+    // Hardware accelerated transforms keep the framerate high while moving huge distances
+    randomEl.style.transition = 'transform 0.04s linear, filter 0.04s linear, color 0.04s linear';
+    randomEl.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg) rotateX(${flipX}deg) rotateY(${flipY}deg) skew(${skewX}deg, ${skewY}deg) scale(${scale})`;
+    randomEl.style.filter = `hue-rotate(${hue}deg) ${Math.random() > 0.6 ? 'invert(1)' : ''} blur(${Math.random() > 0.8 ? '3px' : '0px'})`;
     randomEl.style.color = chosenColor;
     randomEl.style.textShadow = textShadow;
-    randomEl.style.opacity = Math.random() * 0.6 + 0.4;
+    randomEl.style.boxShadow = Math.random() > 0.5 ? `0 0 ${Math.random() * 30 + 10}px ${chosenColor}` : 'none'; // Neon box glows
+    randomEl.style.opacity = Math.random() * 0.8 + 0.2;
     
-    // Fast independent tick delay (between 80ms and 300ms for rapid jitter)
-    const delay = Math.floor(Math.random() * 220) + 80;
+    // Ultra-fast independent tick delay (between 40ms and 150ms)
+    const delay = Math.floor(Math.random() * 110) + 40;
     
     const tId = setTimeout(fireGlitchSlot, delay);
     activeGlitchTimers.push(tId);
@@ -221,14 +229,17 @@ function fireGlitchSlot() {
 function executeCancel() {
     isCancelled = true;
     
+    // Kill the loops
     activeGlitchTimers.forEach(tId => clearTimeout(tId));
     activeGlitchTimers = [];
     
+    // INSTANTLY snap everything back to perfect reality
     glitchElements.forEach(el => {
         el.style.removeProperty('transform');
         el.style.removeProperty('filter');
         el.style.removeProperty('color');
         el.style.removeProperty('textShadow');
+        el.style.removeProperty('boxShadow');
         el.style.removeProperty('opacity');
         el.style.removeProperty('transition');
     });
