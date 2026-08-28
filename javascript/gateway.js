@@ -3,7 +3,6 @@ window.addEventListener('load', () => {
     setTimeout(checkAuthorization, 3000);
 });
 
-// Helper function for the animation timings
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function checkAuthorization() {
@@ -44,7 +43,6 @@ async function runConnectionSequence(dashboardUrl) {
             opacity: 0; transition: all 0.8s ease-in-out;
             box-shadow: 0 0 30px rgba(0,0,0,0.8); color: white; font-family: monospace;
         }
-        /* Lock out background clicking */
         #dws-auth-blocker {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999998;
         }
@@ -62,13 +60,13 @@ async function runConnectionSequence(dashboardUrl) {
         .dws-line.blinking::after { opacity: 1; animation: blink 0.2s step-end infinite; }
         .dws-line.solid { background: #00aaff; box-shadow: 0 0 8px #00aaff; }
         
-        /* Absolute positioning forces it to stay perfectly centered */
         .dws-text { position: absolute; font-size: 1.2rem; opacity: 0; transition: opacity 0.5s; font-weight: bold; letter-spacing: 2px; }
         
         @keyframes flow { 100% { left: 100%; } }
         @keyframes blink { 50% { opacity: 0; } }
         
-        .glitch-element { transition: all 0.08s ease-out; pointer-events: none; }
+        /* Fast CSS transition for chaotic snapping */
+        .glitch-element { transition: transform 0.05s linear, opacity 0.05s linear, filter 0.05s linear !important; pointer-events: none; }
     `;
     document.head.appendChild(style);
 
@@ -95,8 +93,13 @@ async function runConnectionSequence(dashboardUrl) {
     // 3. Begin Animation Sequence
     await sleep(50); 
     overlay.style.opacity = '1';
+    
+    // --- EARLY IGNITION: The Glitch starts immediately as the box fades in ---
+    startBackgroundGlitch();
+    
     await sleep(800); 
 
+    // PC -> Web -> Server Sequence
     document.getElementById('node-pc').classList.add('active');
     document.getElementById('line-1').classList.add('glowing');
     
@@ -107,9 +110,6 @@ async function runConnectionSequence(dashboardUrl) {
     await sleep(500);
     document.getElementById('line-2').classList.add('blinking');
     
-    // --- EARLY GLITCH IGNITION ---
-    startBackgroundGlitch();
-    
     const randomWait = Math.floor(Math.random() * 1000) + 1000;
     await sleep(randomWait);
     
@@ -117,7 +117,7 @@ async function runConnectionSequence(dashboardUrl) {
     document.getElementById('node-server').classList.add('active');
     await sleep(800);
 
-    // 4. The Transition
+    // 4. The Final Transition
     overlay.style.width = '100vw';
     overlay.style.height = '100vh';
     overlay.style.borderRadius = '0px';
@@ -133,69 +133,65 @@ async function runConnectionSequence(dashboardUrl) {
 }
 
 function startBackgroundGlitch() {
-    // Grab elements and filter out hidden/structural tags to prevent DOM errors
+    // Grab all valid elements
     const rawElements = document.querySelectorAll('body *:not(#dws-auth-overlay):not(#dws-auth-overlay *):not(#dws-auth-blocker)');
     const elements = Array.from(rawElements).filter(el => {
-        return el.tagName !== 'SCRIPT' && el.tagName !== 'STYLE' && el.tagName !== 'META';
+        return el.tagName !== 'SCRIPT' && el.tagName !== 'STYLE' && el.tagName !== 'META' && el.tagName !== 'LINK';
     });
     
-    elements.forEach(el => {
-        el.classList.add('glitch-element');
-    });
+    elements.forEach(el => el.classList.add('glitch-element'));
 
     let intensity = 1;
     let elementsPerTick = 2;
     
-    // Ramp up the madness aggressively over the next 2.5 seconds
+    // Ramp up the chaos over the 4.5 seconds the connection takes
     const rampUpInterval = setInterval(() => {
-        intensity += 0.8;
-        elementsPerTick += 4;
+        intensity += 0.5; // Steadily increase power
+        elementsPerTick = Math.min(Math.floor(intensity * 1.2), 12); // Affect more elements as it runs, capped at 12 to save the CPU
         
-        // Cap the intensity to prevent complete browser lockups
-        if (intensity >= 15) {
-            clearInterval(rampUpInterval);
-        }
-    }, 150);
+        if (intensity >= 22) clearInterval(rampUpInterval);
+    }, 100);
 
-    const glitchColors = ['#ff003c', '#00aaff', '#00ffcc', '#ff00ff', '#ffff00', '#ffffff'];
+    const glitchColors = ['#ff003c', '#00aaff', '#00ffcc', '#ff00ff', '#ffff00', '#ffffff', '#000000'];
 
+    // This loop fires incredibly fast (40ms) to create a frantic stuttering effect
     setInterval(() => {
-        // Mutate multiple elements rapidly based on current intensity
         for (let i = 0; i < elementsPerTick; i++) {
             if (elements.length === 0) break;
             
             const randomEl = elements[Math.floor(Math.random() * elements.length)];
             
-            // 1. Math for heavy skew, translation, and scaling
-            const x = (Math.random() * 40 - 20) * (intensity / 2);
-            const y = (Math.random() * 40 - 20) * (intensity / 2);
-            const skewX = (Math.random() * 60 - 30) * (intensity / 3);
-            const skewY = (Math.random() * 60 - 30) * (intensity / 3);
-            const scale = 1 + (Math.random() * 0.8 - 0.4) * (intensity / 6);
+            // Extreme Math for warping the page layout
+            const x = (Math.random() * 80 - 40) * (intensity / 3);
+            const y = (Math.random() * 80 - 40) * (intensity / 3);
+            const skewX = (Math.random() * 100 - 50) * (intensity / 2);
+            const skewY = (Math.random() * 100 - 50) * (intensity / 2);
+            const scale = 1 + (Math.random() * 2 - 1) * (intensity / 8);
+            const rotate = (Math.random() * 30 - 15) * (intensity / 4);
             
-            // 2. Trippy Chromatic & Filter Effects
+            // Trippy Filters (Inversions, Hue shifts, Blurs)
             const hueRotate = Math.floor(Math.random() * 360);
-            const blurAmt = Math.random() > 0.7 ? `${Math.random() * 4}px` : '0px';
-            const invertAmt = Math.random() > 0.8 ? '100%' : '0%';
+            const blurAmt = Math.random() > 0.6 ? `${Math.random() * (intensity / 3)}px` : '0px';
+            const invertAmt = Math.random() > 0.7 ? `${Math.random() * 100}%` : '0%';
             
-            // 3. Chromatic Aberration Text Shadows (Harsh Red/Cyan splits)
-            const rgbOffset = Math.random() * 6 * intensity;
-            const textShadow = `${rgbOffset}px 0px 0px rgba(255,0,0,0.8), -${rgbOffset}px 0px 0px rgba(0,255,255,0.8)`;
+            // Heavy Chromatic Aberration (Separating Red and Cyan light)
+            const rgbOffset = Math.random() * 10 * intensity;
+            const textShadow = `${rgbOffset}px ${Math.random()*5}px 0px rgba(255,0,60,0.9), -${rgbOffset}px -${Math.random()*5}px 0px rgba(0,170,255,0.9)`;
             
-            // Apply transformations
-            randomEl.style.transform = `translate(${x}px, ${y}px) skew(${skewX}deg, ${skewY}deg) scale(${scale})`;
+            // Apply the chaos directly to the style object
+            randomEl.style.transform = `translate(${x}px, ${y}px) skew(${skewX}deg, ${skewY}deg) scale(${scale}) rotate(${rotate}deg)`;
             randomEl.style.filter = `hue-rotate(${hueRotate}deg) blur(${blurAmt}) invert(${invertAmt})`;
             randomEl.style.textShadow = textShadow;
-            randomEl.style.opacity = Math.random() * 0.6 + 0.4;
+            randomEl.style.opacity = Math.random() * 0.7 + 0.3;
             
-            // Blast the colors with neon hex codes
+            // Blast text colors
             randomEl.style.color = glitchColors[Math.floor(Math.random() * glitchColors.length)];
             
-            // Randomly corrupt the background slightly
-            if (Math.random() > 0.85) {
-                const bgColors = ['rgba(255,0,60,0.3)', 'rgba(0,170,255,0.3)', 'rgba(0,255,204,0.3)'];
+            // Randomly flash background blocks
+            if (Math.random() > 0.7) {
+                const bgColors = ['rgba(255,0,60,0.6)', 'rgba(0,170,255,0.6)', 'rgba(0,255,204,0.6)', '#000000'];
                 randomEl.style.backgroundColor = bgColors[Math.floor(Math.random() * bgColors.length)];
             }
         }
-    }, 50); // Fire every 50ms for a highly chaotic, high-framerate tear
+    }, 40);
 }
