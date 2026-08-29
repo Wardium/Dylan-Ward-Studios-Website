@@ -3,7 +3,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   let logo = document.querySelector('.logo');
   if (!logo) console.warn("DWS Menu Script: Element '.logo' not found on initial load.");
-
+  
   // --- Configuration ---
   const menuItems = [
     { text: 'Home', target: 'main' },
@@ -55,14 +55,14 @@ window.addEventListener('DOMContentLoaded', () => {
       z-index: 9999 !important;
     }
 
-    /* Container Grid - Increased size to fill the screen better */
+    /* Container Grid - completely HIDDEN until opened to prevent ghost clicks */
     #dws-menu-container {
       position: fixed;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       width: 95vw;
       max-width: 1100px; 
-      display: grid;
+      display: none; /* Changed to none so they don't block the screen while hidden */
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); 
       gap: 40px;
       z-index: 9998;
@@ -76,7 +76,7 @@ window.addEventListener('DOMContentLoaded', () => {
       display: flex;
       align-items: center;
       justify-content: center;
-      opacity: 0; /* Hidden before flight */
+      opacity: 0; 
     }
     .dws-float-layer {
       width: 100%;
@@ -93,7 +93,7 @@ window.addEventListener('DOMContentLoaded', () => {
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      border-radius: 50%; /* Perfect Circle */
+      border-radius: 50%; 
       background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
@@ -116,11 +116,11 @@ window.addEventListener('DOMContentLoaded', () => {
       color: white;
       font-family: inherit;
       font-weight: 600;
-      font-size: 1.4rem; /* Slightly larger text to match bigger bubbles */
+      font-size: 1.4rem; 
       letter-spacing: 1.5px;
       text-shadow: 0px 2px 6px rgba(0,0,0,0.6);
       pointer-events: none;
-      opacity: 0; /* Fades in later */
+      opacity: 0; 
       transition: opacity 0.4s ease;
     }
 
@@ -145,22 +145,16 @@ window.addEventListener('DOMContentLoaded', () => {
   const bubbleElements = [];
 
   menuItems.forEach((item, index) => {
-    // 1. The wrapper (Handles JS Flyout & scale)
     const wrap = document.createElement('div');
     wrap.className = 'dws-bubble-wrap';
   
-    // 2. The float layer (Handles CSS floating up/down)
     const floatLayer = document.createElement('div');
     floatLayer.className = 'dws-float-layer';
-    
-    // Offset the float animations randomly so they don't move perfectly in sync
     floatLayer.style.animationDelay = `-${Math.random() * 5}s`; 
 
-    // 3. The Bubble visual (Perfect circle)
     const visual = document.createElement('div');
     visual.className = 'dws-bubble-visual';
     
-    // 4. The Text 
     const span = document.createElement('span');
     span.className = 'dws-bubble-text';
     span.innerText = item.text; 
@@ -172,7 +166,6 @@ window.addEventListener('DOMContentLoaded', () => {
     
     bubbleElements.push({ wrap, visual, span, index });
   
-    // Listen for clicks on the visual bubble
     visual.addEventListener('click', () => {
       if (!isAnimating) triggerWaveAndNavigate(index, item.target);
     });
@@ -189,6 +182,9 @@ window.addEventListener('DOMContentLoaded', () => {
   function openMenu() {
     isAnimating = true;
     isOpen = true;
+
+    // Put the bubbles physically into the DOM so we can measure them
+    container.style.display = 'grid';
 
     // Secure logo z-index
     originalLogoZIndex = logo.style.zIndex;
@@ -224,10 +220,10 @@ window.addEventListener('DOMContentLoaded', () => {
       const dx = logoCenter.x - bubbleCenter.x;
       const dy = logoCenter.y - bubbleCenter.y;
 
-      // 4. THE ANTI-FLICKER FIX: Teleport the invisible bubble to the logo and crush it to scale(0)
+      // 4. Teleport the invisible bubble to the logo and crush it to scale(0)
       el.wrap.style.transform = `translate(${dx}px, ${dy}px) scale(0)`;
       
-      // 5. Now it's safe to make it visible (because it's scaled to 0, you can't see it yet)
+      // 5. Now it's safe to make it visible
       el.wrap.style.opacity = '1';
 
       // 6. Animate from the logo out to the grid
@@ -284,6 +280,8 @@ window.addEventListener('DOMContentLoaded', () => {
         if (i === 0) { 
           isAnimating = false;
           logo.classList.remove('logo-active-over-menu');
+          // Physically remove them from the layout so they can't be clicked
+          container.style.display = 'none'; 
         }
       };
     });
@@ -319,6 +317,8 @@ window.addEventListener('DOMContentLoaded', () => {
           logo.classList.remove('logo-active-over-menu');
           isOpen = false;
           isAnimating = false;
+          // Physically remove them from the layout after clicking
+          container.style.display = 'none'; 
     
           if (window.navigateToPage) {
             window.navigateToPage(targetPage); 
