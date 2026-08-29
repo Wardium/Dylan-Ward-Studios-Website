@@ -100,7 +100,7 @@ async function runConnectionSequence(dashboardUrl) {
             <div class="dws-line" id="line-2"></div>
             <svg class="dws-node" id="node-server" viewBox="0 0 24 24"><path d="M2 15h20v4H2v-4zm0-6h20v4H2V9zm0-6h20v4H2V3zm3 14h2v2H5v-2zm0-6h2v2H5v-2zm0-6h2v2H5V5z"/></svg>
         </div>
-        <div class="dws-text" id="auth-text">CONNECTED</div>
+        <div class="dws-text" id="auth-text"></div>
     `;
     document.body.appendChild(overlay);
 
