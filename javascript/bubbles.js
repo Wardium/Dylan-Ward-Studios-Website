@@ -55,14 +55,14 @@ window.addEventListener('DOMContentLoaded', () => {
       z-index: 9999 !important;
     }
 
-    /* Container Grid - completely HIDDEN until opened to prevent ghost clicks */
+    /* Container Grid */
     #dws-menu-container {
       position: fixed;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       width: 95vw;
       max-width: 1100px; 
-      display: none; /* Changed to none so they don't block the screen while hidden */
+      display: none; 
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); 
       gap: 40px;
       z-index: 9998;
@@ -140,6 +140,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const container = document.createElement('div');
   container.id = 'dws-menu-container';
+  container.style.display = 'none'; // HARD LOCK 1: Force it hidden inline immediately
   document.body.appendChild(container);
 
   const bubbleElements = [];
@@ -167,7 +168,10 @@ window.addEventListener('DOMContentLoaded', () => {
     bubbleElements.push({ wrap, visual, span, index });
   
     visual.addEventListener('click', () => {
-      if (!isAnimating) triggerWaveAndNavigate(index, item.target);
+      // HARD LOCK 2: Only allow click if isOpen is explicitly true
+      if (!isAnimating && isOpen) {
+        triggerWaveAndNavigate(index, item.target);
+      }
     });
   });
 
@@ -183,10 +187,8 @@ window.addEventListener('DOMContentLoaded', () => {
     isAnimating = true;
     isOpen = true;
 
-    // Put the bubbles physically into the DOM so we can measure them
     container.style.display = 'grid';
 
-    // Secure logo z-index
     originalLogoZIndex = logo.style.zIndex;
     originalLogoPosition = logo.style.position;
     logo.classList.add('logo-active-over-menu');
@@ -199,18 +201,15 @@ window.addEventListener('DOMContentLoaded', () => {
       y: logoRect.top + logoRect.height / 2
     };
 
-    // 1. Reset everything into the grid completely invisibly
     bubbleElements.forEach(el => {
       el.wrap.getAnimations().forEach(anim => anim.cancel());
       el.wrap.style.transform = 'none'; 
       el.wrap.style.opacity = '0'; 
     });
 
-    // 2. Force browser to recalculate the fresh layout BEFORE proceeding
     void container.offsetWidth; 
 
     bubbleElements.forEach((el, i) => {
-      // 3. Measure where the grid wants the bubble to be
       const rect = el.wrap.getBoundingClientRect();
       const bubbleCenter = {
         x: rect.left + rect.width / 2,
@@ -220,13 +219,9 @@ window.addEventListener('DOMContentLoaded', () => {
       const dx = logoCenter.x - bubbleCenter.x;
       const dy = logoCenter.y - bubbleCenter.y;
 
-      // 4. Teleport the invisible bubble to the logo and crush it to scale(0)
       el.wrap.style.transform = `translate(${dx}px, ${dy}px) scale(0)`;
-      
-      // 5. Now it's safe to make it visible
       el.wrap.style.opacity = '1';
 
-      // 6. Animate from the logo out to the grid
       const animation = el.wrap.animate([
         { transform: `translate(${dx}px, ${dy}px) scale(0)`, offset: 0 },
         { transform: `translate(${dx * 0.5}px, ${dy * 0.5}px) scale(1.2, 0.8)`, offset: 0.4 }, 
@@ -276,11 +271,10 @@ window.addEventListener('DOMContentLoaded', () => {
       });
 
       animation.onfinish = () => {
-        el.wrap.style.opacity = '0'; // Hide it fully once it lands in the logo
+        el.wrap.style.opacity = '0'; 
         if (i === 0) { 
           isAnimating = false;
           logo.classList.remove('logo-active-over-menu');
-          // Physically remove them from the layout so they can't be clicked
           container.style.display = 'none'; 
         }
       };
@@ -317,7 +311,6 @@ window.addEventListener('DOMContentLoaded', () => {
           logo.classList.remove('logo-active-over-menu');
           isOpen = false;
           isAnimating = false;
-          // Physically remove them from the layout after clicking
           container.style.display = 'none'; 
     
           if (window.navigateToPage) {
