@@ -109,7 +109,7 @@ async function runConnectionSequence(dashboardUrl) {
     overlay.style.opacity = '1';
     
     // Start initial glitch with 5 active target slots
-    startBackgroundGlitch(5);
+    startBackgroundGlitch(1);
     
     await sleep(800); 
 
@@ -119,7 +119,7 @@ async function runConnectionSequence(dashboardUrl) {
     await sleep(1500); 
 
     // Inject 5 more slots for the finale
-    startBackgroundGlitch(1); 
+    startBackgroundGlitch(2); 
 
     document.getElementById('line-1').classList.replace('glowing', 'solid');
     document.getElementById('node-web').classList.add('active');
