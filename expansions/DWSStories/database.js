@@ -48,7 +48,7 @@ const storyDatabase = [
     "url": "/expansions/DWSStories/stories/neon.html"
   },
   {
-    "title": "Ross",
+    "title": "Rose",
     "description": "A story about the smallest galaxial.",
     "coverColor": "#1B5E20",
     "coverImage": "assets/stories/rose.JPEG",
