@@ -1,5 +1,5 @@
 window.addEventListener('DOMContentLoaded', () => {
-  console.log("DWS Menu Script: Initializing Premium Bubble Engine...");
+  console.log("DWS Menu Script: Initializing Seamless Bubble Engine...");
 
   let logo = document.querySelector('.logo');
   if (!logo) console.warn("DWS Menu Script: Element '.logo' not found on initial load.");
@@ -21,9 +21,14 @@ window.addEventListener('DOMContentLoaded', () => {
   let originalLogoZIndex = '';
   let originalLogoPosition = '';
 
-  // --- 1. Inject Premium Glassmorphism & Liquid Bubble CSS ---
+  // --- 1. Inject Premium Glassmorphism & Floating CSS ---
   const style = document.createElement('style');
   style.innerHTML = `
+    /* Force pointer cursor on the logo and all its children */
+    .logo, .logo * {
+      cursor: pointer !important;
+    }
+
     /* Overlay */
     #dws-menu-overlay {
       position: fixed;
@@ -50,16 +55,16 @@ window.addEventListener('DOMContentLoaded', () => {
       z-index: 9999 !important;
     }
 
-    /* Container Grid */
+    /* Container Grid - Increased size to fill the screen better */
     #dws-menu-container {
       position: fixed;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       width: 95vw;
-      max-width: 900px; /* Increased size to fill screen better */
+      max-width: 1100px; 
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); /* Bigger bubbles */
-      gap: 35px;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); 
+      gap: 40px;
       z-index: 9998;
       pointer-events: none;
     }
@@ -83,11 +88,12 @@ window.addEventListener('DOMContentLoaded', () => {
       animation: dws-float 6s ease-in-out infinite;
     }
 
-    /* The Liquid Bubble itself */
+    /* The Perfect Circle Bubble */
     .dws-bubble-visual {
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
+      border-radius: 50%; /* Perfect Circle */
       background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
@@ -95,20 +101,7 @@ window.addEventListener('DOMContentLoaded', () => {
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), inset 0 0 25px rgba(255, 255, 255, 0.1);
       cursor: pointer;
       pointer-events: auto;
-      /* The magic liquid wobble effect */
-      animation: dws-wobble 8s ease-in-out infinite;
       transition: background 0.3s ease, border 0.3s ease;
-    }
-    
-    /* The shine/glare to make it look like a 3D bubble */
-    .dws-bubble-visual::after {
-      content: '';
-      position: absolute;
-      top: 15%; left: 15%;
-      width: 30%; height: 30%;
-      background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%);
-      border-radius: 50%;
-      pointer-events: none;
     }
 
     .dws-bubble-visual:hover {
@@ -116,14 +109,14 @@ window.addEventListener('DOMContentLoaded', () => {
       border: 1px solid rgba(255, 255, 255, 0.5);
     }
 
-    /* The Text Layer (decoupled from the bubble distortion) */
+    /* The Text Layer */
     .dws-bubble-text {
       position: relative;
       z-index: 2;
       color: white;
       font-family: inherit;
       font-weight: 600;
-      font-size: 1.3rem;
+      font-size: 1.4rem; /* Slightly larger text to match bigger bubbles */
       letter-spacing: 1.5px;
       text-shadow: 0px 2px 6px rgba(0,0,0,0.6);
       pointer-events: none;
@@ -131,16 +124,11 @@ window.addEventListener('DOMContentLoaded', () => {
       transition: opacity 0.4s ease;
     }
 
-    /* Keyframes for the Liquid Physics */
+    /* Keyframes for the Float Physics */
     @keyframes dws-float {
       0%, 100% { transform: translateY(0) translateX(0); }
       33% { transform: translateY(-12px) translateX(6px); }
       66% { transform: translateY(10px) translateX(-4px); }
-    }
-    @keyframes dws-wobble {
-      0%, 100% { border-radius: 45% 55% 45% 55% / 55% 45% 55% 45%; }
-      33% { border-radius: 55% 45% 55% 45% / 45% 55% 45% 55%; }
-      66% { border-radius: 50% 60% 40% 60% / 60% 40% 60% 40%; }
     }
   `;
   document.head.appendChild(style);
@@ -168,12 +156,11 @@ window.addEventListener('DOMContentLoaded', () => {
     // Offset the float animations randomly so they don't move perfectly in sync
     floatLayer.style.animationDelay = `-${Math.random() * 5}s`; 
 
-    // 3. The Bubble visual (Handles liquid wobble and glass styling)
+    // 3. The Bubble visual (Perfect circle)
     const visual = document.createElement('div');
     visual.className = 'dws-bubble-visual';
-    visual.style.animationDelay = `-${Math.random() * 5}s`; 
     
-    // 4. The Text (Static inside the float layer, no wobble distortion)
+    // 4. The Text 
     const span = document.createElement('span');
     span.className = 'dws-bubble-text';
     span.innerText = item.text; 
@@ -203,7 +190,7 @@ window.addEventListener('DOMContentLoaded', () => {
     isAnimating = true;
     isOpen = true;
 
-    // Secure logo z-index using the new CSS class
+    // Secure logo z-index
     originalLogoZIndex = logo.style.zIndex;
     originalLogoPosition = logo.style.position;
     logo.classList.add('logo-active-over-menu');
@@ -216,18 +203,18 @@ window.addEventListener('DOMContentLoaded', () => {
       y: logoRect.top + logoRect.height / 2
     };
 
-    // BUGFIX: Garbage collect old animations so they don't break subsequent opens!
+    // 1. Reset everything into the grid completely invisibly
     bubbleElements.forEach(el => {
       el.wrap.getAnimations().forEach(anim => anim.cancel());
-      el.wrap.style.transform = 'none'; // Reset to grid layout
-      el.wrap.style.opacity = '0'; // Hide for a split second to prep for flyout
+      el.wrap.style.transform = 'none'; 
+      el.wrap.style.opacity = '0'; 
     });
 
-    // Force browser to recalculate the fresh, clean layout
+    // 2. Force browser to recalculate the fresh layout BEFORE proceeding
     void container.offsetWidth; 
 
     bubbleElements.forEach((el, i) => {
-      // Find where it's supposed to land in the grid
+      // 3. Measure where the grid wants the bubble to be
       const rect = el.wrap.getBoundingClientRect();
       const bubbleCenter = {
         x: rect.left + rect.width / 2,
@@ -237,9 +224,13 @@ window.addEventListener('DOMContentLoaded', () => {
       const dx = logoCenter.x - bubbleCenter.x;
       const dy = logoCenter.y - bubbleCenter.y;
 
+      // 4. THE ANTI-FLICKER FIX: Teleport the invisible bubble to the logo and crush it to scale(0)
+      el.wrap.style.transform = `translate(${dx}px, ${dy}px) scale(0)`;
+      
+      // 5. Now it's safe to make it visible (because it's scaled to 0, you can't see it yet)
       el.wrap.style.opacity = '1';
 
-      // Fly out the wrapper (squash & stretch)
+      // 6. Animate from the logo out to the grid
       const animation = el.wrap.animate([
         { transform: `translate(${dx}px, ${dy}px) scale(0)`, offset: 0 },
         { transform: `translate(${dx * 0.5}px, ${dy * 0.5}px) scale(1.2, 0.8)`, offset: 0.4 }, 
@@ -253,7 +244,6 @@ window.addEventListener('DOMContentLoaded', () => {
       });
 
       animation.onfinish = () => {
-        // Fade the text in ONLY after the bubble finishes landing
         el.span.style.opacity = '1'; 
         if (i === bubbleElements.length - 1) isAnimating = false;
       };
@@ -273,7 +263,6 @@ window.addEventListener('DOMContentLoaded', () => {
     };
 
     bubbleElements.forEach((el, i) => {
-      // Fade text out immediately before bubble flies away
       el.span.style.opacity = '0'; 
 
       const rect = el.wrap.getBoundingClientRect();
@@ -291,6 +280,7 @@ window.addEventListener('DOMContentLoaded', () => {
       });
 
       animation.onfinish = () => {
+        el.wrap.style.opacity = '0'; // Hide it fully once it lands in the logo
         if (i === 0) { 
           isAnimating = false;
           logo.classList.remove('logo-active-over-menu');
@@ -304,14 +294,12 @@ window.addEventListener('DOMContentLoaded', () => {
     let maxDelay = 0;
 
     bubbleElements.forEach((el, i) => {
-      // Text fades out immediately to look clean
       el.span.style.opacity = '0'; 
 
       const indexDistance = Math.abs(clickedIndex - i);
       const delayMs = indexDistance * 55; 
       if (delayMs > maxDelay) maxDelay = delayMs;
 
-      // Pop and disappear
       el.wrap.animate([
         { transform: 'scale(1)', opacity: 1, offset: 0 },
         { transform: 'scale(1.15)', opacity: 1, offset: 0.3 }, 
@@ -337,7 +325,7 @@ window.addEventListener('DOMContentLoaded', () => {
           } else {
             console.error("Error: window.navigateToPage function is NOT DEFINED.");
           }
-        }, 500); // Overlay fade buffer
+        }, 500); 
       }, maxDelay + 350); 
     }
 
