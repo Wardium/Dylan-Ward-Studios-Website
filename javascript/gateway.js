@@ -119,7 +119,7 @@ async function runConnectionSequence(dashboardUrl) {
     await sleep(1500); 
 
     // Inject 5 more slots for the finale
-    startBackgroundGlitch(3); 
+    startBackgroundGlitch(1); 
 
     document.getElementById('line-1').classList.replace('glowing', 'solid');
     document.getElementById('node-web').classList.add('active');
