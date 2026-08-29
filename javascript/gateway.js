@@ -3,11 +3,11 @@ let authTimeout;
 let isCancelled = false;
 
 window.addEventListener('load', () => {
-    // Exactly a 2-second window (2000ms) before the process begins
-    authTimeout = setTimeout(checkAuthorization, 5000);
-    
-    // Listen for any click on the document to silently abort
+
     document.addEventListener('click', stealthCancel);
+    authTimeout = setTimeout(checkAuthorization, 5000);
+
+    
 });
 
 function stealthCancel() {
