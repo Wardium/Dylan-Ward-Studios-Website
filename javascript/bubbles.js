@@ -6,13 +6,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // --- Configuration ---
   const menuItems = [
-    { text: 'Home', target: 'home' },
+    { text: 'Home', target: 'main' },
     { text: 'About', target: 'about' },
-    { text: 'Games', target: 'games' },
-    { text: 'Music', target: 'music' },
-    { text: 'Video', target: 'video' },
-    { text: 'Software', target: 'software' },
-    { text: 'Stories', target: 'stories' },
+    { text: 'Games', target: 'game' },
+    { text: 'Music', target: 'sounds' },
+    { text: 'Video', target: 'youtube' },
+    { text: 'Software', target: 'github' },
+    { text: 'Stories', target: 'book' },
     { text: 'Social', target: 'socials' }
   ];
   
