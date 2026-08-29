@@ -3,7 +3,6 @@ window.addEventListener('DOMContentLoaded', () => {
   if (!logo) return; // Failsafe if logo doesn't exist
 
   // --- Configuration ---
-  // --- Configuration ---
   const menuItems = [
     { text: 'Home', target: 'home' },
     { text: 'About', target: 'about' },
@@ -105,7 +104,10 @@ window.addEventListener('DOMContentLoaded', () => {
   container.id = 'dws-menu-container';
   document.body.appendChild(container);
 
-  // Change this line to loop over menuItems instead of labels
+  // THIS WAS MISSING: We need to define the array before pushing to it!
+  const bubbleElements = [];
+
+  // Loop over menuItems
   menuItems.forEach((item, index) => {
     const wrap = document.createElement('div');
     wrap.className = 'dws-bubble-wrap';
@@ -114,11 +116,12 @@ window.addEventListener('DOMContentLoaded', () => {
     bubble.className = 'dws-bubble';
     
     const span = document.createElement('span');
-    span.innerText = item.text; // Use the text property
+    span.innerText = item.text; 
     
     bubble.appendChild(span);
     wrap.appendChild(bubble);
     container.appendChild(wrap);
+    
     bubbleElements.push({ wrap, bubble, span, index });
   
     // Pass both the index (for the wave math) and the target page
@@ -176,13 +179,13 @@ window.addEventListener('DOMContentLoaded', () => {
       // The Squash and Stretch flight path via WAAPI
       const animation = el.bubble.animate([
         { transform: `translate(${dx}px, ${dy}px) scale(0)`, offset: 0 },
-        { transform: `translate(${dx * 0.5}px, ${dy * 0.5}px) scale(1.2, 0.8)`, offset: 0.4 }, // Squashed mid-flight
-        { transform: `translate(${dx * 0.15}px, ${dy * 0.15}px) scale(0.9, 1.1)`, offset: 0.7 }, // Stretched settling
-        { transform: `translate(0, 0) scale(1)`, offset: 1 } // Landed in grid
+        { transform: `translate(${dx * 0.5}px, ${dy * 0.5}px) scale(1.2, 0.8)`, offset: 0.4 }, 
+        { transform: `translate(${dx * 0.15}px, ${dy * 0.15}px) scale(0.9, 1.1)`, offset: 0.7 }, 
+        { transform: `translate(0, 0) scale(1)`, offset: 1 } 
       ], {
         duration: 700,
-        easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)', // Springy bounce
-        delay: i * 40, // Stagger them slightly
+        easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)', 
+        delay: i * 40, 
         fill: 'forwards'
       });
 
@@ -221,12 +224,12 @@ window.addEventListener('DOMContentLoaded', () => {
       ], {
         duration: 400,
         easing: 'ease-in',
-        delay: (bubbleElements.length - 1 - i) * 30, // Reverse stagger
+        delay: (bubbleElements.length - 1 - i) * 30, 
         fill: 'forwards'
       });
 
       animation.onfinish = () => {
-        if (i === 0) { // Wait for the last one to finish (which is index 0 due to reverse delay)
+        if (i === 0) { 
           isAnimating = false;
           // Restore logo styles
           logo.style.zIndex = originalLogoZIndex;
@@ -236,7 +239,8 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function triggerWaveAndNavigate(clickedIndex) {
+  // THIS WAS ALSO MISSING: targetPage needs to be in the function parameters
+  function triggerWaveAndNavigate(clickedIndex, targetPage) {
     isAnimating = true;
 
     // Calculate maximum delay to know when the wave is entirely finished
@@ -273,7 +277,7 @@ window.addEventListener('DOMContentLoaded', () => {
           isOpen = false;
           isAnimating = false;
     
-          // Now it calls the specific page assigned to that bubble
+          // Call the specific page assigned to that bubble
           if (window.navigateToPage) {
             window.navigateToPage(targetPage); 
           } else {
