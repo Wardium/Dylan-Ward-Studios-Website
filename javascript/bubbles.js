@@ -13,7 +13,7 @@ window.addEventListener('DOMContentLoaded', () => {
     { text: 'Video', target: 'video' },
     { text: 'Software', target: 'software' },
     { text: 'Stories', target: 'stories' },
-    { text: 'Social', target: 'social' }
+    { text: 'Social', target: 'socials' }
   ];
   
   let isOpen = false;
