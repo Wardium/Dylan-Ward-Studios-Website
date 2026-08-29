@@ -25,6 +25,77 @@
 </script>
 
 <body>
+  
+  
+<!-- ================= BEGIN PRELOADER ================= -->
+<style>
+  #page-loader {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000000;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+  }
+  #page-loader.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  .loader-logo-wrapper {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Dimmed background base logo */
+  .loader-logo-base {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0.18;
+  }
+  /* Glowing sweep layer using your SVG file */
+  .loader-logo-glow {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 50%, transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0%, #000 50%, transparent 100%);
+    -webkit-mask-size: 200% 100%;
+    mask-size: 200% 100%;
+    animation: loaderSweep 1.6s infinite linear;
+  }
+  @keyframes loaderSweep {
+    0% { -webkit-mask-position: -150% 0; mask-position: -150% 0; }
+    100% { -webkit-mask-position: 150% 0; mask-position: 150% 0; }
+  }
+</style>
+
+<div id="page-loader">
+  <div class="loader-logo-wrapper">
+    <img src="assets/logo.svg" alt="Loading" class="loader-logo-base">
+    <img src="assets/logo.svg" alt="Loading" class="loader-logo-glow">
+  </div>
+</div>
+
+<script>
+  (function(){let e=!1;const t=document.getElementById("page-loader"),o=setTimeout(()=>{!e&&t&&t.classList.add("active")},300);window.addEventListener("load",()=>{e=!0,clearTimeout(o),t&&(t.classList.remove("active"),setTimeout(()=>t.remove(),400))})})();
+</script>
+<!-- ================== END PRELOADER ================== -->
+
+  
+  
+  
 
   <div id="bg-blur"></div>
   
