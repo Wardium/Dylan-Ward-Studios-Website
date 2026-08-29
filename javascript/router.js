@@ -1,15 +1,12 @@
-window.addEventListener('DOMContentLoaded', () => {
-  const hash = window.location.hash.substring(1);
-  if (!hash) return; 
+// 1. Define the navigation logic as a globally accessible function
+window.navigateToPage = function(pageName) {
+  if (!pageName) return; 
 
-  // CHANGE THIS LINE:
-  // const targetSection = document.getElementById(hash);
-  
-  // TO THIS:
-  const targetSection = document.querySelector(`[data-id="${hash}"]`);
+  // Changed 'const' to 'let' here so it can be reassigned on the next line
+  let targetSection = document.querySelector(`[data-id="${pageName}"]`);
 
   if (!targetSection) {
-    targetSection = document.querySelector(`[data-aliases~="${hash}"]`);
+    targetSection = document.querySelector(`[data-aliases~="${pageName}"]`);
   }
   
   if (!targetSection) return;
@@ -57,7 +54,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // 4. Action Phase: Only click if nothing is moving AND we aren't resting
     if (!isCurrentlyAnimating && !isResting) {
-      rightArrow.click();
+      if (rightArrow) rightArrow.click(); // Added a quick safety check for the arrow
       
       // Failsafe: Force the bot to rest immediately after a click just in case
       // the DOM takes a few milliseconds to add the animation classes
@@ -86,4 +83,12 @@ window.addEventListener('DOMContentLoaded', () => {
       clickToTarget();
     }
   }, 100);
+};
+
+// 2. Keep original functionality: run on page load using the URL hash
+window.addEventListener('DOMContentLoaded', () => {
+  const hash = window.location.hash.substring(1);
+  if (hash) {
+    window.navigateToPage(hash);
+  }
 });
