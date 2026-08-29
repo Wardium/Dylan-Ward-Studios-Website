@@ -160,29 +160,13 @@ function startBackgroundGlitch(countToAdd) {
     }
 
     for (let i = 0; i < countToAdd; i++) {
-        let slot = { targetElement: null };
-        runSlotTargetLoop(slot);
+        // Initialize the slot with a random target immediately
+        let slot = { targetElement: glitchElements[Math.floor(Math.random() * glitchElements.length)] };
         runSlotAnimLoop(slot);
     }
 }
 
-function runSlotTargetLoop(slot) {
-    if (glitchElements.length === 0) return;
-    
-    if (slot.targetElement) {
-        slot.targetElement.style.removeProperty('transform');
-        slot.targetElement.style.removeProperty('filter');
-        slot.targetElement.style.removeProperty('color');
-        slot.targetElement.style.removeProperty('textShadow');
-        slot.targetElement.style.removeProperty('boxShadow');
-        slot.targetElement.style.removeProperty('opacity');
-        slot.targetElement.style.removeProperty('transition');
-    }
-
-    slot.targetElement = glitchElements[Math.floor(Math.random() * glitchElements.length)];
-    
-    setTimeout(() => runSlotTargetLoop(slot), 500);
-}
+// runSlotTargetLoop has been completely removed to prevent elements from resetting.
 
 function runSlotAnimLoop(slot) {
     if (slot.targetElement) {
@@ -210,6 +194,14 @@ function runSlotAnimLoop(slot) {
         slot.targetElement.style.textShadow = textShadow;
         slot.targetElement.style.boxShadow = Math.random() > 0.5 ? `0 0 ${Math.random() * 30 + 10}px ${chosenColor}` : 'none'; 
         slot.targetElement.style.opacity = Math.random() * 0.8 + 0.2;
+
+        // NEW: 50% chance to abandon this element in its glitched state and grab a new one
+        if (Math.random() > 0.5) {
+            slot.targetElement = glitchElements[Math.floor(Math.random() * glitchElements.length)];
+        }
+    } else if (glitchElements.length > 0) {
+        // Fallback in case targetElement is null
+        slot.targetElement = glitchElements[Math.floor(Math.random() * glitchElements.length)];
     }
     
     const delay = Math.floor(Math.random() * 60) + 20;
