@@ -1,6 +1,14 @@
 window.addEventListener('DOMContentLoaded', () => {
-  const logo = document.querySelector('.logo');
-  if (!logo) return; // Failsafe if logo doesn't exist
+  console.log("DWS Menu Script: DOMContentLoaded fired. Initializing...");
+
+  // We won't strictly return if the logo isn't found right away, 
+  // just in case your logo is injected by another script a split-second later.
+  let logo = document.querySelector('.logo');
+  if (!logo) {
+    console.warn("DWS Bubblest: Element '.logo' not found on initial load. (If it gets added dynamically later, clicks will still work!)");
+  } else {
+    console.log("DWS Bubbles: Successfully found the logo on load:", logo);
+  }
 
   // --- Configuration ---
   const menuItems = [
@@ -31,7 +39,7 @@ window.addEventListener('DOMContentLoaded', () => {
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.4s ease;
-      backdrop-filter: blur(4px); /* Subtle background blur */
+      backdrop-filter: blur(4px); 
       -webkit-backdrop-filter: blur(4px);
     }
     #dws-menu-overlay.active {
@@ -45,7 +53,6 @@ window.addEventListener('DOMContentLoaded', () => {
       width: 90vw;
       max-width: 650px;
       display: grid;
-      /* Responsive grid: 4 columns on desktop, 2 on mobile */
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: 25px;
       z-index: 9998;
@@ -62,24 +69,22 @@ window.addEventListener('DOMContentLoaded', () => {
       width: 100%; 
       height: 100%;
       border-radius: 50%;
-      /* Glassmorphism Styling */
       background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.2);
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25), inset 0 0 20px rgba(255, 255, 255, 0.05);
-      
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
-      font-family: inherit; /* Matches your site's font */
+      font-family: inherit;
       font-weight: 600;
       font-size: 1.15rem;
       letter-spacing: 1px;
       text-shadow: 0px 2px 4px rgba(0,0,0,0.5);
       cursor: pointer;
-      transform: scale(0); /* Hidden by default */
+      transform: scale(0);
       pointer-events: auto;
       will-change: transform, opacity;
     }
@@ -94,6 +99,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   `;
   document.head.appendChild(style);
+  console.log("DWS Menu Script: CSS and styling injected.");
 
   // --- 2. Build the DOM Elements ---
   const overlay = document.createElement('div');
@@ -104,10 +110,8 @@ window.addEventListener('DOMContentLoaded', () => {
   container.id = 'dws-menu-container';
   document.body.appendChild(container);
 
-  // THIS WAS MISSING: We need to define the array before pushing to it!
   const bubbleElements = [];
 
-  // Loop over menuItems
   menuItems.forEach((item, index) => {
     const wrap = document.createElement('div');
     wrap.className = 'dws-bubble-wrap';
@@ -124,16 +128,21 @@ window.addEventListener('DOMContentLoaded', () => {
     
     bubbleElements.push({ wrap, bubble, span, index });
   
-    // Pass both the index (for the wave math) and the target page
     bubble.addEventListener('click', () => {
+      console.log(`DWS Menu Script: Bubble clicked -> [${item.text}] targeting [${item.target}]`);
       if (!isAnimating) triggerWaveAndNavigate(index, item.target);
     });
   });
+  console.log("DWS Menu Script: Created 8 bubbles.");
 
   // --- 3. Animation Logic ---
-
-  function toggleMenu() {
+  function toggleMenu(activeLogoElement) {
+    console.log("DWS Menu Script: toggleMenu called. isOpen:", isOpen, "| isAnimating:", isAnimating);
     if (isAnimating) return;
+
+    // Refresh our logo reference just in case it was dynamically replaced
+    logo = activeLogoElement; 
+
     if (isOpen) {
       closeMenu();
     } else {
@@ -142,26 +151,23 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function openMenu() {
+    console.log("DWS Menu Script: Opening menu...");
     isAnimating = true;
     isOpen = true;
 
-    // Backup logo styles and force it above the overlay
     originalLogoZIndex = logo.style.zIndex;
     originalLogoPosition = logo.style.position;
     logo.style.position = getComputedStyle(logo).position === 'static' ? 'relative' : getComputedStyle(logo).position;
     logo.style.zIndex = '9999';
 
-    // Show overlay
     overlay.classList.add('active');
 
-    // Get Logo's absolute center position
     const logoRect = logo.getBoundingClientRect();
     const logoCenter = {
       x: logoRect.left + logoRect.width / 2,
       y: logoRect.top + logoRect.height / 2
     };
 
-    // Animate each bubble from the logo to its grid slot
     bubbleElements.forEach((el, i) => {
       const rect = el.wrap.getBoundingClientRect();
       const bubbleCenter = {
@@ -169,14 +175,11 @@ window.addEventListener('DOMContentLoaded', () => {
         y: rect.top + rect.height / 2
       };
 
-      // Math to find the distance between logo and target slot
       const dx = logoCenter.x - bubbleCenter.x;
       const dy = logoCenter.y - bubbleCenter.y;
 
-      // Ensure elements are visible for animation
       el.bubble.style.opacity = '1';
 
-      // The Squash and Stretch flight path via WAAPI
       const animation = el.bubble.animate([
         { transform: `translate(${dx}px, ${dy}px) scale(0)`, offset: 0 },
         { transform: `translate(${dx * 0.5}px, ${dy * 0.5}px) scale(1.2, 0.8)`, offset: 0.4 }, 
@@ -190,20 +193,22 @@ window.addEventListener('DOMContentLoaded', () => {
       });
 
       animation.onfinish = () => {
-        el.span.style.opacity = '1'; // Fade text in
-        if (i === bubbleElements.length - 1) isAnimating = false;
+        el.span.style.opacity = '1';
+        if (i === bubbleElements.length - 1) {
+          isAnimating = false;
+          console.log("DWS Menu Script: Open animation finished.");
+        }
       };
     });
   }
 
   function closeMenu() {
+    console.log("DWS Menu Script: Closing menu...");
     isAnimating = true;
     isOpen = false;
 
-    // Fade overlay out
     overlay.classList.remove('active');
 
-    // Get Logo center again in case the user resized the window
     const logoRect = logo.getBoundingClientRect();
     const logoCenter = {
       x: logoRect.left + logoRect.width / 2,
@@ -211,13 +216,12 @@ window.addEventListener('DOMContentLoaded', () => {
     };
 
     bubbleElements.forEach((el, i) => {
-      el.span.style.opacity = '0'; // Hide text
+      el.span.style.opacity = '0'; 
 
       const rect = el.wrap.getBoundingClientRect();
       const dx = logoCenter.x - (rect.left + rect.width / 2);
       const dy = logoCenter.y - (rect.top + rect.height / 2);
 
-      // Suck them back into the logo (Reverse stagger order)
       const animation = el.bubble.animate([
         { transform: `translate(0, 0) scale(1)` },
         { transform: `translate(${dx}px, ${dy}px) scale(0)` }
@@ -231,34 +235,31 @@ window.addEventListener('DOMContentLoaded', () => {
       animation.onfinish = () => {
         if (i === 0) { 
           isAnimating = false;
-          // Restore logo styles
           logo.style.zIndex = originalLogoZIndex;
           logo.style.position = originalLogoPosition;
+          console.log("DWS Menu Script: Close animation finished.");
         }
       };
     });
   }
 
-  // THIS WAS ALSO MISSING: targetPage needs to be in the function parameters
   function triggerWaveAndNavigate(clickedIndex, targetPage) {
+    console.log("DWS Menu Script: Triggering wave effect...");
     isAnimating = true;
 
-    // Calculate maximum delay to know when the wave is entirely finished
     let maxDelay = 0;
 
     bubbleElements.forEach((el, i) => {
       el.span.style.opacity = '0'; 
 
-      // Calculate delay based on how far this index is from the clicked index (creates the wave)
       const indexDistance = Math.abs(clickedIndex - i);
       const delayMs = indexDistance * 50; 
       if (delayMs > maxDelay) maxDelay = delayMs;
 
-      // Pop and disappear
       el.bubble.animate([
         { transform: 'scale(1)', opacity: 1, offset: 0 },
-        { transform: 'scale(1.15)', opacity: 1, offset: 0.3 }, // Grow slightly
-        { transform: 'scale(0)', opacity: 0, offset: 1 } // Fade and shrink
+        { transform: 'scale(1.15)', opacity: 1, offset: 0.3 }, 
+        { transform: 'scale(0)', opacity: 0, offset: 1 } 
       ], {
         duration: 350,
         easing: 'ease-out',
@@ -267,7 +268,6 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // Wait for the wave to finish + a tiny buffer
     setTimeout(() => {
         overlay.classList.remove('active'); 
         
@@ -277,21 +277,35 @@ window.addEventListener('DOMContentLoaded', () => {
           isOpen = false;
           isAnimating = false;
     
-          // Call the specific page assigned to that bubble
+          console.log(`DWS Menu Script: Navigation sequence starting for target: ${targetPage}`);
           if (window.navigateToPage) {
             window.navigateToPage(targetPage); 
           } else {
-            console.error("window.navigateToPage function not found.");
+            console.error("DWS Menu Script Error: window.navigateToPage function is NOT DEFINED globally.");
           }
         }, 400); 
       }, maxDelay + 350); 
     }
 
   // --- 4. Event Listeners ---
-  logo.addEventListener('click', toggleMenu);
-  
-  // Optional: Clicking the empty overlay space closes the menu
-  overlay.addEventListener('click', () => {
-    if (!isAnimating && isOpen) closeMenu();
+  // Using EVENT DELEGATION to ensure clicks on children (like SVG paths) always work
+  document.addEventListener('click', (e) => {
+    // Traverse up the DOM tree from the clicked element to see if it, or its parents, have the class .logo
+    const clickedLogo = e.target.closest('.logo');
+    
+    if (clickedLogo) {
+      console.log("DWS Menu Script: .logo (or its child) was clicked!", e.target);
+      e.preventDefault(); // Stop any default link behavior if it's an <a> tag
+      toggleMenu(clickedLogo);
+    }
   });
+  
+  overlay.addEventListener('click', () => {
+    if (!isAnimating && isOpen) {
+        console.log("DWS Menu Script: Overlay background clicked, closing menu.");
+        closeMenu();
+    }
+  });
+
+  console.log("DWS Menu Script: Initialization complete. Waiting for clicks.");
 });
