@@ -62,11 +62,18 @@ window.addEventListener('DOMContentLoaded', () => {
       transform: translate(-50%, -50%);
       width: 95vw;
       max-width: 1100px; 
+      max-height: 90vh; /* Fail-safe to keep grid on screen */
       display: none; 
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); 
-      gap: 40px;
+      /* Dynamically scales minimum width: 210px on desktop, shrinks down to 80px on phones */
+      grid-template-columns: repeat(auto-fit, minmax(clamp(80px, 18vw, 210px), 1fr)); 
+      /* Dynamically scales gap: 40px on desktop, shrinks to 10px on phones */
+      gap: clamp(10px, 3vw, 40px);
       z-index: 9998;
       pointer-events: none;
+      align-content: center;
+      overflow-y: auto; /* Allows scrolling on landscape mobile views */
+      box-sizing: border-box;
+      padding: 10px;
     }
 
     /* Animation Layers */
@@ -116,7 +123,8 @@ window.addEventListener('DOMContentLoaded', () => {
       color: white;
       font-family: inherit;
       font-weight: 600;
-      font-size: 1.4rem; 
+      /* Responsive text: 1.4rem on desktop, shrinks down safely on phones */
+      font-size: clamp(0.75rem, 2.5vw, 1.4rem); 
       letter-spacing: 1.5px;
       text-shadow: 0px 2px 6px rgba(0,0,0,0.6);
       pointer-events: none;
