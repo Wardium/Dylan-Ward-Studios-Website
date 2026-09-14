@@ -74,6 +74,7 @@ window.addEventListener('DOMContentLoaded', () => {
       overflow-y: auto; /* Allows scrolling on landscape mobile views */
       box-sizing: border-box;
       padding: 10px;
+      height: 100%;
     }
 
     /* Animation Layers */
