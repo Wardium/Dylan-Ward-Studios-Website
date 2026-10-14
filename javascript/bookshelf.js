@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
 
       <div style="cursor: pointer;" class="glass-block media-block col-half expandable-link" data-iframe-src="${book.url}" loading="lazy">
-              <img src="${coverImg}" alt="${book.title} Cover" loading="lazy">
+              <img loading="slow" data-src="${coverImg}" alt="${book.title} Cover" loading="lazy">
             </div>
     `;
   });
