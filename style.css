@@ -1066,3 +1066,32 @@ body.web-infinity-no-scroll .scrollsection {
 	}
 	
 }
+
+
+/* Initial hidden state before background load completes */
+[loading="slow"] {
+  opacity: 0;
+  transform: translateY(8px);
+  filter: blur(4px);
+  transition: 
+    opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform, filter;
+}
+
+/* Triggered once the element is downloaded and decoded in memory */
+[loading="slow"].slow-loaded {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+/* Accessibility fallback if the user disables animations */
+@media (prefers-reduced-motion: reduce) {
+  [loading="slow"] {
+    transform: none;
+    filter: none;
+    transition: opacity 0.3s ease;
+  }
+}
