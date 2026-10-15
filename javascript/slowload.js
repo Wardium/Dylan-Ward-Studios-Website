@@ -87,5 +87,9 @@ window.addEventListener('load', () => {
     }
   }
 
-  nextInQueue();
+  // Wait until the 2.45s intro SVG animation finishes before starting the queue
+  // (Increase to 3450 if you want it to wait until the 1s overlay fade-out finishes too)
+  setTimeout(() => {
+    nextInQueue();
+  }, 2600);
 });
