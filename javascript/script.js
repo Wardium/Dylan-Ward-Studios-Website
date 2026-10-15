@@ -140,9 +140,8 @@ function unlockDevSection() {
   isAnimating = prevAnimating;
 }
 
-
 // ----------------------
-// INTRO ANIMATION (60FPS PACKED SVG PLAYER + AUTO-UNLOAD)
+// INTRO ANIMATION
 // ----------------------
 const main = document.querySelector('main');
 const header = document.querySelector('header');
@@ -153,97 +152,30 @@ footer.style.opacity = '0';
 header.style.transition = 'opacity 1s ease';
 footer.style.transition = 'opacity 1s ease';
 
-async function playIntroSequence() {
-  const overlay = document.querySelector('.intro-overlay');
-  if (!overlay) return;
+window.addEventListener('load', () => {
+  const introOverlay = document.querySelector('.intro-overlay');
+  const introLogo = document.querySelector('.intro-logo');
 
-  // Ensure .intro-logo is an <svg> element (auto-replaces <img> if still in HTML)
-  let svgEl = overlay.querySelector('.intro-logo');
-  if (svgEl && svgEl.tagName.toLowerCase() !== 'svg') {
-    const newSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    newSvg.setAttribute('class', svgEl.className);
-    svgEl.replaceWith(newSvg);
-    svgEl = newSvg;
+  // Restart the SVG timeline right as the page finishes loading so frame 1 is never missed
+  if (introLogo) {
+    introLogo.src = 'assets/logo.svg';
   }
 
-  let animData = null;
+  setTimeout(() => {
+    introOverlay.classList.add('fade-out');
 
-  try {
-    // 1. Preload all packed SVG frames in a single request before playing
-    const response = await fetch('assets/logo_anim.json');
-    if (!response.ok) throw new Error('Failed to load logo_anim.json');
-    animData = await response.json();
-
-    svgEl.setAttribute('viewBox', animData.viewBox);
-    svgEl.setAttribute('fill', '#ffffff');
-
-    const totalFrames = animData.seq.length;
-    const fps = animData.fps || 60;
-    const frameDuration = 1000 / fps; // 16.67ms per frame (2.45s for 147 frames)
-    const totalDurationMs = totalFrames * frameDuration;
-
-    // Trigger main content fly-in ~900ms before the logo animation ends (matching your original offset)
-    const flyInDelay = Math.max(0, totalDurationMs - 900);
+    // Unload the animated SVG from memory after the fade-out finishes
     setTimeout(() => {
-      main.classList.add('main-fly-in');
-      header.style.opacity = '1';
-      footer.style.opacity = '1';
-    }, flyInDelay);
-
-    // 2. Play frames at locked 60fps
-    await new Promise((resolve) => {
-      let startTime = null;
-      let lastRenderedFrame = -1;
-
-      function tick(now) {
-        if (!startTime) startTime = now;
-        const elapsed = now - startTime;
-        const currentFrame = Math.floor(elapsed / frameDuration);
-
-        if (currentFrame >= totalFrames) {
-          // Ensure final frame is shown right as playback finishes
-          const lastUniqueIdx = animData.seq[totalFrames - 1];
-          svgEl.innerHTML = animData.frames[lastUniqueIdx];
-          resolve();
-          return;
-        }
-
-        // Only update the DOM when advancing to a new frame whose geometry changed
-        if (currentFrame !== lastRenderedFrame) {
-          const prevUniqueIdx = lastRenderedFrame >= 0 ? animData.seq[lastRenderedFrame] : -1;
-          const nextUniqueIdx = animData.seq[currentFrame];
-
-          if (nextUniqueIdx !== prevUniqueIdx) {
-            svgEl.innerHTML = animData.frames[nextUniqueIdx];
-          }
-          lastRenderedFrame = currentFrame;
-        }
-
-        requestAnimationFrame(tick);
+      if (introLogo) {
+        introLogo.removeAttribute('src');
+        introLogo.remove();
       }
+    }, 1000);
+  }, 2450);
 
-      requestAnimationFrame(tick);
-    });
-
-  } catch (err) {
-    console.error('Intro animation fallback:', err);
+  setTimeout(() => {
     main.classList.add('main-fly-in');
     header.style.opacity = '1';
     footer.style.opacity = '1';
-  }
-
-  // 3. Fade out overlay as soon as the 2.45s sequence finishes
-  overlay.classList.add('fade-out');
-
-  // 4. Unload SVGs and free memory once the CSS fade-out transition completes
-  setTimeout(() => {
-    animData = null;        // Release packed JSON strings for garbage collection
-    if (svgEl) {
-      svgEl.innerHTML = ''; // Strip all SVG <path> nodes from DOM
-      svgEl.remove();
-    }
-    overlay.remove();       // Remove intro overlay completely from DOM
-  }, 1000); // Adjust if your .fade-out CSS transition is longer than 1s
-}
-
-window.addEventListener('DOMContentLoaded', playIntroSequence);
+  }, 1550);
+});
