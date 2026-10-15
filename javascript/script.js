@@ -158,7 +158,7 @@ window.addEventListener('load', () => {
 
   // Restart the SVG timeline right as the page finishes loading so frame 1 is never missed
   if (introLogo) {
-    introLogo.src = 'assets/logo.svg';
+    introLogo.src = 'assets/anim-logo.svg';
   }
 
   setTimeout(() => {
