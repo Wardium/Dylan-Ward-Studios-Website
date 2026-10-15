@@ -24,9 +24,9 @@
 
 /* Logo fall animation */
 .intro-logo {
-  width: 300px;
+  width: 550px;
   transform: translateY(-300px); /* start off-screen */
-  animation: floatDown 1.5s ease-out forwards; /* longer duration */
+  animation: floatDown 0.5s ease-out forwards; /* longer duration */
 }
 
 @keyframes fall {
