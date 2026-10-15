@@ -91,5 +91,5 @@ window.addEventListener('load', () => {
   // (Increase to 3450 if you want it to wait until the 1s overlay fade-out finishes too)
   setTimeout(() => {
     nextInQueue();
-  }, 2600);
+  }, 2000);
 });
