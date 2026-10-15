@@ -36,7 +36,7 @@ if (bgBlur) {
 document.body.style.background = 'none';
 
 // ----------------------
-// INITIAL SECTIONS 
+// INITIAL SECTIONS
 // ----------------------
 let sections = Array.from(document.querySelectorAll('.section:not(.dev-section)'));
 const leftArrow = document.querySelector('.arrow.left');
@@ -86,17 +86,21 @@ function showSection(newIndex, direction) {
 // ----------------------
 // NAVIGATION
 // ----------------------
-rightArrow.addEventListener('click', () => {
-  const newIndex = (current + 1) % sections.length;
-  showSection(newIndex, 'right');
-  registerInput('right');
-});
+if (rightArrow) {
+  rightArrow.addEventListener('click', () => {
+    const newIndex = (current + 1) % sections.length;
+    showSection(newIndex, 'right');
+    registerInput('right');
+  });
+}
 
-leftArrow.addEventListener('click', () => {
-  const newIndex = (current - 1 + sections.length) % sections.length;
-  showSection(newIndex, 'left');
-  registerInput('left');
-});
+if (leftArrow) {
+  leftArrow.addEventListener('click', () => {
+    const newIndex = (current - 1 + sections.length) % sections.length;
+    showSection(newIndex, 'left');
+    registerInput('left');
+  });
+}
 
 // ----------------------
 // SECTION LOGIC
@@ -147,24 +151,22 @@ const main = document.querySelector('main');
 const header = document.querySelector('header');
 const footer = document.querySelector('footer');
 
-header.style.opacity = '0';
-footer.style.opacity = '0';
-header.style.transition = 'opacity 1s ease';
-footer.style.transition = 'opacity 1s ease';
+if (header) {
+  header.style.opacity = '0';
+  header.style.transition = 'opacity 1s ease';
+}
+if (footer) {
+  footer.style.opacity = '0';
+  footer.style.transition = 'opacity 1s ease';
+}
 
 window.addEventListener('load', () => {
   const introOverlay = document.querySelector('.intro-overlay');
   const introLogo = document.querySelector('.intro-logo');
 
-  // Restart the SVG timeline right as the page finishes loading so frame 1 is never missed
-  if (introLogo) {
-    introLogo.src = 'assets/anim-logo.svg';
-  }
-
   setTimeout(() => {
-    introOverlay.classList.add('fade-out');
-
-    // Unload the animated SVG from memory after the fade-out finishes
+    if (introOverlay) introOverlay.classList.add('fade-out');
+    // Unload the animated SVG after the fade-out finishes
     setTimeout(() => {
       if (introLogo) {
         introLogo.removeAttribute('src');
@@ -174,8 +176,8 @@ window.addEventListener('load', () => {
   }, 2450);
 
   setTimeout(() => {
-    main.classList.add('main-fly-in');
-    header.style.opacity = '1';
-    footer.style.opacity = '1';
-  }, 1550);
+    if (main) main.classList.add('main-fly-in');
+    if (header) header.style.opacity = '1';
+    if (footer) footer.style.opacity = '1';
+  }, 1300);
 });
