@@ -73,7 +73,7 @@ window.addEventListener('DOMContentLoaded', () => {
       align-content: center;
       overflow-y: auto; /* Allows scrolling on landscape mobile views */
       box-sizing: border-box;
-      padding: 10px;
+      padding: 50px;
       height: 100%;
     }
 
