@@ -247,4 +247,3 @@ async function playIntroSequence() {
 }
 
 window.addEventListener('DOMContentLoaded', playIntroSequence);
-});
