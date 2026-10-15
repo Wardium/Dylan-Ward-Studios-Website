@@ -179,5 +179,5 @@ window.addEventListener('load', () => {
     if (main) main.classList.add('main-fly-in');
     if (header) header.style.opacity = '1';
     if (footer) footer.style.opacity = '1';
-  }, 1300);
+  }, 2450);
 });
