@@ -2,9 +2,9 @@
 // 1. STATE & CONFIGURATION
 // ==========================================
 const MENU_CONFIG = {
-    topPosition: "20px",      // Distance from the top of the screen
-    rightPosition: "20px",    // Distance from the right of the screen
-    buttonSize: "44px",       // Size of the circular buttons
+    topPosition: "10px",      // Distance from the top of the screen
+    rightPosition: "17px",    // Distance from the right of the screen
+    buttonSize: "38px",       // Size of the circular buttons
     expandedWidth: "190px",   // Width of the button when hovered to show text
     autoOpenDelay: 2450,      // 2.45 seconds before opening on first visit
     autoHideDelay: 4000,      // 4 seconds before it leaves if untouched
