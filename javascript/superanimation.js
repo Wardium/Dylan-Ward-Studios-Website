@@ -3,39 +3,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const style = document.createElement('style');
   style.innerHTML = `
     :root {
-      /* Perfectly smooth acceleration and deceleration */
       --ultra-smooth: cubic-bezier(0.42, 0, 0.58, 1); 
     }
-
-    /* All animations now incorporate var(--text-scale, 1) so they respect the "held" size */
     
-    /* Animation 1: Smooth, slow 3D Spin */
     @keyframes smoothSpin3D {
       0% { transform: perspective(800px) rotateY(0deg) scale(var(--text-scale, 1)); filter: blur(0px); }
       50% { transform: perspective(800px) rotateY(180deg) scale(calc(var(--text-scale, 1) + 0.05)); filter: blur(4px); }
       100% { transform: perspective(800px) rotateY(360deg) scale(var(--text-scale, 1)); filter: blur(0px); }
     }
 
-    /* Animation 2: Soft Jump and Spin */
     @keyframes smoothJumpSpin {
       0% { transform: translateY(0) rotate(0deg) scale(var(--text-scale, 1)); filter: blur(0px); }
       50% { transform: translateY(-15px) rotate(180deg) scale(calc(var(--text-scale, 1) + 0.05)); filter: blur(3px); }
       100% { transform: translateY(0) rotate(360deg) scale(var(--text-scale, 1)); filter: blur(0px); }
     }
 
-    /* Animation 3: Gentle grow then shrink back */
     @keyframes smoothPulseGrow {
       0%, 100% { transform: scale(var(--text-scale, 1)); }
       50% { transform: scale(calc(var(--text-scale, 1) + 0.15)); }
     }
 
-    /* Animation 4: Text softly pops toward you */
     @keyframes smoothContentPop {
       0%, 100% { transform: scale(var(--text-scale, 1)) translateZ(0); }
       50% { transform: scale(calc(var(--text-scale, 1) + 0.1)) translateZ(20px); }
     }
 
-    /* Animation 5: Rainbow Color Cycle */
     @keyframes smoothRainbow {
       0% { color: var(--orig-color); transform: scale(var(--text-scale, 1)); }
       20% { color: #ff595e; transform: scale(calc(var(--text-scale, 1) + 0.02)); }
@@ -45,14 +37,12 @@ document.addEventListener("DOMContentLoaded", () => {
       100% { color: var(--orig-color); transform: scale(var(--text-scale, 1)); }
     }
     
-    /* Pop back animation for when the text gets too big */
     @keyframes popBack {
       0% { transform: scale(var(--pop-start-scale, 3)); }
-      50% { transform: scale(0.8); }
+      50% { transform: scale(0.85); }
       100% { transform: scale(1); }
     }
 
-    /* Assigning classes to animations with slow, smooth durations */
     .anim-spin-3d { animation: smoothSpin3D 1.8s var(--ultra-smooth) forwards; }
     .anim-jump-spin { animation: smoothJumpSpin 1.4s var(--ultra-smooth) forwards; }
     .anim-pulse-grow { animation: smoothPulseGrow 1.2s var(--ultra-smooth) forwards; }
@@ -60,13 +50,11 @@ document.addEventListener("DOMContentLoaded", () => {
     .anim-rainbow { animation: smoothRainbow 2s var(--ultra-smooth) forwards; }
     .anim-pop-back { animation: popBack 0.6s var(--ultra-smooth) forwards; }
 
-    /* Required for text elements */
     .fancy-text-target {
       will-change: transform, filter, color;
       transform-origin: center center;
-      /* Base transform uses the scale variable so it remembers its size */
       transform: scale(var(--text-scale, 1));
-      transition: transform 0.1s linear; /* Smooths out the requestAnimationFrame */
+      transition: transform 0.05s linear; 
     }
     
     span.fancy-text-target, a.fancy-text-target, strong.fancy-text-target, em.fancy-text-target {
@@ -75,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     .fancy-clickable-parent {
       cursor: pointer;
-      user-select: none; /* Prevents text highlighting while holding */
+      user-select: none; 
       -webkit-user-select: none;
     }
   `;
@@ -107,15 +95,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (isStrictlyAllowed) {
       el.classList.add('fancy-clickable-parent');
-      
-      // Initialize scale tracking for this container
       el.dataset.currentScale = "1";
 
       let holdRequest;
       let isHolding = false;
       let holdStartTime = 0;
 
-      // Start holding
       const startHold = (e) => {
         if (el.dataset.isAnimating === 'true') return;
         
@@ -123,7 +108,6 @@ document.addEventListener("DOMContentLoaded", () => {
         holdStartTime = Date.now();
         const textElements = el.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, strong, em, blockquote');
         
-        // Save original color for the rainbow animation before we do anything
         textElements.forEach(textEl => {
           textEl.classList.add('fancy-text-target');
           if (!textEl.style.getPropertyValue('--orig-color')) {
@@ -132,15 +116,33 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
 
-        // The growth loop
         const growText = () => {
           if (!isHolding) return;
           
           let currentScale = parseFloat(el.dataset.currentScale);
-          currentScale += 0.015; // Speed of the growth
+          currentScale += 0.005; // SLOWER GROWTH SPEED
           
-          // Max size threshold (change 2.5 if you want it to grow larger/smaller before popping)
-          if (currentScale >= 2.5) {
+          let hitEdge = false;
+          const parentRect = el.getBoundingClientRect();
+
+          // Only start checking edges after a slight scale so it doesn't instantly pop if padding is 0
+          if (currentScale > 1.05) {
+            textElements.forEach(textEl => {
+              const rect = textEl.getBoundingClientRect();
+              // Check if the scaled text has hit the physical boundaries of its container
+              if (
+                rect.left <= parentRect.left + 5 || 
+                rect.right >= parentRect.right - 5 || 
+                rect.top <= parentRect.top + 5 || 
+                rect.bottom >= parentRect.bottom - 5
+              ) {
+                hitEdge = true;
+              }
+            });
+          }
+          
+          // Trigger the pop-back if it touches the edges or hits an extreme fallback limit
+          if (hitEdge || currentScale >= 5) {
             isHolding = false;
             el.dataset.currentScale = "1";
             
@@ -165,11 +167,9 @@ document.addEventListener("DOMContentLoaded", () => {
           holdRequest = requestAnimationFrame(growText);
         };
         
-        // Start growing after a tiny delay so quick clicks don't grow instantly
         setTimeout(() => { if (isHolding) growText(); }, 100);
       };
 
-      // End holding
       const endHold = (e) => {
         if (!isHolding) return;
         isHolding = false;
@@ -177,7 +177,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const holdDuration = Date.now() - holdStartTime;
         
-        // If they held for less than 200ms, treat it as a CLICK (trigger random animation)
         if (holdDuration < 200) {
           const textElements = el.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, strong, em, blockquote');
           if (textElements.length === 0) return;
@@ -199,12 +198,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       };
 
-      // Desktop mouse events
       el.addEventListener('mousedown', startHold);
       el.addEventListener('mouseup', endHold);
       el.addEventListener('mouseleave', endHold);
       
-      // Mobile touch events
       el.addEventListener('touchstart', (e) => { startHold(e); }, {passive: true});
       el.addEventListener('touchend', endHold);
       el.addEventListener('touchcancel', endHold);
