@@ -1,60 +1,59 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. Inject the high-quality, bouncy CSS animations into the head
+  // 1. Inject the softer, smoother CSS animations into the head
   const style = document.createElement('style');
   style.innerHTML = `
-    /* Premium bouncy easing curve for a professional feel */
+    /* Soft, smooth, quick-starting easing curves */
     :root {
-      --bounce-ease: cubic-bezier(0.34, 1.56, 0.64, 1);
-      --smooth-ease: cubic-bezier(0.25, 1, 0.5, 1);
+      --soft-ease: cubic-bezier(0.1, 0.9, 0.2, 1);
+      --smooth-spin: cubic-bezier(0.4, 0.0, 0.2, 1);
     }
 
-    /* Animation 1: Jump up and spin */
-    @keyframes fancyJumpSpin {
-      0% { transform: translateY(0) rotate(0deg); }
-      50% { transform: translateY(-25px) rotate(180deg) scale(1.05); }
-      100% { transform: translateY(0) rotate(360deg) scale(1); }
+    /* Animation 1: Soft jump and spin with focal blur */
+    @keyframes softJumpSpin {
+      0% { transform: translateY(0) rotate(0deg); filter: blur(0px); }
+      50% { transform: translateY(-15px) rotate(180deg) scale(1.02); filter: blur(4px); }
+      100% { transform: translateY(0) rotate(360deg) scale(1); filter: blur(0px); }
     }
 
-    /* Animation 2: Grow slightly then shrink back */
-    @keyframes fancyPulseGrow {
+    /* Animation 2: Gentle grow then shrink back */
+    @keyframes softPulseGrow {
       0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.08); }
+      50% { transform: scale(1.06); }
     }
 
-    /* Animation 3: 3D Spin */
-    @keyframes fancySpin3D {
-      0% { transform: perspective(800px) rotateY(0deg) rotateX(0deg); }
-      50% { transform: perspective(800px) rotateY(180deg) rotateX(10deg) scale(1.05); }
-      100% { transform: perspective(800px) rotateY(360deg) rotateX(0deg); }
+    /* Animation 3: 3D Spin with out-of-focus blur */
+    @keyframes softSpin3D {
+      0% { transform: perspective(800px) rotateY(0deg) rotateX(0deg); filter: blur(0px); }
+      50% { transform: perspective(800px) rotateY(180deg) rotateX(5deg) scale(1.02); filter: blur(5px); }
+      100% { transform: perspective(800px) rotateY(360deg) rotateX(0deg); filter: blur(0px); }
     }
 
-    /* Animation 4: Text/Content pops toward you */
-    @keyframes fancyContentPop {
+    /* Animation 4: Text/Content softly pops toward you */
+    @keyframes softContentPop {
       0%, 100% { transform: scale(1) translateZ(0); }
-      50% { transform: scale(1.15) translateZ(40px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+      50% { transform: scale(1.08) translateZ(20px); }
     }
 
-    /* Animation 5: Squeeze and pop back (squash & stretch) */
-    @keyframes fancySqueezePop {
+    /* Animation 5: Gentle squeeze and settle */
+    @keyframes softSqueeze {
       0%, 100% { transform: scale(1, 1); }
-      25% { transform: scale(0.9, 1.1); }
-      50% { transform: scale(1.1, 0.9); }
-      75% { transform: scale(0.95, 1.05); }
+      25% { transform: scale(0.95, 1.05); }
+      50% { transform: scale(1.05, 0.95); }
+      75% { transform: scale(0.98, 1.02); }
     }
 
-    /* Animation classes to toggle */
-    .anim-jump-spin { animation: fancyJumpSpin 0.7s var(--bounce-ease) forwards; }
-    .anim-pulse-grow { animation: fancyPulseGrow 0.5s var(--bounce-ease) forwards; }
-    .anim-spin-3d { animation: fancySpin3D 0.8s var(--smooth-ease) forwards; }
-    .anim-content-pop { animation: fancyContentPop 0.6s var(--bounce-ease) forwards; }
-    .anim-squeeze-pop { animation: fancySqueezePop 0.6s var(--bounce-ease) forwards; }
+    /* Animation classes to toggle (durations slightly shorter for a quicker start) */
+    .anim-jump-spin { animation: softJumpSpin 0.6s var(--soft-ease) forwards; }
+    .anim-pulse-grow { animation: softPulseGrow 0.4s var(--soft-ease) forwards; }
+    .anim-spin-3d { animation: softSpin3D 0.7s var(--smooth-spin) forwards; }
+    .anim-content-pop { animation: softContentPop 0.5s var(--soft-ease) forwards; }
+    .anim-squeeze-pop { animation: softSqueeze 0.5s var(--soft-ease) forwards; }
 
-    /* Ensure target elements can be transformed and look clickable */
+    /* Helper class - removed transition to protect your original hover effects */
     .fancy-clickable-target {
       cursor: pointer;
       transform-origin: center center;
-      will-change: transform;
-      transition: box-shadow 0.3s ease;
+      will-change: transform, filter;
     }
   `;
   document.head.appendChild(style);
@@ -77,32 +76,24 @@ document.addEventListener("DOMContentLoaded", () => {
   allElements.forEach(el => {
     const classListArray = Array.from(el.classList);
     
-    // Skip elements with no classes
     if (classListArray.length === 0) return;
 
-    // Must have at least one of the primary target classes
     const hasTargetClass = targetClasses.some(cls => classListArray.includes(cls));
     if (!hasTargetClass) return;
 
-    // ALL classes on the element must be in the 'allowedClasses' list
     const isStrictlyAllowed = classListArray.every(cls => allowedClasses.includes(cls));
 
     if (isStrictlyAllowed) {
-      // Add a helper class just for cursor styling and transform origin
       el.classList.add('fancy-clickable-target');
 
       el.addEventListener('click', function(e) {
-        // Prevent clicking again while it's currently animating
         if (this.dataset.isAnimating === 'true') return;
         
-        // Pick a random animation
         const randomAnim = animationClasses[Math.floor(Math.random() * animationClasses.length)];
         
-        // Mark as animating and apply the class
         this.dataset.isAnimating = 'true';
         this.classList.add(randomAnim);
 
-        // Remove the class once the animation finishes so it can be triggered again
         this.addEventListener('animationend', function handler() {
           this.classList.remove(randomAnim);
           this.dataset.isAnimating = 'false';
