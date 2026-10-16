@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
       --ultra-smooth: cubic-bezier(0.42, 0, 0.58, 1); 
     }
     
-    /* Random animations now use standard transforms since font-size handles the actual scaling */
     @keyframes smoothSpin3D {
       0% { transform: perspective(800px) rotateY(0deg); filter: blur(0px); }
       50% { transform: perspective(800px) rotateY(180deg) scale(1.05); filter: blur(4px); }
@@ -92,30 +91,58 @@ document.addEventListener("DOMContentLoaded", () => {
       let holdRequest;
       let isHolding = false;
       let holdStartTime = 0;
+      let idleTimeout;
+
+      // Function to smoothly shrink back if idle for 5 seconds
+      const shrinkToNormal = () => {
+        if (isHolding || el.dataset.isAnimating === 'true') return;
+        
+        const textElements = el.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, strong, em, blockquote');
+        el.dataset.fontMultiplier = "1";
+
+        textElements.forEach(textEl => {
+          const origSize = parseFloat(textEl.dataset.origFontSize);
+          if (origSize) {
+            textEl.style.transition = 'font-size 0.8s var(--ultra-smooth)';
+            textEl.style.fontSize = origSize + 'px';
+            
+            // Clear transition once finished
+            setTimeout(() => {
+              if (!isHolding) textEl.style.transition = 'none';
+            }, 850);
+          }
+        });
+      };
 
       const startHold = (e) => {
         if (el.dataset.isAnimating === 'true') return;
         
         isHolding = true;
         holdStartTime = Date.now();
+        
+        // Stop the idle timer if they grab it again
+        clearTimeout(idleTimeout);
+
         const textElements = el.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, strong, em, blockquote');
         
         textElements.forEach(textEl => {
           textEl.classList.add('fancy-text-target');
           
-          // Store original color for the rainbow effect
           if (!textEl.style.getPropertyValue('--orig-color')) {
             const computedStyle = window.getComputedStyle(textEl);
             textEl.style.setProperty('--orig-color', computedStyle.color);
           }
           
-          // Store original font-size in pixels so we can multiply it
           if (!textEl.dataset.origFontSize) {
             const computedStyle = window.getComputedStyle(textEl);
             textEl.dataset.origFontSize = parseFloat(computedStyle.fontSize);
+          } else {
+            // If they grab it WHILE it's shrinking, freeze it at its current size
+            const currentComputedSize = parseFloat(window.getComputedStyle(textEl).fontSize);
+            const origSize = parseFloat(textEl.dataset.origFontSize);
+            el.dataset.fontMultiplier = (currentComputedSize / origSize).toString();
           }
           
-          // Remove transition so requestAnimationFrame is buttery smooth
           textEl.style.transition = 'none';
         });
 
@@ -123,49 +150,38 @@ document.addEventListener("DOMContentLoaded", () => {
           if (!isHolding) return;
           
           let multiplier = parseFloat(el.dataset.fontMultiplier);
-          // SLOWER growth speed
           multiplier += 0.003; 
           
           let hitEdge = false;
           const parentRect = el.getBoundingClientRect();
 
-          // Apply the new font size
           textElements.forEach(textEl => {
             const origSize = parseFloat(textEl.dataset.origFontSize);
             textEl.style.fontSize = (origSize * multiplier) + 'px';
           });
 
-          // Check if the wrapped text overflows the bottom or right of the box
-          // We wait until multiplier > 1.05 so it doesn't pop instantly if it already touches the edge normally
           if (multiplier > 1.05) {
             textElements.forEach(textEl => {
               const rect = textEl.getBoundingClientRect();
-              // A 2px buffer so it pops right before breaching the container
               if (rect.bottom > parentRect.bottom - 2 || rect.right > parentRect.right - 2) {
                 hitEdge = true;
               }
             });
           }
           
-          // Trigger the pop-back if it touches the edges or hits a fallback 3.5x max limit
           if (hitEdge || multiplier >= 3.5) {
             isHolding = false;
             el.dataset.fontMultiplier = "1";
             
             textElements.forEach(textEl => {
               const origSize = parseFloat(textEl.dataset.origFontSize);
-              
-              // Smoothly transition font-size for the bounce effect
               textEl.style.transition = 'font-size 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
-              // Shrink slightly below original size to create the "squeeze" bounce
               textEl.style.fontSize = (origSize * 0.85) + 'px';
               
-              // Wait for the squeeze to finish, then pop back to normal 1x size
               setTimeout(() => {
                 textEl.style.transition = 'font-size 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
                 textEl.style.fontSize = origSize + 'px';
                 
-                // Clear inline transition styling once fully settled
                 setTimeout(() => { textEl.style.transition = 'none'; }, 400);
               }, 300);
             });
@@ -186,7 +202,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const holdDuration = Date.now() - holdStartTime;
         
-        // If it was a quick click (< 200ms), trigger the random animations
         if (holdDuration < 200) {
           const textElements = el.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, strong, em, blockquote');
           if (textElements.length === 0) return;
@@ -205,6 +220,12 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             el.dataset.isAnimating = 'false';
           }, { once: true });
+        }
+
+        // After they let go, check if the text is enlarged. If so, start the 5 second countdown.
+        if (parseFloat(el.dataset.fontMultiplier) > 1.01) {
+          clearTimeout(idleTimeout);
+          idleTimeout = setTimeout(shrinkToNormal, 5000);
         }
       };
 
