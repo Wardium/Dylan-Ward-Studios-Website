@@ -72,6 +72,9 @@ document.addEventListener("DOMContentLoaded", () => {
     'anim-rainbow'
   ];
 
+  // Helper to check if Readability Mode is currently active
+  const isReadabilityOn = () => localStorage.getItem('dws_readability_mode') === 'true';
+
   // 3. Find elements and attach listeners
   const allElements = document.querySelectorAll('*');
   
@@ -93,9 +96,13 @@ document.addEventListener("DOMContentLoaded", () => {
       let holdStartTime = 0;
       let idleTimeout;
 
+      // Expose a way for gateway.js to cancel pending shrink timers when Readability Mode is toggled
+      el._clearIdleTimeout = () => clearTimeout(idleTimeout);
+
       // Function to smoothly shrink back if idle for 5 seconds
       const shrinkToNormal = () => {
-        if (isHolding || el.dataset.isAnimating === 'true') return;
+        // NEVER shrink if Readability Mode is enabled
+        if (isHolding || el.dataset.isAnimating === 'true' || isReadabilityOn()) return;
         
         const textElements = el.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, strong, em, blockquote');
         el.dataset.fontMultiplier = "1";
@@ -106,7 +113,6 @@ document.addEventListener("DOMContentLoaded", () => {
             textEl.style.transition = 'font-size 0.8s var(--ultra-smooth)';
             textEl.style.fontSize = origSize + 'px';
             
-            // Clear transition once finished
             setTimeout(() => {
               if (!isHolding) textEl.style.transition = 'none';
             }, 850);
@@ -119,8 +125,6 @@ document.addEventListener("DOMContentLoaded", () => {
         
         isHolding = true;
         holdStartTime = Date.now();
-        
-        // Stop the idle timer if they grab it again
         clearTimeout(idleTimeout);
 
         const textElements = el.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, strong, em, blockquote');
@@ -136,18 +140,23 @@ document.addEventListener("DOMContentLoaded", () => {
           if (!textEl.dataset.origFontSize) {
             const computedStyle = window.getComputedStyle(textEl);
             textEl.dataset.origFontSize = parseFloat(computedStyle.fontSize);
-          } else {
-            // If they grab it WHILE it's shrinking, freeze it at its current size
+          } else if (!isReadabilityOn()) {
+            // Only sync dynamic multiplier if NOT in Readability Mode
             const currentComputedSize = parseFloat(window.getComputedStyle(textEl).fontSize);
             const origSize = parseFloat(textEl.dataset.origFontSize);
             el.dataset.fontMultiplier = (currentComputedSize / origSize).toString();
           }
           
-          textEl.style.transition = 'none';
+          if (!isReadabilityOn()) {
+            textEl.style.transition = 'none';
+          }
         });
 
+        // If Readability Mode is ON, do not start the hold-to-grow loop
+        if (isReadabilityOn()) return;
+
         const growText = () => {
-          if (!isHolding) return;
+          if (!isHolding || isReadabilityOn()) return;
           
           let multiplier = parseFloat(el.dataset.fontMultiplier);
           multiplier += 0.003; 
@@ -192,7 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
           holdRequest = requestAnimationFrame(growText);
         };
         
-        setTimeout(() => { if (isHolding) growText(); }, 100);
+        setTimeout(() => { if (isHolding && !isReadabilityOn()) growText(); }, 100);
       };
 
       const endHold = (e) => {
@@ -202,7 +211,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const holdDuration = Date.now() - holdStartTime;
         
-        if (holdDuration < 200) {
+        // Trigger click animation on quick click (or any click while in Readability Mode)
+        if (holdDuration < 200 || (isReadabilityOn() && e.type !== 'mouseleave' && e.type !== 'touchcancel')) {
           const textElements = el.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, strong, em, blockquote');
           if (textElements.length === 0) return;
 
@@ -222,8 +232,8 @@ document.addEventListener("DOMContentLoaded", () => {
           }, { once: true });
         }
 
-        // After they let go, check if the text is enlarged. If so, start the 5 second countdown.
-        if (parseFloat(el.dataset.fontMultiplier) > 1.01) {
+        // Only start the 5-second shrink countdown if Readability Mode is OFF
+        if (!isReadabilityOn() && parseFloat(el.dataset.fontMultiplier) > 1.01) {
           clearTimeout(idleTimeout);
           idleTimeout = setTimeout(shrinkToNormal, 5000);
         }
