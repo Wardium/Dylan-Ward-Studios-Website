@@ -14,13 +14,14 @@ const MENU_CONFIG = {
 };
 
 let triggerWindowTimeout;
-let isAuthTriggered = false;
+let isCancelled = false;
+let isAuthChecked = false;
 let isLowResourceMode = false;
 let isNormalModeForced = false;
 let pendingImageQueue = [];
 let pillHideTimeout;
 
-const STEALTH_WINDOW_MS = 2000;
+const STEALTH_WINDOW_MS = 2450; // Matched to your 2.45s requirement
 const FPS_THRESHOLD = 30;
 const COOKIE_NAME = 'dws_force_normal_mode';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -41,7 +42,7 @@ function getCookie(name) {
 }
 
 // ==========================================
-// 3. INITIALIZATION & 2-SECOND STEALTH TRIGGER
+// 3. INITIALIZATION & 2.45s STEALTH GATEWAY
 // ==========================================
 function initStealthAndPerformance() {
     if (getCookie(COOKIE_NAME) === 'true') {
@@ -51,12 +52,14 @@ function initStealthAndPerformance() {
         initPerformanceMonitor();
     }
 
-    document.addEventListener('click', handleStealthTrigger);
+    // Listen for clicks during the 2.45-second window
+    document.addEventListener('click', handleStealthClick);
 
+    // If 2.45 seconds pass, run the authorization check automatically
     triggerWindowTimeout = setTimeout(() => {
-        if (!isAuthTriggered) {
-            document.removeEventListener('click', handleStealthTrigger);
-            console.log("[Auth] 2-second stealth window expired. Remaining on public site.");
+        document.removeEventListener('click', handleStealthClick);
+        if (!isCancelled && !isAuthChecked) {
+            checkAuthorization();
         }
     }, STEALTH_WINDOW_MS);
 
@@ -69,25 +72,33 @@ if (document.readyState === 'loading') {
     initStealthAndPerformance();
 }
 
-function handleStealthTrigger(e) {
+function handleStealthClick(e) {
+    // Ignore clicks on the Liquid Glass menu
     if (e && e.target && e.target.closest('#dws-glass-pill, #dws-menu-hover-zone')) return;
-    if (isAuthTriggered) return;
+    if (isAuthChecked) return;
 
-    isAuthTriggered = true;
+    // Trigger auth check immediately when clicked within the 2.45s window!
+    // (Note: If you meant clicking within 2.45s should CANCEL the redirect instead, 
+    // just uncomment `isCancelled = true; return;` below)
     clearTimeout(triggerWindowTimeout);
-    document.removeEventListener('click', handleStealthTrigger);
-    console.log("[Auth] Stealth trigger activated within 2s window.");
-
+    document.removeEventListener('click', handleStealthClick);
+    console.log("[Auth] Click detected within 2.45s window. Checking authorization...");
     checkAuthorization();
 }
 
 async function checkAuthorization() {
+    if (isCancelled || isAuthChecked) return;
+    isAuthChecked = true;
+
     console.log("[Auth] 1. Initiating authorization check...");
     try {
         const response = await fetch('https://auth.teamexist.com/api/verify', {
-            method: 'POST',
+            method: 'GET', // Standard for verify endpoints; change to 'POST' if your server requires it
+            credentials: 'include', // CRITICAL: Sends your auth cookies across subdomains!
             headers: { 'Content-Type': 'application/json' }
         });
+
+        if (isCancelled) return;
 
         const data = await response.json();
 
@@ -102,7 +113,7 @@ async function checkAuthorization() {
             console.warn("[Auth] Access DENIED (or missing target URL). Remaining on public site.");
         }
     } catch (error) {
-        console.error("[Auth] FATAL ERROR: The fetch request failed completely.", error);
+        console.error("[Auth] FATAL ERROR: The fetch request failed.", error);
     }
 }
 
@@ -150,7 +161,7 @@ function initPerformanceMonitor() {
             lastTime = now;
         }
 
-        if (now - monitorStart < 12000 || isAuthTriggered) {
+        if (now - monitorStart < 12000) {
             requestAnimationFrame(checkFrame);
         }
     }
@@ -271,14 +282,12 @@ function toggleReadabilityMode(enable) {
     const targetClasses = ['glass-block', 'banner-container', 'banner-overlay'];
     const allowedClasses = [...targetClasses, 'col-half', 'col-full'];
 
-    // Find all interactive containers
     const containers = Array.from(document.querySelectorAll('*')).filter(el => {
         const cls = Array.from(el.classList).filter(c => c !== 'fancy-clickable-parent');
         return cls.length > 0 && targetClasses.some(t => cls.includes(t)) && cls.every(c => allowedClasses.includes(c));
     });
 
     containers.forEach(container => {
-        // Kill any active 5-second shrink countdowns on this container
         if (typeof container._clearIdleTimeout === 'function') {
             container._clearIdleTimeout();
         }
@@ -286,7 +295,6 @@ function toggleReadabilityMode(enable) {
         const textElements = container.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, strong, em, blockquote');
         if (textElements.length === 0) return;
 
-        // Ensure original font sizes are recorded in numbers
         textElements.forEach(el => {
             if (!el.dataset.origFontSize) {
                 el.dataset.origFontSize = parseFloat(window.getComputedStyle(el).fontSize);
@@ -294,7 +302,6 @@ function toggleReadabilityMode(enable) {
         });
 
         if (enable) {
-            // Instantly calculate the exact max multiplier before hitting the container's edges
             textElements.forEach(el => el.style.transition = 'none');
             
             let testMultiplier = 1.0;
@@ -318,36 +325,29 @@ function toggleReadabilityMode(enable) {
                 }
 
                 if (hitEdge) {
-                    testMultiplier -= 0.05; // Step back to the last safe size that fit inside the box
+                    testMultiplier -= 0.05;
                     break;
                 }
             }
 
             const finalMultiplier = Math.max(1, testMultiplier);
-            
-            // Reset to current size briefly, then smoothly animate up to the calculated max size
             const startMult = parseFloat(container.dataset.fontMultiplier || "1");
+            
             textElements.forEach(el => {
                 const orig = parseFloat(el.dataset.origFontSize);
                 el.style.fontSize = (orig * startMult) + 'px';
-                void el.offsetWidth; // Force reflow so the browser registers the starting point
-                el.style.transition = 'font-size 0.6s cubic-bezier(0.42, 0, 0.58, 1)';
+                void el.offsetWidth; 
+                el.style.transition = 'font-size 0.6s cubic-bezier(0.42, 0, 0.58, 1), transform 0.4s cubic-bezier(0.42, 0, 0.58, 1), color 0.4s ease';
                 el.style.fontSize = (orig * finalMultiplier) + 'px';
             });
 
             container.dataset.fontMultiplier = finalMultiplier.toString();
         } else {
-            // Smoothly shrink back to normal 1x size
             container.dataset.fontMultiplier = "1";
             textElements.forEach(el => {
                 const orig = parseFloat(el.dataset.origFontSize);
-                el.style.transition = 'font-size 0.6s cubic-bezier(0.42, 0, 0.58, 1)';
+                el.style.transition = 'font-size 0.6s cubic-bezier(0.42, 0, 0.58, 1), transform 0.4s cubic-bezier(0.42, 0, 0.58, 1), color 0.4s ease';
                 el.style.fontSize = orig + 'px';
-                setTimeout(() => {
-                    if (localStorage.getItem('dws_readability_mode') !== 'true') {
-                        el.style.transition = 'none';
-                    }
-                }, 650);
             });
         }
     });
@@ -356,7 +356,7 @@ function toggleReadabilityMode(enable) {
 }
 
 // ==========================================
-// 6. LIQUID GLASS PILL MENU
+// 6. LIQUID GLASS PILL MENU (LIGHT/DARK + MOBILE)
 // ==========================================
 function initLiquidGlassMenu() {
     if (document.getElementById('dws-glass-pill')) return;
@@ -367,6 +367,26 @@ function initLiquidGlassMenu() {
             --pill-top: ${MENU_CONFIG.topPosition};
             --pill-right: ${MENU_CONFIG.rightPosition};
             --pill-btn-size: ${MENU_CONFIG.buttonSize};
+            
+            /* Light Mode Default: Cloudy White Glass Base */
+            --pill-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.20));
+            --pill-border: rgba(255, 255, 255, 0.5);
+            --pill-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.7);
+            --btn-bg: rgba(255, 255, 255, 0.25);
+            --btn-hover-bg: rgba(255, 255, 255, 0.45);
+            --btn-text: rgba(15, 15, 15, 0.85);
+        }
+
+        /* Automatic OS Dark Mode: Cloudy Black Glass Base */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --pill-bg: linear-gradient(135deg, rgba(20, 20, 24, 0.68), rgba(10, 10, 12, 0.45));
+                --pill-border: rgba(255, 255, 255, 0.14);
+                --pill-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.12);
+                --btn-bg: rgba(255, 255, 255, 0.06);
+                --btn-hover-bg: rgba(255, 255, 255, 0.14);
+                --btn-text: rgba(255, 255, 255, 0.9);
+            }
         }
 
         #dws-menu-hover-zone {
@@ -376,6 +396,8 @@ function initLiquidGlassMenu() {
             width: ${MENU_CONFIG.hoverZoneWidth};
             height: ${MENU_CONFIG.hoverZoneHeight};
             z-index: 999998;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
 
         #dws-glass-pill {
@@ -387,13 +409,16 @@ function initLiquidGlassMenu() {
             gap: 8px;
             padding: 6px;
             border-radius: 999px;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            transform: translateY(calc(-100% - var(--pill-top) - 20px));
-            transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: var(--pill-bg);
+            backdrop-filter: blur(22px) saturate(180%);
+            -webkit-backdrop-filter: blur(22px) saturate(180%);
+            border: 1px solid var(--pill-border);
+            box-shadow: var(--pill-shadow);
+            transform: translateY(calc(-100% - var(--pill-top) - 25px));
+            transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.4s ease, border 0.4s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         #dws-glass-pill.visible {
@@ -406,12 +431,12 @@ function initLiquidGlassMenu() {
             height: var(--pill-btn-size);
             width: var(--pill-btn-size);
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--btn-bg);
             border: 1px solid transparent;
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--btn-text);
             cursor: pointer;
             overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: width 0.45s cubic-bezier(0.25, 1, 0.5, 1), background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
             white-space: nowrap;
         }
 
@@ -421,32 +446,57 @@ function initLiquidGlassMenu() {
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .dws-pill-btn span {
             font-family: system-ui, -apple-system, sans-serif;
             font-size: 13px;
             font-weight: 500;
-            padding-right: 18px;
+            padding-right: 16px;
             opacity: 0;
             transition: opacity 0.3s ease;
         }
 
-        .dws-pill-btn:hover {
+        /* FIX: Expand BOTH buttons whenever the pill itself is hovered or touch-expanded! 
+           This prevents buttons from shifting away from the mouse when switching between them. */
+        #dws-glass-pill:hover .dws-pill-btn,
+        #dws-glass-pill.touch-expanded .dws-pill-btn {
             width: ${MENU_CONFIG.expandedWidth};
-            background: rgba(255, 255, 255, 0.15);
         }
 
-        .dws-pill-btn:hover span {
+        #dws-glass-pill:hover .dws-pill-btn span,
+        #dws-glass-pill.touch-expanded .dws-pill-btn span {
             opacity: 1;
-            transition-delay: 0.1s;
+            transition-delay: 0.08s;
         }
 
+        .dws-pill-btn:hover {
+            background: var(--btn-hover-bg);
+        }
+
+        /* Active "Glowing White" State */
         .dws-pill-btn.active {
-            background: rgba(255, 255, 255, 0.95);
-            color: #000;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6), inset 0 0 5px rgba(255, 255, 255, 1);
-            border: 1px solid rgba(255, 255, 255, 1);
+            background: rgba(255, 255, 255, 0.96) !important;
+            color: #000000 !important;
+            box-shadow: 0 0 16px rgba(255, 255, 255, 0.75), inset 0 0 6px rgba(255, 255, 255, 1);
+            border: 1px solid #ffffff;
+        }
+
+        /* Mobile Responsive Adjustments so it never overflows small phone screens */
+        @media (max-width: 480px) {
+            :root {
+                --pill-top: 12px;
+                --pill-right: 12px;
+            }
+            #dws-glass-pill:hover .dws-pill-btn,
+            #dws-glass-pill.touch-expanded .dws-pill-btn {
+                width: 158px;
+            }
+            .dws-pill-btn span {
+                font-size: 11.5px;
+                padding-right: 12px;
+            }
         }
     `;
     document.head.appendChild(style);
@@ -480,40 +530,70 @@ function initLiquidGlassMenu() {
     const btnLowRes = document.getElementById('btn-low-res');
     const btnReadability = document.getElementById('btn-readability');
 
-    const showMenu = () => {
+    const showMenu = (isTouch = false) => {
         pill.classList.add('visible');
+        if (isTouch) pill.classList.add('touch-expanded');
         clearTimeout(pillHideTimeout);
     };
 
     const triggerHideMenu = () => {
         clearTimeout(pillHideTimeout);
         pillHideTimeout = setTimeout(() => {
-            pill.classList.remove('visible');
+            pill.classList.remove('visible', 'touch-expanded');
         }, MENU_CONFIG.autoHideDelay);
     };
 
-    hoverZone.addEventListener('mouseenter', showMenu);
+    // Desktop Hover Events
+    hoverZone.addEventListener('mouseenter', () => showMenu(false));
     hoverZone.addEventListener('mouseleave', triggerHideMenu);
-    pill.addEventListener('mouseenter', showMenu);
+    pill.addEventListener('mouseenter', () => showMenu(false));
     pill.addEventListener('mouseleave', triggerHideMenu);
 
-    btnLowRes.addEventListener('click', () => {
+    // Mobile Touch Events (Tap top-right corner to open & expand, tap outside to close)
+    hoverZone.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        showMenu(true);
+        triggerHideMenu();
+    }, { passive: true });
+
+    pill.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        showMenu(true);
+        triggerHideMenu();
+    }, { passive: true });
+
+    document.addEventListener('touchstart', (e) => {
+        if (pill.classList.contains('visible') && !e.target.closest('#dws-glass-pill, #dws-menu-hover-zone')) {
+            pill.classList.remove('visible', 'touch-expanded');
+            clearTimeout(pillHideTimeout);
+        }
+    }, { passive: true });
+
+    // Button Toggles
+    btnLowRes.addEventListener('click', (e) => {
+        e.stopPropagation();
         if (isLowResourceMode) { disableLowResourceMode(); } 
         else { enableLowResourceMode('User manually toggled menu'); }
+        triggerHideMenu();
     });
 
-    btnReadability.addEventListener('click', () => {
+    btnReadability.addEventListener('click', (e) => {
+        e.stopPropagation();
         const isCurrentlyEnabled = localStorage.getItem('dws_readability_mode') === 'true';
         toggleReadabilityMode(!isCurrentlyEnabled);
+        triggerHideMenu();
     });
 
     if (localStorage.getItem('dws_readability_mode') === 'true') {
         setTimeout(() => toggleReadabilityMode(true), 150);
     }
     
+    // First-open drop down after 2.45s
     if (!localStorage.getItem('dws_pill_first_open')) {
         setTimeout(() => {
-            showMenu();
+            // Auto-expand labels on mobile devices during first open so phone users can read them
+            const isMobileDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+            showMenu(isMobileDevice);
             triggerHideMenu();
             localStorage.setItem('dws_pill_first_open', 'true');
         }, MENU_CONFIG.autoOpenDelay);
