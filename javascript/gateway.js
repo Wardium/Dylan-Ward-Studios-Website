@@ -2,13 +2,15 @@
 // 1. STATE & CONFIGURATION
 // ==========================================
 const MENU_CONFIG = {
-    topPosition: "10px",      // Distance from the top of the screen
-    rightPosition: "17px",    // Distance from the right of the screen
+    topPosition: "10px",      // Distance of the pill from the top
+    rightPosition: "17px",    // Distance of the pill from the right
+    hoverZoneWidth: "60px",   // Smaller corner trigger width
+    hoverZoneHeight: "50px",  // Smaller corner trigger height
     buttonSize: "38px",       // Size of the circular buttons
     expandedWidth: "190px",   // Width of the button when hovered to show text
     autoOpenDelay: 2450,      // 2.45 seconds before opening on first visit
     autoHideDelay: 4000,      // 4 seconds before it leaves if untouched
-    readabilityScale: 2.5     // How much larger the text gets in Readability mode
+    maxReadabilityScale: 2.5  // Max multiplier ceiling for Readability Mode
 };
 
 let triggerWindowTimeout;
@@ -58,7 +60,6 @@ function initStealthAndPerformance() {
         }
     }, STEALTH_WINDOW_MS);
 
-    // Initialize the new Pill Menu
     initLiquidGlassMenu();
 }
 
@@ -69,7 +70,6 @@ if (document.readyState === 'loading') {
 }
 
 function handleStealthTrigger(e) {
-    // Ignore clicks on the Liquid Glass menu or hover zone
     if (e && e.target && e.target.closest('#dws-glass-pill, #dws-menu-hover-zone')) return;
     if (isAuthTriggered) return;
 
@@ -81,28 +81,21 @@ function handleStealthTrigger(e) {
     checkAuthorization();
 }
 
-// ==========================================
-// AUTHENTICATION SEQUENCE
-// ==========================================
 async function checkAuthorization() {
     console.log("[Auth] 1. Initiating authorization check...");
     try {
-        // You may need to add credentials: 'include' if your auth relies on cookies
         const response = await fetch('https://auth.teamexist.com/api/verify', {
-            method: 'POST', // Or 'GET' depending on your API setup
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
 
         const data = await response.json();
 
         if (data.authorized && data.dashboard_url) {
-            console.log("[Auth] 5. Access GRANTED. Beginning animation sequence...");
-            
-            // Calls your external animation script before redirecting
+            console.log("[Auth] Access GRANTED. Beginning animation sequence...");
             if (typeof runConnectionSequence === 'function') {
                 await runConnectionSequence(data.dashboard_url);
             } else {
-                // Fallback just in case the animation script isn't loaded
                 window.location.href = data.dashboard_url;
             }
         } else {
@@ -225,7 +218,7 @@ function enableLowResourceMode(reason) {
     });
 
     staggerImageQueue();
-    updateMenuVisuals(); // Update button glow
+    updateMenuVisuals();
 }
 
 async function staggerImageQueue() {
@@ -266,32 +259,99 @@ function disableLowResourceMode() {
     });
 
     pendingImageQueue = [];
-    updateMenuVisuals(); // Update button glow
+    updateMenuVisuals();
 }
 
 // ==========================================
-// 5. READABILITY MODE
+// 5. READABILITY MODE (BOUNDARY-AWARE)
 // ==========================================
 function toggleReadabilityMode(enable) {
     localStorage.setItem('dws_readability_mode', enable ? 'true' : 'false');
-    const textElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span:not(#dws-glass-pill *), a:not(#dws-glass-pill *), strong, em, blockquote');
     
-    textElements.forEach(el => {
-        if (!el.dataset.origFontSize) {
-            el.dataset.origFontSize = window.getComputedStyle(el).fontSize;
+    const targetClasses = ['glass-block', 'banner-container', 'banner-overlay'];
+    const allowedClasses = [...targetClasses, 'col-half', 'col-full'];
+
+    // Find all interactive containers
+    const containers = Array.from(document.querySelectorAll('*')).filter(el => {
+        const cls = Array.from(el.classList).filter(c => c !== 'fancy-clickable-parent');
+        return cls.length > 0 && targetClasses.some(t => cls.includes(t)) && cls.every(c => allowedClasses.includes(c));
+    });
+
+    containers.forEach(container => {
+        // Kill any active 5-second shrink countdowns on this container
+        if (typeof container._clearIdleTimeout === 'function') {
+            container._clearIdleTimeout();
         }
-        
-        // Smooth transition like the "hold to grow" effect
-        el.style.transition = 'font-size 0.6s cubic-bezier(0.42, 0, 0.58, 1)';
-        
+
+        const textElements = container.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, strong, em, blockquote');
+        if (textElements.length === 0) return;
+
+        // Ensure original font sizes are recorded in numbers
+        textElements.forEach(el => {
+            if (!el.dataset.origFontSize) {
+                el.dataset.origFontSize = parseFloat(window.getComputedStyle(el).fontSize);
+            }
+        });
+
         if (enable) {
-            const origSize = parseFloat(el.dataset.origFontSize);
-            el.style.fontSize = (origSize * MENU_CONFIG.readabilityScale) + 'px';
+            // Instantly calculate the exact max multiplier before hitting the container's edges
+            textElements.forEach(el => el.style.transition = 'none');
+            
+            let testMultiplier = 1.0;
+            const parentRect = container.getBoundingClientRect();
+
+            while (testMultiplier < MENU_CONFIG.maxReadabilityScale) {
+                testMultiplier += 0.05;
+                textElements.forEach(el => {
+                    const orig = parseFloat(el.dataset.origFontSize);
+                    el.style.fontSize = (orig * testMultiplier) + 'px';
+                });
+
+                let hitEdge = false;
+                if (testMultiplier > 1.05) {
+                    textElements.forEach(el => {
+                        const rect = el.getBoundingClientRect();
+                        if (rect.bottom > parentRect.bottom - 4 || rect.right > parentRect.right - 4) {
+                            hitEdge = true;
+                        }
+                    });
+                }
+
+                if (hitEdge) {
+                    testMultiplier -= 0.05; // Step back to the last safe size that fit inside the box
+                    break;
+                }
+            }
+
+            const finalMultiplier = Math.max(1, testMultiplier);
+            
+            // Reset to current size briefly, then smoothly animate up to the calculated max size
+            const startMult = parseFloat(container.dataset.fontMultiplier || "1");
+            textElements.forEach(el => {
+                const orig = parseFloat(el.dataset.origFontSize);
+                el.style.fontSize = (orig * startMult) + 'px';
+                void el.offsetWidth; // Force reflow so the browser registers the starting point
+                el.style.transition = 'font-size 0.6s cubic-bezier(0.42, 0, 0.58, 1)';
+                el.style.fontSize = (orig * finalMultiplier) + 'px';
+            });
+
+            container.dataset.fontMultiplier = finalMultiplier.toString();
         } else {
-            el.style.fontSize = el.dataset.origFontSize;
-            setTimeout(() => { el.style.transition = 'none'; }, 600);
+            // Smoothly shrink back to normal 1x size
+            container.dataset.fontMultiplier = "1";
+            textElements.forEach(el => {
+                const orig = parseFloat(el.dataset.origFontSize);
+                el.style.transition = 'font-size 0.6s cubic-bezier(0.42, 0, 0.58, 1)';
+                el.style.fontSize = orig + 'px';
+                setTimeout(() => {
+                    if (localStorage.getItem('dws_readability_mode') !== 'true') {
+                        el.style.transition = 'none';
+                    }
+                }, 650);
+            });
         }
     });
+
     updateMenuVisuals();
 }
 
@@ -301,7 +361,6 @@ function toggleReadabilityMode(enable) {
 function initLiquidGlassMenu() {
     if (document.getElementById('dws-glass-pill')) return;
 
-    // 1. Inject Styles
     const style = document.createElement('style');
     style.innerHTML = `
         :root {
@@ -314,8 +373,8 @@ function initLiquidGlassMenu() {
             position: fixed;
             top: 0;
             right: 0;
-            width: 150px;
-            height: 120px;
+            width: ${MENU_CONFIG.hoverZoneWidth};
+            height: ${MENU_CONFIG.hoverZoneHeight};
             z-index: 999998;
         }
 
@@ -383,7 +442,6 @@ function initLiquidGlassMenu() {
             transition-delay: 0.1s;
         }
 
-        /* Active "Glowing White" State */
         .dws-pill-btn.active {
             background: rgba(255, 255, 255, 0.95);
             color: #000;
@@ -393,14 +451,12 @@ function initLiquidGlassMenu() {
     `;
     document.head.appendChild(style);
 
-    // 2. Inject HTML
     const hoverZone = document.createElement('div');
     hoverZone.id = 'dws-menu-hover-zone';
     
     const pill = document.createElement('div');
     pill.id = 'dws-glass-pill';
     
-    // Performance Leaf SVG & Readability Eye SVG
     pill.innerHTML = `
         <div class="dws-pill-btn" id="btn-low-res">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -421,7 +477,6 @@ function initLiquidGlassMenu() {
     document.body.appendChild(hoverZone);
     document.body.appendChild(pill);
 
-    // 3. Logic & Events
     const btnLowRes = document.getElementById('btn-low-res');
     const btnReadability = document.getElementById('btn-readability');
 
@@ -437,13 +492,11 @@ function initLiquidGlassMenu() {
         }, MENU_CONFIG.autoHideDelay);
     };
 
-    // Hover events for the invisible corner zone and the menu itself
     hoverZone.addEventListener('mouseenter', showMenu);
     hoverZone.addEventListener('mouseleave', triggerHideMenu);
     pill.addEventListener('mouseenter', showMenu);
     pill.addEventListener('mouseleave', triggerHideMenu);
 
-    // Button Clicks
     btnLowRes.addEventListener('click', () => {
         if (isLowResourceMode) { disableLowResourceMode(); } 
         else { enableLowResourceMode('User manually toggled menu'); }
@@ -454,14 +507,10 @@ function initLiquidGlassMenu() {
         toggleReadabilityMode(!isCurrentlyEnabled);
     });
 
-    // 4. Initial State Checks
-    // Restore readability from previous session
     if (localStorage.getItem('dws_readability_mode') === 'true') {
-        // Need a tiny timeout to ensure the DOM text is loaded before scaling
-        setTimeout(() => toggleReadabilityMode(true), 100);
+        setTimeout(() => toggleReadabilityMode(true), 150);
     }
     
-    // First open logic
     if (!localStorage.getItem('dws_pill_first_open')) {
         setTimeout(() => {
             showMenu();
@@ -471,7 +520,6 @@ function initLiquidGlassMenu() {
     }
 }
 
-// Updates the visual glow based on current variables
 function updateMenuVisuals() {
     const btnLowRes = document.getElementById('btn-low-res');
     const btnReadability = document.getElementById('btn-readability');
