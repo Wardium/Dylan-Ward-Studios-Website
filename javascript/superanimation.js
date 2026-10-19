@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. Inject the ultra-smooth CSS animations into the head
+  // 1. Inject the ultra-smooth CSS animations and baseline transitions into the head
   const style = document.createElement('style');
   style.innerHTML = `
     :root {
@@ -43,9 +43,11 @@ document.addEventListener("DOMContentLoaded", () => {
     .anim-content-pop { animation: smoothContentPop 1.2s var(--ultra-smooth) forwards; }
     .anim-rainbow { animation: smoothRainbow 2s var(--ultra-smooth) forwards; }
 
+    /* Permanent smooth transition on all interactive text so nothing ever feels clunky */
     .fancy-text-target {
       will-change: transform, filter, color, font-size;
       transform-origin: center center;
+      transition: font-size 0.4s var(--ultra-smooth), transform 0.4s var(--ultra-smooth), filter 0.4s var(--ultra-smooth), color 0.4s ease;
     }
     
     span.fancy-text-target, a.fancy-text-target, strong.fancy-text-target, em.fancy-text-target {
@@ -56,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
       cursor: pointer;
       user-select: none; 
       -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
   `;
   document.head.appendChild(style);
@@ -72,7 +75,6 @@ document.addEventListener("DOMContentLoaded", () => {
     'anim-rainbow'
   ];
 
-  // Helper to check if Readability Mode is currently active
   const isReadabilityOn = () => localStorage.getItem('dws_readability_mode') === 'true';
 
   // 3. Find elements and attach listeners
@@ -91,17 +93,20 @@ document.addEventListener("DOMContentLoaded", () => {
       el.classList.add('fancy-clickable-parent');
       el.dataset.fontMultiplier = "1";
 
+      // Apply baseline smooth transition class to all inner text immediately on load
+      const initialTextElements = el.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, strong, em, blockquote');
+      initialTextElements.forEach(textEl => {
+        textEl.classList.add('fancy-text-target');
+      });
+
       let holdRequest;
       let isHolding = false;
       let holdStartTime = 0;
       let idleTimeout;
 
-      // Expose a way for gateway.js to cancel pending shrink timers when Readability Mode is toggled
       el._clearIdleTimeout = () => clearTimeout(idleTimeout);
 
-      // Function to smoothly shrink back if idle for 5 seconds
       const shrinkToNormal = () => {
-        // NEVER shrink if Readability Mode is enabled
         if (isHolding || el.dataset.isAnimating === 'true' || isReadabilityOn()) return;
         
         const textElements = el.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, strong, em, blockquote');
@@ -110,12 +115,8 @@ document.addEventListener("DOMContentLoaded", () => {
         textElements.forEach(textEl => {
           const origSize = parseFloat(textEl.dataset.origFontSize);
           if (origSize) {
-            textEl.style.transition = 'font-size 0.8s var(--ultra-smooth)';
+            textEl.style.transition = 'font-size 0.8s var(--ultra-smooth), transform 0.4s var(--ultra-smooth), color 0.4s ease';
             textEl.style.fontSize = origSize + 'px';
-            
-            setTimeout(() => {
-              if (!isHolding) textEl.style.transition = 'none';
-            }, 850);
           }
         });
       };
@@ -141,18 +142,17 @@ document.addEventListener("DOMContentLoaded", () => {
             const computedStyle = window.getComputedStyle(textEl);
             textEl.dataset.origFontSize = parseFloat(computedStyle.fontSize);
           } else if (!isReadabilityOn()) {
-            // Only sync dynamic multiplier if NOT in Readability Mode
             const currentComputedSize = parseFloat(window.getComputedStyle(textEl).fontSize);
             const origSize = parseFloat(textEl.dataset.origFontSize);
             el.dataset.fontMultiplier = (currentComputedSize / origSize).toString();
           }
           
           if (!isReadabilityOn()) {
-            textEl.style.transition = 'none';
+            // Micro-transition during active hold so frame updates blend smoothly
+            textEl.style.transition = 'font-size 0.08s linear, transform 0.4s var(--ultra-smooth), color 0.4s ease';
           }
         });
 
-        // If Readability Mode is ON, do not start the hold-to-grow loop
         if (isReadabilityOn()) return;
 
         const growText = () => {
@@ -184,15 +184,13 @@ document.addEventListener("DOMContentLoaded", () => {
             
             textElements.forEach(textEl => {
               const origSize = parseFloat(textEl.dataset.origFontSize);
-              textEl.style.transition = 'font-size 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
+              textEl.style.transition = 'font-size 0.35s cubic-bezier(0.25, 1, 0.5, 1)';
               textEl.style.fontSize = (origSize * 0.85) + 'px';
               
               setTimeout(() => {
-                textEl.style.transition = 'font-size 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+                textEl.style.transition = 'font-size 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
                 textEl.style.fontSize = origSize + 'px';
-                
-                setTimeout(() => { textEl.style.transition = 'none'; }, 400);
-              }, 300);
+              }, 350);
             });
             return;
           }
@@ -210,10 +208,16 @@ document.addEventListener("DOMContentLoaded", () => {
         cancelAnimationFrame(holdRequest);
 
         const holdDuration = Date.now() - holdStartTime;
+        const textElements = el.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, strong, em, blockquote');
+
+        // Restore smooth 0.4s transition when letting go
+        if (!isReadabilityOn()) {
+          textElements.forEach(textEl => {
+            textEl.style.transition = 'font-size 0.4s var(--ultra-smooth), transform 0.4s var(--ultra-smooth), color 0.4s ease';
+          });
+        }
         
-        // Trigger click animation on quick click (or any click while in Readability Mode)
         if (holdDuration < 200 || (isReadabilityOn() && e.type !== 'mouseleave' && e.type !== 'touchcancel')) {
-          const textElements = el.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, strong, em, blockquote');
           if (textElements.length === 0) return;
 
           const randomAnim = animationClasses[Math.floor(Math.random() * animationClasses.length)];
@@ -232,7 +236,6 @@ document.addEventListener("DOMContentLoaded", () => {
           }, { once: true });
         }
 
-        // Only start the 5-second shrink countdown if Readability Mode is OFF
         if (!isReadabilityOn() && parseFloat(el.dataset.fontMultiplier) > 1.01) {
           clearTimeout(idleTimeout);
           idleTimeout = setTimeout(shrinkToNormal, 5000);
