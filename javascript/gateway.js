@@ -6,7 +6,7 @@ const MENU_CONFIG = {
     rightPosition: "17px",    // Distance of the pill from the right
     hoverZoneWidth: "60px",   // Smaller corner trigger width
     hoverZoneHeight: "50px",  // Smaller corner trigger height
-    buttonSize: "38px",       // Size of the circular buttons
+    buttonSize: "2.3rem",       // Size of the circular buttons
     expandedWidth: "190px",   // Width of the button when hovered to show text
     autoOpenDelay: 2450,      // 2.45 seconds before opening on first visit
     autoHideDelay: 4000,      // 4 seconds before it leaves if untouched
