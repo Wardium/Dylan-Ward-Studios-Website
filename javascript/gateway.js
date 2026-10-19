@@ -52,14 +52,22 @@ function initStealthAndPerformance() {
         initPerformanceMonitor();
     }
 
-    // Listen for clicks during the 2.45-second window
+    console.log(
+        "%c[Auth] ⏱️ 2.45s Stealth Window OPEN. Click anywhere on the page to test login...",
+        "color: #00e5ff; font-weight: bold;"
+    );
+
+    // Listen for a click within the 2.45-second window
     document.addEventListener('click', handleStealthClick);
 
-    // If 2.45 seconds pass, run the authorization check automatically
+    // Close the window after 2.45 seconds if no click happened
     triggerWindowTimeout = setTimeout(() => {
         document.removeEventListener('click', handleStealthClick);
-        if (!isCancelled && !isAuthChecked) {
-            checkAuthorization();
+        if (!isAuthChecked) {
+            console.log(
+                "%c[Auth] 🔒 2.45s Stealth Window EXPIRED (No click detected). Remaining on public site.",
+                "color: #888888;"
+            );
         }
     }, STEALTH_WINDOW_MS);
 
@@ -77,43 +85,82 @@ function handleStealthClick(e) {
     if (e && e.target && e.target.closest('#dws-glass-pill, #dws-menu-hover-zone')) return;
     if (isAuthChecked) return;
 
-    // Trigger auth check immediately when clicked within the 2.45s window!
-    // (Note: If you meant clicking within 2.45s should CANCEL the redirect instead, 
-    // just uncomment `isCancelled = true; return;` below)
     clearTimeout(triggerWindowTimeout);
     document.removeEventListener('click', handleStealthClick);
-    console.log("[Auth] Click detected within 2.45s window. Checking authorization...");
+    
+    console.log(
+        "%c[Auth] 🖱️ Stealth Click registered inside 2.45s window! Contacting Gatekeeper...",
+        "color: #ffca3a; font-weight: bold;"
+    );
     checkAuthorization();
 }
 
 async function checkAuthorization() {
-    if (isCancelled || isAuthChecked) return;
+    if (isAuthChecked) return;
     isAuthChecked = true;
 
-    console.log("[Auth] 1. Initiating authorization check...");
+    console.group("%c[Auth] Gatekeeper Verification Diagnostic", "color: #00e5ff; font-weight: bold;");
+    console.log("1. Current Page Origin:", window.location.origin);
+    console.log("2. Target Endpoint: https://auth.teamexist.com/api/verify (POST)");
+
+    // Warn immediately if testing from an origin not in ALLOWED_ORIGINS
+    const allowedOrigins = ["https://teamexist.com", "https://www.teamexist.com"];
+    if (!allowedOrigins.includes(window.location.origin)) {
+        console.warn(
+            `⚠️ CORS WARNING: You are testing from '${window.location.origin}', which is NOT in your Flask ALLOWED_ORIGINS list! The browser will block this request.`
+        );
+    }
+
     try {
         const response = await fetch('https://auth.teamexist.com/api/verify', {
-            method: 'GET', // Standard for verify endpoints; change to 'POST' if your server requires it
-            credentials: 'include', // CRITICAL: Sends your auth cookies across subdomains!
-            headers: { 'Content-Type': 'application/json' }
+            method: 'POST',          // MUST be POST to match your Flask route!
+            credentials: 'include',  // Sends your 'dws_auth' cookie across subdomains
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ timestamp: Date.now() })
         });
 
-        if (isCancelled) return;
+        console.log(`3. HTTP Response Status: ${response.status} ${response.statusText}`);
+
+        if (!response.ok) {
+            console.error(`❌ Server returned HTTP ${response.status}. Check if method is POST.`);
+            console.groupEnd();
+            return;
+        }
 
         const data = await response.json();
+        console.log("4. Raw JSON Payload from Server:", data);
+
+        if (data.debug) {
+            console.table(data.debug);
+        }
 
         if (data.authorized && data.dashboard_url) {
-            console.log("[Auth] Access GRANTED. Beginning animation sequence...");
+            console.log(
+                `%c✅ [Auth] ACCESS GRANTED! Redirecting to: ${data.dashboard_url}`,
+                "color: #8ac926; font-weight: bold; font-size: 13px;"
+            );
+            console.groupEnd();
+
             if (typeof runConnectionSequence === 'function') {
                 await runConnectionSequence(data.dashboard_url);
             } else {
                 window.location.href = data.dashboard_url;
             }
         } else {
-            console.warn("[Auth] Access DENIED (or missing target URL). Remaining on public site.");
+            console.warn(
+                "%c⛔ [Auth] ACCESS DENIED by server. You are not logged in (or cookie 'dws_auth' is missing/invalid).",
+                "color: #ff595e; font-weight: bold;"
+            );
+            console.groupEnd();
         }
     } catch (error) {
-        console.error("[Auth] FATAL ERROR: The fetch request failed.", error);
+        console.error("❌ [Auth] NETWORK / CORS FAILURE:", error);
+        console.info(
+            "💡 Troubleshooting Tip: If you see 'Failed to fetch', check two things:\n" +
+            "1. Are you on https://teamexist.com or https://www.teamexist.com?\n" +
+            "2. Was your 'dws_auth' cookie set with domain='.teamexist.com' and SameSite='None'; Secure=True?"
+        );
+        console.groupEnd();
     }
 }
 
