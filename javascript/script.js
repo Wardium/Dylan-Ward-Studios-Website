@@ -1,4 +1,4 @@
-// ----------------------
+/ ----------------------
 // RANDOM BACKGROUND SVG
 // ----------------------
 const backgrounds = [
@@ -15,25 +15,30 @@ const introOverlay = document.querySelector('.intro-overlay');
 const bgSharp = document.getElementById('bg-sharp');
 const bgBlur = document.getElementById('bg-blur');
 
-const cssBgValue = `url('${randomBg}')`;
-
-// 1. Set Intro Overlay
-if (introOverlay) {
-  introOverlay.style.backgroundImage = cssBgValue;
-}
-
-// 2. Set Sharp Layer (Replaces body background)
-if (bgSharp) {
-  bgSharp.style.backgroundImage = cssBgValue;
-}
-
-// 3. Set Blur Layer
-if (bgBlur) {
-  bgBlur.style.backgroundImage = cssBgValue;
-}
-
 // Ensure body has no background so layers show through
 document.body.style.background = 'none';
+
+// Fetch the SVG once, create a single in-memory Blob URL, and apply to all 3 layers
+fetch(randomBg)
+  .then(response => response.blob())
+  .then(blob => {
+    const objectUrl = URL.createObjectURL(blob);
+    const cssBgValue = `url('${objectUrl}')`;
+
+    if (introOverlay) introOverlay.style.backgroundImage = cssBgValue;
+    if (bgSharp) bgSharp.style.backgroundImage = cssBgValue;
+    if (bgBlur) bgBlur.style.backgroundImage = cssBgValue;
+  })
+  .catch(err => {
+    console.error('Error loading background SVG:', err);
+    // Fallback if running via file:// protocol where fetch() is blocked by CORS
+    const fallbackVal = `url('${randomBg}')`;
+    if (introOverlay) introOverlay.style.backgroundImage = fallbackVal;
+    if (bgSharp) bgSharp.style.backgroundImage = fallbackVal;
+    if (bgBlur) bgBlur.style.backgroundImage = fallbackVal;
+  });
+
+
 
 // ----------------------
 // INITIAL SECTIONS
