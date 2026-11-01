@@ -1,4 +1,4 @@
-/ ----------------------
+// ----------------------
 // RANDOM BACKGROUND SVG
 // ----------------------
 const backgrounds = [
@@ -15,30 +15,26 @@ const introOverlay = document.querySelector('.intro-overlay');
 const bgSharp = document.getElementById('bg-sharp');
 const bgBlur = document.getElementById('bg-blur');
 
+const cssBgValue = `url('${randomBg}')`;
+
 // Ensure body has no background so layers show through
 document.body.style.background = 'none';
 
-// Fetch the SVG once, create a single in-memory Blob URL, and apply to all 3 layers
-fetch(randomBg)
-  .then(response => response.blob())
-  .then(blob => {
-    const objectUrl = URL.createObjectURL(blob);
-    const cssBgValue = `url('${objectUrl}')`;
-
-    if (introOverlay) introOverlay.style.backgroundImage = cssBgValue;
-    if (bgSharp) bgSharp.style.backgroundImage = cssBgValue;
-    if (bgBlur) bgBlur.style.backgroundImage = cssBgValue;
-  })
-  .catch(err => {
-    console.error('Error loading background SVG:', err);
-    // Fallback if running via file:// protocol where fetch() is blocked by CORS
-    const fallbackVal = `url('${randomBg}')`;
-    if (introOverlay) introOverlay.style.backgroundImage = fallbackVal;
-    if (bgSharp) bgSharp.style.backgroundImage = fallbackVal;
-    if (bgBlur) bgBlur.style.backgroundImage = fallbackVal;
-  });
-
-
+// Apply immediately to introOverlay so it isn't grey on initial paint,
+// and use a single Image() preloader so bgSharp & bgBlur reuse the single download
+const bgPreloader = new Image();
+bgPreloader.onload = () => {
+  if (introOverlay) introOverlay.style.backgroundImage = cssBgValue;
+  if (bgSharp) bgSharp.style.backgroundImage = cssBgValue;
+  if (bgBlur) bgBlur.style.backgroundImage = cssBgValue;
+};
+bgPreloader.onerror = () => {
+  // Fallback if image fails
+  if (introOverlay) introOverlay.style.backgroundImage = cssBgValue;
+  if (bgSharp) bgSharp.style.backgroundImage = cssBgValue;
+  if (bgBlur) bgBlur.style.backgroundImage = cssBgValue;
+};
+bgPreloader.src = randomBg;
 
 // ----------------------
 // INITIAL SECTIONS
