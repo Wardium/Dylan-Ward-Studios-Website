@@ -2,10 +2,10 @@
 // RANDOM BACKGROUND SVG
 // ----------------------
 const backgrounds = [
-  'assets/background1.svg',
-  'assets/background2.svg',
-  'assets/background3.svg',
-  'assets/background4.svg'
+  'assets/background1.svg',
+  'assets/background2.svg',
+  'assets/background3.svg',
+  'assets/background4.svg'
 ];
 
 const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
@@ -17,24 +17,23 @@ const bgBlur = document.getElementById('bg-blur');
 
 const cssBgValue = `url('${randomBg}')`;
 
+// 1. Set Intro Overlay
+if (introOverlay) {
+  introOverlay.style.backgroundImage = cssBgValue;
+}
+
+// 2. Set Sharp Layer (Replaces body background)
+if (bgSharp) {
+  bgSharp.style.backgroundImage = cssBgValue;
+}
+
+// 3. Set Blur Layer
+if (bgBlur) {
+  bgBlur.style.backgroundImage = cssBgValue;
+}
+
 // Ensure body has no background so layers show through
 document.body.style.background = 'none';
-
-// Apply immediately to introOverlay so it isn't grey on initial paint,
-// and use a single Image() preloader so bgSharp & bgBlur reuse the single download
-const bgPreloader = new Image();
-bgPreloader.onload = () => {
-  if (introOverlay) introOverlay.style.backgroundImage = cssBgValue;
-  if (bgSharp) bgSharp.style.backgroundImage = cssBgValue;
-  if (bgBlur) bgBlur.style.backgroundImage = cssBgValue;
-};
-bgPreloader.onerror = () => {
-  // Fallback if image fails
-  if (introOverlay) introOverlay.style.backgroundImage = cssBgValue;
-  if (bgSharp) bgSharp.style.backgroundImage = cssBgValue;
-  if (bgBlur) bgBlur.style.backgroundImage = cssBgValue;
-};
-bgPreloader.src = randomBg;
 
 // ----------------------
 // INITIAL SECTIONS
@@ -49,58 +48,58 @@ let isAnimating = false;
 // SECTION TRANSITION
 // ----------------------
 function showSection(newIndex, direction) {
-  if (isAnimating || newIndex === current) return;
-  isAnimating = true;
+  if (isAnimating || newIndex === current) return;
+  isAnimating = true;
 
-  const currentSection = sections[current];
-  const nextSection = sections[newIndex];
+  const currentSection = sections[current];
+  const nextSection = sections[newIndex];
 
-  sections.forEach(sec => sec.classList.remove(
-    'slide-in-from-left',
-    'slide-in-from-right',
-    'slide-out-to-left',
-    'slide-out-to-right',
-    'active'
-  ));
+  sections.forEach(sec => sec.classList.remove(
+    'slide-in-from-left',
+    'slide-in-from-right',
+    'slide-out-to-left',
+    'slide-out-to-right',
+    'active'
+  ));
 
-  if (direction === 'right') nextSection.classList.add('slide-in-from-right');
-  else nextSection.classList.add('slide-in-from-left');
+  if (direction === 'right') nextSection.classList.add('slide-in-from-right');
+  else nextSection.classList.add('slide-in-from-left');
 
-  nextSection.classList.add('active');
-  void nextSection.offsetWidth;
+  nextSection.classList.add('active');
+  void nextSection.offsetWidth;
 
-  if (direction === 'right') {
-    currentSection.classList.add('slide-out-to-left');
-    nextSection.classList.remove('slide-in-from-right');
-  } else {
-    currentSection.classList.add('slide-out-to-right');
-    nextSection.classList.remove('slide-in-from-left');
-  }
+  if (direction === 'right') {
+    currentSection.classList.add('slide-out-to-left');
+    nextSection.classList.remove('slide-in-from-right');
+  } else {
+    currentSection.classList.add('slide-out-to-right');
+    nextSection.classList.remove('slide-in-from-left');
+  }
 
-  setTimeout(() => {
-    currentSection.classList.remove('active', 'slide-out-to-left', 'slide-out-to-right');
-    current = newIndex;
-    isAnimating = false;
-  }, 500);
+  setTimeout(() => {
+    currentSection.classList.remove('active', 'slide-out-to-left', 'slide-out-to-right');
+    current = newIndex;
+    isAnimating = false;
+  }, 500);
 }
 
 // ----------------------
 // NAVIGATION
 // ----------------------
 if (rightArrow) {
-  rightArrow.addEventListener('click', () => {
-    const newIndex = (current + 1) % sections.length;
-    showSection(newIndex, 'right');
-    registerInput('right');
-  });
+  rightArrow.addEventListener('click', () => {
+    const newIndex = (current + 1) % sections.length;
+    showSection(newIndex, 'right');
+    registerInput('right');
+  });
 }
 
 if (leftArrow) {
-  leftArrow.addEventListener('click', () => {
-    const newIndex = (current - 1 + sections.length) % sections.length;
-    showSection(newIndex, 'left');
-    registerInput('left');
-  });
+  leftArrow.addEventListener('click', () => {
+    const newIndex = (current - 1 + sections.length) % sections.length;
+    showSection(newIndex, 'left');
+    registerInput('left');
+  });
 }
 
 // ----------------------
@@ -112,37 +111,37 @@ let comboTimeout;
 let devUnlocked = false;
 
 function registerInput(direction) {
-  inputSequence.push(direction);
-  if (inputSequence.length > secretCombo.length) inputSequence.shift();
+  inputSequence.push(direction);
+  if (inputSequence.length > secretCombo.length) inputSequence.shift();
 
-  clearTimeout(comboTimeout);
-  comboTimeout = setTimeout(() => inputSequence = [], 3000);
+  clearTimeout(comboTimeout);
+  comboTimeout = setTimeout(() => inputSequence = [], 3000);
 
-  if (JSON.stringify(inputSequence) === JSON.stringify(secretCombo)) {
-    unlockDevSection(); // no password
-    inputSequence = [];
-  }
+  if (JSON.stringify(inputSequence) === JSON.stringify(secretCombo)) {
+    unlockDevSection(); // no password
+    inputSequence = [];
+  }
 }
 
 function unlockDevSection() {
-  if (devUnlocked) return;
-  const devSection = document.querySelector('.dev-section');
-  if (!devSection) return;
+  if (devUnlocked) return;
+  const devSection = document.querySelector('.dev-section');
+  if (!devSection) return;
 
-  devSection.classList.remove('hidden');
+  devSection.classList.remove('hidden');
 
-  // Add to sections array so arrows can scroll to it
-  sections.push(devSection);
-  devUnlocked = true;
+  // Add to sections array so arrows can scroll to it
+  sections.push(devSection);
+  devUnlocked = true;
 
-  // Immediately show dev section, bypassing isAnimating
-  const newIndex = sections.indexOf(devSection);
+  // Immediately show dev section, bypassing isAnimating
+  const newIndex = sections.indexOf(devSection);
 
-  // Temporarily disable isAnimating to force jump
-  const prevAnimating = isAnimating;
-  isAnimating = false;
-  showSection(newIndex, 'right');
-  isAnimating = prevAnimating;
+  // Temporarily disable isAnimating to force jump
+  const prevAnimating = isAnimating;
+  isAnimating = false;
+  showSection(newIndex, 'right');
+  isAnimating = prevAnimating;
 }
 
 // ----------------------
@@ -153,32 +152,32 @@ const header = document.querySelector('header');
 const footer = document.querySelector('footer');
 
 if (header) {
-  header.style.opacity = '0';
-  header.style.transition = 'opacity 1s ease';
+  header.style.opacity = '0';
+  header.style.transition = 'opacity 1s ease';
 }
 if (footer) {
-  footer.style.opacity = '0';
-  footer.style.transition = 'opacity 1s ease';
+  footer.style.opacity = '0';
+  footer.style.transition = 'opacity 1s ease';
 }
 
 window.addEventListener('load', () => {
-  const introOverlay = document.querySelector('.intro-overlay');
-  const introLogo = document.querySelector('.intro-logo');
+  const introOverlay = document.querySelector('.intro-overlay');
+  const introLogo = document.querySelector('.intro-logo');
 
-  setTimeout(() => {
-    if (introOverlay) introOverlay.classList.add('fade-out');
-    // Unload the animated SVG after the fade-out finishes
-    setTimeout(() => {
-      if (introLogo) {
-        introLogo.removeAttribute('src');
-        introLogo.remove();
-      }
-    }, 1000);
-  }, 2450);
+  setTimeout(() => {
+    if (introOverlay) introOverlay.classList.add('fade-out');
+    // Unload the animated SVG after the fade-out finishes
+    setTimeout(() => {
+      if (introLogo) {
+        introLogo.removeAttribute('src');
+        introLogo.remove();
+      }
+    }, 1000);
+  }, 2450);
 
-  setTimeout(() => {
-    if (main) main.classList.add('main-fly-in');
-    if (header) header.style.opacity = '1';
-    if (footer) footer.style.opacity = '1';
-  }, 2450);
+  setTimeout(() => {
+    if (main) main.classList.add('main-fly-in');
+    if (header) header.style.opacity = '1';
+    if (footer) footer.style.opacity = '1';
+  }, 2450);
 });
