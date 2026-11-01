@@ -1,186 +1,216 @@
-// ----------------------
-// RANDOM BACKGROUND SVG
-// ----------------------
-const backgrounds = [
-  'assets/background1.svg',
-  'assets/background2.svg',
-  'assets/background3.svg',
-  'assets/background4.svg',
-  'assets/background5.svg',
-  'assets/background6.svg',
-  'assets/background7.svg'
-];
+document.addEventListener('DOMContentLoaded', () => {
+  // ----------------------
+  // RANDOM BACKGROUND SVG
+  // ----------------------
+  const backgrounds = [
+    'assets/background1.svg',
+    'assets/background2.svg',
+    'assets/background3.svg',
+    'assets/background4.svg',
+    'assets/background5.svg',
+    'assets/background6.svg',
+    'assets/background7.svg'
+  ];
 
-const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+  const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+  const cssBgValue = `url('${randomBg}')`;
 
-// Get the elements
-const introOverlay = document.querySelector('.intro-overlay');
-const bgSharp = document.getElementById('bg-sharp');
-const bgBlur = document.getElementById('bg-blur');
+  const introOverlay = document.querySelector('.intro-overlay');
+  const bgSharp = document.getElementById('bg-sharp');
+  const bgBlur = document.getElementById('bg-blur');
 
-const cssBgValue = `url('${randomBg}')`;
+  if (introOverlay) introOverlay.style.backgroundImage = cssBgValue;
+  if (bgSharp) bgSharp.style.backgroundImage = cssBgValue;
+  if (bgBlur) bgBlur.style.backgroundImage = cssBgValue;
 
-// 1. Set Intro Overlay
-if (introOverlay) {
-  introOverlay.style.backgroundImage = cssBgValue;
-}
+  if (document.body) {
+    document.body.style.background = 'none';
+  }
 
-// 2. Set Sharp Layer (Replaces body background)
-if (bgSharp) {
-  bgSharp.style.backgroundImage = cssBgValue;
-}
+  // ----------------------
+  // INITIAL SECTIONS
+  // ----------------------
+  let sections = Array.from(document.querySelectorAll('.section:not(.dev-section)'));
+  const leftArrow = document.querySelector('.arrow.left');
+  const rightArrow = document.querySelector('.arrow.right');
+  let current = 0;
+  let isAnimating = false;
+  let transitionTimeout = null;
 
-// 3. Set Blur Layer
-if (bgBlur) {
-  bgBlur.style.backgroundImage = cssBgValue;
-}
+  // Ensure the first section starts active and others do not
+  if (sections.length > 0) {
+    sections.forEach((sec, idx) => {
+      sec.classList.toggle('active', idx === 0);
+    });
+  }
 
-// Ensure body has no background so layers show through
-document.body.style.background = 'none';
+  // ----------------------
+  // SECTION TRANSITION
+  // ----------------------
+  function showSection(newIndex, direction, force = false) {
+    if (sections.length === 0) return;
+    if ((!force && isAnimating) || newIndex === current) return;
 
-// ----------------------
-// INITIAL SECTIONS
-// ----------------------
-let sections = Array.from(document.querySelectorAll('.section:not(.dev-section)'));
-const leftArrow = document.querySelector('.arrow.left');
-const rightArrow = document.querySelector('.arrow.right');
-let current = 0;
-let isAnimating = false;
+    // If forcing a jump (e.g., dev unlock), cancel any in-flight animation
+    if (transitionTimeout) {
+      clearTimeout(transitionTimeout);
+      transitionTimeout = null;
+    }
 
-// ----------------------
-// SECTION TRANSITION
-// ----------------------
-function showSection(newIndex, direction) {
-  if (isAnimating || newIndex === current) return;
-  isAnimating = true;
+    isAnimating = true;
 
-  const currentSection = sections[current];
-  const nextSection = sections[newIndex];
+    const currentSection = sections[current];
+    const nextSection = sections[newIndex];
 
-  sections.forEach(sec => sec.classList.remove(
-    'slide-in-from-left',
-    'slide-in-from-right',
-    'slide-out-to-left',
-    'slide-out-to-right',
-    'active'
-  ));
+    // Clean animation classes off all sections, keep current & next active during transition
+    sections.forEach(sec => {
+      sec.classList.remove(
+        'slide-in-from-left',
+        'slide-in-from-right',
+        'slide-out-to-left',
+        'slide-out-to-right'
+      );
+      if (sec !== currentSection && sec !== nextSection) {
+        sec.classList.remove('active');
+      }
+    });
 
-  if (direction === 'right') nextSection.classList.add('slide-in-from-right');
-  else nextSection.classList.add('slide-in-from-left');
+    // Stage the incoming section
+    if (direction === 'right') {
+      nextSection.classList.add('slide-in-from-right');
+    } else {
+      nextSection.classList.add('slide-in-from-left');
+    }
 
-  nextSection.classList.add('active');
-  void nextSection.offsetWidth;
+    nextSection.classList.add('active');
 
-  if (direction === 'right') {
-    currentSection.classList.add('slide-out-to-left');
-    nextSection.classList.remove('slide-in-from-right');
-  } else {
-    currentSection.classList.add('slide-out-to-right');
-    nextSection.classList.remove('slide-in-from-left');
-  }
+    // Force browser reflow so the starting position registers before sliding
+    void nextSection.offsetWidth;
 
-  setTimeout(() => {
-    currentSection.classList.remove('active', 'slide-out-to-left', 'slide-out-to-right');
-    current = newIndex;
-    isAnimating = false;
-  }, 500);
-}
+    // Trigger slide animation
+    if (direction === 'right') {
+      if (currentSection) currentSection.classList.add('slide-out-to-left');
+      nextSection.classList.remove('slide-in-from-right');
+    } else {
+      if (currentSection) currentSection.classList.add('slide-out-to-right');
+      nextSection.classList.remove('slide-in-from-left');
+    }
 
-// ----------------------
-// NAVIGATION
-// ----------------------
-if (rightArrow) {
-  rightArrow.addEventListener('click', () => {
-    const newIndex = (current + 1) % sections.length;
-    showSection(newIndex, 'right');
-    registerInput('right');
-  });
-}
+    transitionTimeout = setTimeout(() => {
+      if (currentSection && currentSection !== nextSection) {
+        currentSection.classList.remove('active', 'slide-out-to-left', 'slide-out-to-right');
+      }
+      current = newIndex;
+      isAnimating = false;
+      transitionTimeout = null;
+    }, 500);
+  }
 
-if (leftArrow) {
-  leftArrow.addEventListener('click', () => {
-    const newIndex = (current - 1 + sections.length) % sections.length;
-    showSection(newIndex, 'left');
-    registerInput('left');
-  });
-}
+  // ----------------------
+  // SECRET COMBO & NAVIGATION
+  // ----------------------
+  const secretCombo = ['left', 'right', 'right', 'left', 'right'];
+  let inputSequence = [];
+  let comboTimeout = null;
+  let devUnlocked = false;
 
-// ----------------------
-// SECTION LOGIC
-// ----------------------
-const secretCombo = ['left', 'right', 'right', 'left', 'right'];
-let inputSequence = [];
-let comboTimeout;
-let devUnlocked = false;
+  function checkSecretCombo(direction) {
+    inputSequence.push(direction);
+    if (inputSequence.length > secretCombo.length) {
+      inputSequence.shift();
+    }
 
-function registerInput(direction) {
-  inputSequence.push(direction);
-  if (inputSequence.length > secretCombo.length) inputSequence.shift();
+    clearTimeout(comboTimeout);
+    comboTimeout = setTimeout(() => {
+      inputSequence = [];
+    }, 3000);
 
-  clearTimeout(comboTimeout);
-  comboTimeout = setTimeout(() => inputSequence = [], 3000);
+    if (
+      !devUnlocked &&
+      inputSequence.length === secretCombo.length &&
+      inputSequence.every((val, index) => val === secretCombo[index])
+    ) {
+      inputSequence = [];
+      return unlockDevSection();
+    }
+    return false;
+  }
 
-  if (JSON.stringify(inputSequence) === JSON.stringify(secretCombo)) {
-    unlockDevSection(); // no password
-    inputSequence = [];
-  }
-}
+  function unlockDevSection() {
+    if (devUnlocked) return false;
+    const devSection = document.querySelector('.dev-section');
+    if (!devSection) return false;
 
-function unlockDevSection() {
-  if (devUnlocked) return;
-  const devSection = document.querySelector('.dev-section');
-  if (!devSection) return;
+    devSection.classList.remove('hidden');
+    sections.push(devSection);
+    devUnlocked = true;
 
-  devSection.classList.remove('hidden');
+    const newIndex = sections.indexOf(devSection);
+    showSection(newIndex, 'right', true);
+    return true;
+  }
 
-  // Add to sections array so arrows can scroll to it
-  sections.push(devSection);
-  devUnlocked = true;
+  if (rightArrow) {
+    rightArrow.addEventListener('click', () => {
+      // Check combo first so we don't trigger two transitions at once
+      if (checkSecretCombo('right')) return;
+      if (sections.length === 0) return;
 
-  // Immediately show dev section, bypassing isAnimating
-  const newIndex = sections.indexOf(devSection);
+      const newIndex = (current + 1) % sections.length;
+      showSection(newIndex, 'right');
+    });
+  }
 
-  // Temporarily disable isAnimating to force jump
-  const prevAnimating = isAnimating;
-  isAnimating = false;
-  showSection(newIndex, 'right');
-  isAnimating = prevAnimating;
-}
+  if (leftArrow) {
+    leftArrow.addEventListener('click', () => {
+      if (checkSecretCombo('left')) return;
+      if (sections.length === 0) return;
 
-// ----------------------
-// INTRO ANIMATION
-// ----------------------
-const main = document.querySelector('main');
-const header = document.querySelector('header');
-const footer = document.querySelector('footer');
+      const newIndex = (current - 1 + sections.length) % sections.length;
+      showSection(newIndex, 'left');
+    });
+  }
 
-if (header) {
-  header.style.opacity = '0';
-  header.style.transition = 'opacity 1s ease';
-}
-if (footer) {
-  footer.style.opacity = '0';
-  footer.style.transition = 'opacity 1s ease';
-}
+  // ----------------------
+  // INTRO ANIMATION
+  // ----------------------
+  const main = document.querySelector('main');
+  const header = document.querySelector('header');
+  const footer = document.querySelector('footer');
 
-window.addEventListener('load', () => {
-  const introOverlay = document.querySelector('.intro-overlay');
-  const introLogo = document.querySelector('.intro-logo');
+  if (header) {
+    header.style.opacity = '0';
+    header.style.transition = 'opacity 1s ease';
+  }
+  if (footer) {
+    footer.style.opacity = '0';
+    footer.style.transition = 'opacity 1s ease';
+  }
 
-  setTimeout(() => {
-    if (introOverlay) introOverlay.classList.add('fade-out');
-    // Unload the animated SVG after the fade-out finishes
-    setTimeout(() => {
-      if (introLogo) {
-        introLogo.removeAttribute('src');
-        introLogo.remove();
-      }
-    }, 1000);
-  }, 2450);
+  function runIntroAnimation() {
+    const overlay = document.querySelector('.intro-overlay');
+    const introLogo = document.querySelector('.intro-logo');
 
-  setTimeout(() => {
-    if (main) main.classList.add('main-fly-in');
-    if (header) header.style.opacity = '1';
-    if (footer) footer.style.opacity = '1';
-  }, 2450);
+    setTimeout(() => {
+      if (overlay) overlay.classList.add('fade-out');
+
+      setTimeout(() => {
+        if (introLogo) {
+          introLogo.removeAttribute('src');
+          introLogo.remove();
+        }
+      }, 1000);
+
+      if (main) main.classList.add('main-fly-in');
+      if (header) header.style.opacity = '1';
+      if (footer) footer.style.opacity = '1';
+    }, 2450);
+  }
+
+  // Handle case where window 'load' already fired before script attached
+  if (document.readyState === 'complete') {
+    runIntroAnimation();
+  } else {
+    window.addEventListener('load', runIntroAnimation);
+  }
 });
