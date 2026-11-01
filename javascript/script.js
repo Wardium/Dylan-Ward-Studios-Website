@@ -5,9 +5,9 @@ const backgrounds = [
   'assets/background1.svg',
   'assets/background2.svg',
   'assets/background3.svg',
-  'assets/background4.svg'
-  'assets/background5.svg'
-  'assets/background6.svg'
+  'assets/background4.svg',
+  'assets/background5.svg',
+  'assets/background6.svg',
   'assets/background7.svg'
 ];
 
