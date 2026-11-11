@@ -168,64 +168,174 @@ async function checkAuthorization() {
 // 4. LOW-RESOURCE & FPS DETECTION ENGINE
 // ==========================================
 function initPerformanceMonitor() {
-    if (isNormalModeForced) return;
+    if (isNormalModeForced || isLowResourceMode) return;
 
-    const lowRAM = navigator.deviceMemory && navigator.deviceMemory <= 4;
-    const lowCPU = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // 1. Tighter hardware heuristics: only trigger immediately on severely constrained
+    // devices (<= 2GB RAM and <= 2 cores) or confirmed software WebGL renderers.
+    const lowRAM = navigator.deviceMemory && navigator.deviceMemory <= 2;
+    const lowCPU = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2;
     const isSoftwareGPU = checkSoftwareWebGL();
 
-    if ((lowRAM && lowCPU) || prefersReducedMotion || isSoftwareGPU) {
-        enableLowResourceMode("Hardware heuristics (Low RAM/CPU or software renderer)");
+    if ((lowRAM && lowCPU) || isSoftwareGPU) {
+        enableLowResourceMode("Hardware heuristics (<=2GB RAM/CPU or software renderer)");
         return;
     }
 
+    // Optional: Handle reduced motion separately without nuking image quality/shadows,
+    // or remove this block if you still want reduced-motion to force full low-spec mode.
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+        enableLowResourceMode("User prefers-reduced-motion");
+        return;
+    }
+
+    // 2. Tuning constants for lower sensitivity
+    const WARMUP_DELAY_MS = 3000;      // Ignore initial page-load/asset-decode lag
+    const MONITOR_DURATION_MS = 15000; // Total active monitoring window after warmup
+    const REQUIRED_STRIKES = 4;        // Require 4 bad seconds instead of 2
+    const SLOW_FRAME_MS = 55;          // Frame time > 55ms (~18 FPS) counts as a stutter frame
+    const MIN_SLOW_FRAME_RATIO = 0.45; // At least 45% of frames in the 1s window must be slow
+
+    // Use a lower effective FPS threshold if the global one is set high (e.g., 30 -> 22)
+    const effectiveFpsThreshold = typeof FPS_THRESHOLD !== 'undefined' ? Math.min(FPS_THRESHOLD, 24) : 22;
+
     let frameCount = 0;
-    let lastTime = performance.now();
+    let slowFrameCount = 0;
+    let lastWindowTime = 0;
+    let lastFrameTime = 0;
     let lowFpsStrikes = 0;
-    const monitorStart = lastTime;
+    let monitorStart = 0;
+    let wasInterrupted = false;
 
-    function checkFrame(now) {
-        if (isLowResourceMode || isNormalModeForced) return;
-
-        frameCount++;
-        const elapsed = now - lastTime;
-
-        if (elapsed >= 1000) {
-            if (!document.hidden) {
-                const currentFps = Math.round((frameCount * 1000) / elapsed);
-                if (currentFps < FPS_THRESHOLD) {
-                    lowFpsStrikes++;
-                    if (lowFpsStrikes >= 2) {
-                        enableLowResourceMode(`Sustained FPS drop detected (${currentFps} FPS)`);
-                        return;
-                    }
-                } else {
-                    lowFpsStrikes = 0;
-                }
-            }
-            frameCount = 0;
-            lastTime = now;
-        }
-
-        if (now - monitorStart < 12000) {
-            requestAnimationFrame(checkFrame);
+    // 3. Guard against mid-second tab switches or background window throttling
+    function handleVisibilityOrBlur() {
+        if (document.hidden || !document.hasFocus()) {
+            wasInterrupted = true;
+            lowFpsStrikes = 0;
         }
     }
-    requestAnimationFrame(checkFrame);
+
+    document.addEventListener('visibilitychange', handleVisibilityOrBlur, { passive: true });
+    window.addEventListener('blur', handleVisibilityOrBlur, { passive: true });
+
+    function cleanupListeners() {
+        document.removeEventListener('visibilitychange', handleVisibilityOrBlur);
+        window.removeEventListener('blur', handleVisibilityOrBlur);
+    }
+
+    function checkFrame(now) {
+        if (isLowResourceMode || isNormalModeForced) {
+            cleanupListeners();
+            return;
+        }
+
+        // Wait until tab is visible and focused before sampling
+        if (document.hidden || !document.hasFocus()) {
+            wasInterrupted = true;
+            requestAnimationFrame(checkFrame);
+            return;
+        }
+
+        // Reset current 1-second bucket if the tab was unfocused mid-sample
+        if (wasInterrupted) {
+            wasInterrupted = false;
+            frameCount = 0;
+            slowFrameCount = 0;
+            lastWindowTime = now;
+            lastFrameTime = now;
+            requestAnimationFrame(checkFrame);
+            return;
+        }
+
+        const frameDelta = now - lastFrameTime;
+        lastFrameTime = now;
+
+        // Ignore single massive main-thread freezes (> 300ms) caused by asset/script loading
+        if (frameDelta > 300) {
+            lastWindowTime = now;
+            frameCount = 0;
+            slowFrameCount = 0;
+            requestAnimationFrame(checkFrame);
+            return;
+        }
+
+        frameCount++;
+        if (frameDelta > SLOW_FRAME_MS) {
+            slowFrameCount++;
+        }
+
+        const elapsed = now - lastWindowTime;
+
+        if (elapsed >= 1000) {
+            const currentFps = Math.round((frameCount * 1000) / elapsed);
+            const slowFrameRatio = frameCount > 0 ? (slowFrameCount / frameCount) : 0;
+
+            // Only penalize if BOTH average FPS is low AND a high proportion of frames were slow
+            if (currentFps < effectiveFpsThreshold && slowFrameRatio >= MIN_SLOW_FRAME_RATIO) {
+                lowFpsStrikes++;
+                if (lowFpsStrikes >= REQUIRED_STRIKES) {
+                    cleanupListeners();
+                    enableLowResourceMode(
+                        `Sustained FPS drop (${currentFps} FPS, ${Math.round(slowFrameRatio * 100)}% slow frames)`
+                    );
+                    return;
+                }
+            } else {
+                // Decay strikes gradually instead of hard reset, or reset to 0 for even less sensitivity
+                lowFpsStrikes = Math.max(0, lowFpsStrikes - 1);
+            }
+
+            frameCount = 0;
+            slowFrameCount = 0;
+            lastWindowTime = now;
+        }
+
+        if (now - monitorStart < MONITOR_DURATION_MS) {
+            requestAnimationFrame(checkFrame);
+        } else {
+            cleanupListeners();
+        }
+    }
+
+    // Start monitoring only after initial page load and warmup delay
+    const startAfterWarmup = () => {
+        setTimeout(() => {
+            if (isLowResourceMode || isNormalModeForced) return;
+            const now = performance.now();
+            monitorStart = now;
+            lastWindowTime = now;
+            lastFrameTime = now;
+            requestAnimationFrame(checkFrame);
+        }, WARMUP_DELAY_MS);
+    };
+
+    if (document.readyState === 'complete') {
+        startAfterWarmup();
+    } else {
+        window.addEventListener('load', startAfterWarmup, { once: true });
+    }
 }
 
 function checkSoftwareWebGL() {
     try {
         const canvas = document.createElement('canvas');
         const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-        if (!gl) return true;
+        // Do not assume software rendering if WebGL is merely blocked by a privacy extension;
+        // let the runtime FPS monitor decide instead.
+        if (!gl) return false;
+
         const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
         if (debugInfo) {
-            const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toLowerCase();
-            return (renderer.includes('swiftshader') || renderer.includes('llvmpipe') || renderer.includes('basic render'));
+            const renderer = (gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || '').toLowerCase();
+            return (
+                renderer.includes('swiftshader') ||
+                renderer.includes('llvmpipe') ||
+                renderer.includes('basic render')
+            );
         }
-    } catch (e) { return false; }
+    } catch (e) {
+        return false;
+    }
     return false;
 }
 
@@ -233,24 +343,29 @@ function enableLowResourceMode(reason) {
     if (isLowResourceMode) return;
     isLowResourceMode = true;
     isNormalModeForced = false;
-    setCookie(COOKIE_NAME, 'false', 365);
+
+    // Shorten auto-detected persistence to 7 days (instead of 365) so a temporary
+    // background OS load doesn't permanently degrade the site for a year.
+    setCookie(COOKIE_NAME, 'false', 7);
     console.warn(`[Perf] Low Resource Mode ENABLED: ${reason}`);
 
-    const perfStyle = document.createElement('style');
-    perfStyle.id = 'dws-low-resource-styles';
-    perfStyle.innerHTML = `
-        body.dws-low-spec *:not(#dws-auth-overlay):not(#dws-auth-overlay *):not(#dws-glass-pill):not(#dws-glass-pill *) {
-            animation-duration: 0.05s !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.05s !important;
-            box-shadow: none !important;
-            text-shadow: none !important;
-            backdrop-filter: none !important;
-            filter: none !important;
-        }
-        body.dws-low-spec img { image-rendering: optimizeSpeed !important; }
-    `;
-    document.head.appendChild(perfStyle);
+    if (!document.getElementById('dws-low-resource-styles')) {
+        const perfStyle = document.createElement('style');
+        perfStyle.id = 'dws-low-resource-styles';
+        perfStyle.innerHTML = `
+            body.dws-low-spec *:not(#dws-auth-overlay):not(#dws-auth-overlay *):not(#dws-glass-pill):not(#dws-glass-pill *) {
+                animation-duration: 0.05s !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.05s !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+                backdrop-filter: none !important;
+                filter: none !important;
+            }
+            body.dws-low-spec img { image-rendering: optimizeSpeed !important; }
+        `;
+        document.head.appendChild(perfStyle);
+    }
     document.body.classList.add('dws-low-spec');
 
     const images = Array.from(document.querySelectorAll('img'));
@@ -276,47 +391,6 @@ function enableLowResourceMode(reason) {
     });
 
     staggerImageQueue();
-    updateMenuVisuals();
-}
-
-async function staggerImageQueue() {
-    while (pendingImageQueue.length > 0 && isLowResourceMode) {
-        const item = pendingImageQueue.shift();
-        if (item && item.el) {
-            item.el.src = item.src;
-            delete item.el.dataset.queuedSrc;
-        }
-        await sleep(150);
-    }
-}
-
-function disableLowResourceMode() {
-    isLowResourceMode = false;
-    isNormalModeForced = true;
-    setCookie(COOKIE_NAME, 'true', 365);
-    console.log("[Perf] Low Resource Mode DISABLED by user. Cookie saved.");
-
-    document.body.classList.remove('dws-low-spec');
-    const perfStyle = document.getElementById('dws-low-resource-styles');
-    if (perfStyle) perfStyle.remove();
-
-    const images = Array.from(document.querySelectorAll('img'));
-    images.forEach(img => {
-        img.decoding = 'auto';
-        img.loading = 'eager';
-        img.fetchPriority = 'auto';
-
-        if (img.dataset.queuedSrc) {
-            img.src = img.dataset.queuedSrc;
-            delete img.dataset.queuedSrc;
-        }
-        if (img.dataset.origSrcset) {
-            img.srcset = img.dataset.origSrcset;
-            delete img.dataset.origSrcset;
-        }
-    });
-
-    pendingImageQueue = [];
     updateMenuVisuals();
 }
 
