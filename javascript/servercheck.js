@@ -3,8 +3,9 @@
 (function () {
   const API_URL = "https://auth.teamexist.com/api/offlinestatus";
   const LOGO_PATH = "assets/logo.svg";
-  const APPEAR_DELAY_MS = 3000; // 3 seconds after page load
-  const FETCH_TIMEOUT_MS = 6000; // Fallback timeout if gateway hangs
+  const APPEAR_DELAY_MS = 3000;    // 3 seconds after page load
+  const CLOSE_BTN_DELAY_MS = 1000; // 1 second after widget appears
+  const FETCH_TIMEOUT_MS = 6000;   // Fallback timeout if gateway hangs
 
   const MESSAGES = {
     unreachable: {
@@ -38,7 +39,7 @@
         padding: 1.5rem;
         box-sizing: border-box;
         z-index: 999999;
-        pointer-events: all; /* Blocks all clicks to underlying elements */
+        pointer-events: all; /* Blocks clicks to underlying page */
         user-select: none;
         opacity: 0;
         transition: opacity 0.5s ease;
@@ -52,7 +53,7 @@
         position: relative;
         width: 100%;
         max-width: 480px;
-        padding: 2.5rem 2rem;
+        padding: 2.5rem 2rem 2rem;
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
@@ -113,6 +114,56 @@
         max-width: 38ch;
       }
 
+      .dws-status-close {
+        margin-top: 0.5rem;
+        padding: 0.65rem 2rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.45) 0%,
+          rgba(255, 255, 255, 0.15) 100%
+        );
+        box-shadow:
+          0 4px 16px rgba(0, 0, 0, 0.12),
+          inset 0 0 16px rgba(255, 255, 255, 0.15);
+        color: inherit;
+        font-family: inherit;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        opacity: 0;
+        transform: translateY(10px);
+        pointer-events: none; /* Disabled until 1s delay finishes */
+        transition:
+          opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+          transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+          background 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .dws-status-close.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+
+      .dws-status-close.is-visible:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.65) 0%,
+          rgba(255, 255, 255, 0.30) 100%
+        );
+        transform: translateY(-1px);
+        box-shadow:
+          0 6px 20px rgba(0, 0, 0, 0.18),
+          inset 0 0 20px rgba(255, 255, 255, 0.25);
+      }
+
+      .dws-status-close.is-visible:active {
+        transform: translateY(1px) scale(0.98);
+      }
+
       @media (prefers-color-scheme: dark) {
         .dws-status-overlay {
           background: rgba(0, 0, 0, 0.65);
@@ -126,6 +177,26 @@
           );
           border: 1px solid rgba(255, 255, 255, 0.08);
           color: #f5f5f7;
+        }
+
+        .dws-status-close {
+          background: linear-gradient(
+            135deg,
+            rgba(60, 60, 60, 0.65) 0%,
+            rgba(25, 25, 25, 0.45) 100%
+          );
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          box-shadow:
+            0 4px 16px rgba(0, 0, 0, 0.35),
+            inset 0 0 16px rgba(255, 255, 255, 0.05);
+        }
+
+        .dws-status-close.is-visible:hover {
+          background: linear-gradient(
+            135deg,
+            rgba(80, 80, 80, 0.75) 0%,
+            rgba(40, 40, 40, 0.55) 100%
+          );
         }
       }
     `;
@@ -142,7 +213,8 @@
 
     injectStyles();
 
-    // Prevent scrolling and keyboard interaction with background elements
+    // Save previous overflow state and lock background scrolling
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     if (document.activeElement && typeof document.activeElement.blur === "function") {
       document.activeElement.blur();
@@ -156,13 +228,11 @@
     overlay.setAttribute("aria-labelledby", "dws-status-title");
     overlay.setAttribute("aria-describedby", "dws-status-desc");
 
-    // Swallow click/touch/key events so underlying page cannot be interacted with
-    const blockEvent = (e) => {
-      e.stopPropagation();
-    };
-    overlay.addEventListener("click", blockEvent, true);
-    overlay.addEventListener("mousedown", blockEvent, true);
-    overlay.addEventListener("touchstart", blockEvent, true);
+    // Stop events from bubbling out of the overlay to the page behind it
+    const stopBubble = (e) => e.stopPropagation();
+    overlay.addEventListener("click", stopBubble);
+    overlay.addEventListener("mousedown", stopBubble);
+    overlay.addEventListener("touchstart", stopBubble);
 
     const widget = document.createElement("div");
     widget.className = "dws-status-widget";
@@ -182,16 +252,37 @@
     message.className = "dws-status-message";
     message.textContent = statusContent.body;
 
+    const closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "dws-status-close";
+    closeBtn.textContent = "Close";
+
+    // Smoothly dismisses the modal and restores page interaction
+    closeBtn.addEventListener("click", () => {
+      closeBtn.classList.remove("is-visible");
+      overlay.classList.remove("is-visible");
+      document.body.style.overflow = previousOverflow;
+
+      setTimeout(() => {
+        overlay.remove();
+      }, 600);
+    });
+
     widget.appendChild(logo);
     widget.appendChild(title);
     widget.appendChild(message);
+    widget.appendChild(closeBtn);
     overlay.appendChild(widget);
     document.body.appendChild(overlay);
 
-    // Trigger fade & slide-in on next animation frame
+    // Trigger widget fade & slide-in, then reveal close button 1 second later
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         overlay.classList.add("is-visible");
+
+        setTimeout(() => {
+          closeBtn.classList.add("is-visible");
+        }, CLOSE_BTN_DELAY_MS);
       });
     });
   }
